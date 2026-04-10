@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 
 // ─── STYLES ──────────────────────────────────────────────────────
 const css = `
@@ -135,11 +135,47 @@ pre{padding:18px 22px;font-size:.78rem;line-height:1.8;font-family:'Space Mono',
 .callout-tip{background:rgba(6,255,165,.06);border:1px solid rgba(6,255,165,.18)}
 .callout-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
 .callout-text{font-size:.83rem;color:var(--text2);line-height:1.7}
+/* ── STRINGS UI ── */
+.char-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:0;margin:10px 0 4px;padding-bottom:4px}
+.cg-cell{display:flex;flex-direction:column;align-items:center;min-width:36px}
+.cg-char{background:var(--bg3);border:1px solid var(--accent2);padding:8px 4px;font-family:'Space Mono',monospace;font-size:.85rem;font-weight:700;color:var(--text);width:100%;text-align:center;border-right:none}
+.cg-cell:last-child .cg-char{border-right:1px solid var(--accent2)}
+.cg-idx{font-size:.62rem;color:var(--text3);font-family:'Space Mono',monospace;margin-top:3px}
+.theorem-box{background:linear-gradient(135deg,rgba(124,92,252,.08),rgba(192,132,252,.05));border:1px solid rgba(124,92,252,.3);border-left:3px solid var(--accent);border-radius:10px;padding:14px 18px;margin-top:8px}
+.theorem-label{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.theorem-text{font-size:.85rem;color:var(--text2);line-height:1.8}
+.algo-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:6px;font-size:.7rem;font-weight:700;font-family:'Space Mono',monospace;margin:2px}
+.ab-kmp{background:rgba(255,92,92,.1);color:var(--red);border:1px solid rgba(255,92,92,.25)}
+.ab-z{background:rgba(255,209,102,.1);color:var(--yellow);border:1px solid rgba(255,209,102,.25)}
+.ab-rk{background:rgba(6,255,165,.1);color:var(--green);border:1px solid rgba(6,255,165,.25)}
+.ab-sa{background:rgba(124,92,252,.1);color:var(--accent);border:1px solid rgba(124,92,252,.25)}
+.constraint-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.cr-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;flex:1;min-width:160px}
+.cr-n{font-family:'Space Mono',monospace;font-size:.82rem;color:var(--accent2);font-weight:700;margin-bottom:4px}
+.cr-algo{font-size:.78rem;color:var(--text2);line-height:1.7}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+/* ── LINKED LIST UI ── */
+.ll-viz{display:flex;align-items:flex-end;flex-wrap:nowrap;overflow-x:auto;gap:0;margin:12px 0 4px;padding-bottom:4px}
+.ll-node{display:flex;align-items:flex-end;flex-shrink:0}
+.ll-wrap{display:flex;flex-direction:column;align-items:center}
+.ll-box{display:flex;flex-direction:column;border:1px solid var(--accent2);border-radius:6px;overflow:hidden;min-width:54px}
+.ll-data{background:var(--bg3);padding:8px 8px;font-family:'Space Mono',monospace;font-size:.82rem;font-weight:700;color:var(--text);text-align:center;border-bottom:1px solid var(--accent2)}
+.ll-next{background:var(--bg2);padding:5px 6px;font-family:'Space Mono',monospace;font-size:.6rem;color:var(--accent2);text-align:center}
+.ll-arrow{display:flex;align-items:center;padding:0 5px;color:var(--accent2);font-size:1rem;flex-shrink:0;margin-bottom:10px}
+.ll-null{display:flex;align-items:center;padding:0 8px;font-family:'Space Mono',monospace;font-size:.72rem;color:var(--red);font-weight:700;margin-bottom:10px}
+.ll-lbl{font-size:.62rem;color:var(--accent3);font-family:'Space Mono',monospace;text-align:center;margin-top:4px}
+.ll-head-lbl{font-size:.6rem;color:var(--accent);font-family:'Space Mono',monospace;font-weight:700;margin-bottom:3px;text-align:center}
+.op-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:6px;font-size:.7rem;font-weight:700;font-family:'Space Mono',monospace;margin:2px}
+.ob-o1{background:rgba(6,255,165,.1);color:var(--green);border:1px solid rgba(6,255,165,.25)}
+.ob-on{background:rgba(255,209,102,.1);color:var(--yellow);border:1px solid rgba(255,209,102,.25)}
+.ob-hard{background:rgba(255,92,92,.1);color:var(--red);border:1px solid rgba(255,92,92,.25)}
 @media(max-width:700px){
   .hero h1{font-size:1.9rem}.sidebar{display:none}.tcontent{padding:18px 16px}
-  .cxgrid,.pcgrid,.info-cards{grid-template-columns:1fr}.tgrid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
+  .cxgrid,.pcgrid,.info-cards,.two-col{grid-template-columns:1fr}.tgrid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
   .stats{gap:20px}
 }
+`;
+
 `;
 
 // ─── DATA ──────────────────────────────────────────────────────────
@@ -2222,7 +2258,698 @@ PATTERNS = {
       }
     }
   },
-  "Linked List": { icon: "🔗", diff: "easy", desc: "Dynamic node-based structure. Reversal, cycle detection, merge — interview staples.", subtopics: {} },
+  "Linked List": {
+    icon: "🔗", diff: "easy",
+    desc: "Dynamic node-based structure. O(1) head insert/delete. Reversal, cycle detection, slow-fast pointer — core interview topics.",
+    subtopics: {
+      "Basics & Node Structure": {
+        diff: "easy",
+        explanation: "A linked list is a linear data structure where elements (nodes) are stored non-contiguously in memory. Each node contains: (1) data — the value stored, and (2) next — a pointer to the next node. The list is accessed through a head pointer. The last node's next pointer is NULL, marking the end. This differs fundamentally from arrays: there is no address formula — you must traverse from head to reach any node. The LinkedList object holds only a reference to the first node called 'First' or 'head'.",
+        intuition: "Imagine a treasure hunt where each clue tells you where the next clue is. You can't jump to clue 5 directly — you must follow the chain. That's a linked list. The trade-off: no random access (O(n) to reach node k), but inserting/deleting at the head is O(1) — just update one pointer, no shifting.",
+        steps: [
+          "Create a Node: allocate memory, set node.data = value, set node.next = NULL.",
+          "Create a LinkedList: maintain a head pointer = first node.",
+          "Traverse: start at head, follow .next until NULL. Each step visits one node.",
+          "Access node k: traverse from head, advance k times. O(k) — no shortcut.",
+          "The last node's .next = NULL marks the end of the list.",
+          "Empty list: head = NULL."
+        ],
+        dryRun: `Node structure:
+  [ data | next ] → [ data | next ] → [ data | next ] → NULL
+
+Example: head → [10|→] → [20|→] → [30|→] → NULL
+
+Traverse from head:
+  temp = head        → temp.data = 10
+  temp = temp.next   → temp.data = 20
+  temp = temp.next   → temp.data = 30
+  temp = temp.next   → temp = NULL → STOP ✓
+
+Access node at index 2:
+  start at head (index 0)
+  step 1 → node 20 (index 1)
+  step 2 → node 30 (index 2) ✓  O(2) steps`,
+        time: { best: "O(1) head", avg: "O(n) traverse", worst: "O(n) access" },
+        space: "O(n)", stable: undefined,
+        when: "Use when frequent insertion/deletion at head or middle is needed and random access is NOT required. Prefer arrays when you need O(1) access by index.",
+        pros: ["O(1) insert/delete at head — no shifting", "Dynamic size — no pre-allocation needed", "Efficient memory use — no wasted slots", "Foundation for stacks, queues, graphs, hash chains"],
+        cons: ["O(n) access — no random access", "Extra memory for pointer in every node", "Cache-unfriendly — nodes scattered in memory", "No backward traversal in singly linked list"],
+        cpp: `// Linked List Node — C++
+struct Node {
+    int data;
+    Node* next;
+    Node(int val) : data(val), next(nullptr) {}
+};
+
+// Create a simple list: 10 → 20 → 30 → NULL
+Node* head = new Node(10);
+head->next = new Node(20);
+head->next->next = new Node(30);
+
+// Traversal — O(n)
+void printList(Node* head) {
+    Node* temp = head;
+    while (temp != nullptr) {
+        cout << temp->data;
+        if (temp->next) cout << " → ";
+        temp = temp->next;
+    }
+    cout << " → NULL" << endl;
+}
+
+// Insert at beginning — O(1) ← KEY ADVANTAGE
+void insertFirst(Node*& head, int val) {
+    Node* newNode = new Node(val);
+    newNode->next = head;  // point to old first
+    head = newNode;        // update head
+}
+
+// Delete head — O(1)
+void deleteFirst(Node*& head) {
+    if (!head) return;
+    Node* temp = head;
+    head = head->next;
+    delete temp;
+}`,
+        python: `# Linked List Node — Python
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None   # pointer to next node
+
+class LinkedList:
+    def __init__(self):
+        self.head = None   # start of list
+
+    # Traversal — O(n)
+    def print_list(self):
+        temp = self.head
+        while temp:
+            print(temp.data, end=" → ")
+            temp = temp.next
+        print("NULL")
+
+    # Insert at beginning — O(1)
+    def insert_first(self, val):
+        new_node = Node(val)
+        new_node.next = self.head  # point to old first
+        self.head = new_node       # update head
+
+    # Delete head — O(1)
+    def delete_first(self):
+        if not self.head: return
+        self.head = self.head.next`,
+        practice: [
+          { name: "Design Linked List", diff: "medium" },
+          { name: "Middle of the Linked List", diff: "easy" },
+          { name: "Convert Binary Number in LL to Integer", diff: "easy" }
+        ]
+      },
+      "Types of Linked Lists": {
+        diff: "easy",
+        explanation: "There are four main types: (1) Singly Linked List — each node has one next pointer, navigation is forward only. (2) Doubly Linked List — each node has both next and prev pointers; can be traversed both ways. Allows O(1) delete of a given node (if you have a pointer to it). (3) Circular Linked List — the last node's next points back to the head instead of NULL. Used in round-robin scheduling, music playlists. (4) Circular Doubly Linked List — both next and prev are circular.",
+        intuition: "Singly: a one-way street. Doubly: a two-way street — you can go back. Circular: a roundabout — the road loops back. Doubly linked lists are more powerful (O(1) delete with pointer, bidirectional traversal) but cost extra memory per node for the prev pointer.",
+        steps: [
+          "SINGLY: Node = {data, next}. head → A → B → C → NULL. Forward traversal only.",
+          "DOUBLY: Node = {prev, data, next}. NULL ← A ⇄ B ⇄ C → NULL. Bidirectional.",
+          "CIRCULAR: tail.next = head (not NULL). Traversal: stop when you reach head again.",
+          "CIRCULAR DOUBLY: tail.next = head AND head.prev = tail. No NULLs anywhere.",
+          "Insert in doubly: set new.next = head, head.prev = new, head = new. O(1).",
+          "Delete in doubly (with node pointer): temp.prev.next = temp.next; temp.next.prev = temp.prev. O(1)."
+        ],
+        dryRun: `SINGLY:
+head → [A|→] → [B|→] → [C|→] → NULL
+       forward only, no going back
+
+DOUBLY:
+NULL ← [←A→] ⇄ [←B→] ⇄ [←C→] → NULL
+       can go A→B→C or C→B→A
+
+CIRCULAR:
+[A|→] → [B|→] → [C|→]
+  ↑________________________|
+  last node points back to head ↺
+
+Delete node B from doubly list in O(1):
+  B.prev.next = B.next   (A.next = C)
+  B.next.prev = B.prev   (C.prev = A)
+  Result: NULL ← [←A→] ⇄ [←C→] → NULL ✓`,
+        time: { best: "O(1) insert head", avg: "O(n) search", worst: "O(n) access" },
+        space: "O(n) singly, O(2n) doubly", stable: undefined,
+        when: "Singly: default, minimal memory. Doubly: when you need backward traversal or O(1) delete. Circular: queues, round-robin, LRU cache. Doubly Circular: most flexible — used in complex data structures.",
+        pros: ["Doubly: O(1) delete with node pointer", "Circular: natural fit for cyclic applications", "Doubly: bidirectional traversal"],
+        cons: ["Doubly: 2× pointer memory per node", "Circular: traversal must check for cycle (no NULL sentinel)", "More complex to implement than singly"],
+        cpp: `// Doubly Linked List Node — C++
+struct DNode {
+    int data;
+    DNode* prev;
+    DNode* next;
+    DNode(int val): data(val), prev(nullptr), next(nullptr) {}
+};
+
+// Insert at beginning — O(1)
+void insertFirst(DNode*& head, int val) {
+    DNode* newNode = new DNode(val);
+    newNode->next = head;
+    if (head) head->prev = newNode;
+    head = newNode;
+}
+
+// Delete node (given pointer) — O(1) ← KEY ADVANTAGE
+void deleteNode(DNode*& head, DNode* target) {
+    if (target->prev) target->prev->next = target->next;
+    else head = target->next;  // deleting head
+    if (target->next) target->next->prev = target->prev;
+    delete target;
+}
+
+// Circular Linked List traversal
+void printCircular(Node* head) {
+    if (!head) return;
+    Node* temp = head;
+    do {
+        cout << temp->data << " → ";
+        temp = temp->next;
+    } while (temp != head);
+    cout << "(head)" << endl;
+}`,
+        python: `# Doubly Linked List — Python
+class DNode:
+    def __init__(self, data):
+        self.data = data
+        self.prev = None
+        self.next = None
+
+class DoublyLinkedList:
+    def __init__(self):
+        self.head = None
+
+    # Insert at beginning — O(1)
+    def insert_first(self, val):
+        new_node = DNode(val)
+        new_node.next = self.head
+        if self.head:
+            self.head.prev = new_node
+        self.head = new_node
+
+    # Delete node given pointer — O(1)
+    def delete_node(self, target):
+        if target.prev:
+            target.prev.next = target.next
+        else:
+            self.head = target.next   # deleting head
+        if target.next:
+            target.next.prev = target.prev
+
+# Circular LL traversal
+def print_circular(head):
+    if not head: return
+    temp = head
+    while True:
+        print(temp.data, end=" → ")
+        temp = temp.next
+        if temp == head:
+            break
+    print("(head)")`,
+        practice: [
+          { name: "Design Circular Queue", diff: "medium" },
+          { name: "LRU Cache (Doubly LL + HashMap)", diff: "medium" },
+          { name: "Flatten a Multilevel Doubly Linked List", diff: "medium" }
+        ]
+      },
+      "Core Operations": {
+        diff: "easy",
+        explanation: "The five core linked list operations from the tutorialspoint PDF: Insertion (at beginning, end, or position k), Deletion (of head, tail, or by value), Traversal/Navigation (follow next pointers until NULL), Search (traverse and compare), and Display (print all nodes). Insertion at the beginning is the signature O(1) operation. All other operations are O(n) because you must traverse to the target position.",
+        intuition: "All operations except head insert/delete require traversal to the right position first. There is no shortcut. Insertion: stop at position k-1, rewire two pointers. Deletion: stop at the node BEFORE the target, bypass it. This 'stop one before' pattern is the key technique in all LL operations.",
+        steps: [
+          "INSERT AT HEAD: newNode.next = head; head = newNode. O(1). Just two pointer updates.",
+          "INSERT AT END: traverse to last node (temp.next == NULL), then temp.next = newNode. O(n).",
+          "INSERT AT k: traverse to node k-1. newNode.next = temp.next; temp.next = newNode. O(k).",
+          "DELETE HEAD: head = head.next. O(1). Free old head.",
+          "DELETE LAST: traverse to node before last (temp.next.next == NULL), then temp.next = NULL. O(n).",
+          "DELETE BY VALUE: traverse until temp.next.data == val, then temp.next = temp.next.next. O(n).",
+          "SEARCH: traverse, compare each node's data with target. O(n)."
+        ],
+        dryRun: `── INSERT 25 at position 2 in [10→20→30→40] ──────────────
+Start: head→[10]→[20]→[30]→[40]→NULL
+
+traverse to index 1 (k-1=1): temp = node(20)
+  newNode(25).next = temp.next = node(30)
+  temp.next = newNode(25)
+
+Result: head→[10]→[20]→[25]→[30]→[40]→NULL ✓
+
+── DELETE node with value 30 ──────────────────────────
+traverse until temp.next.data == 30: temp = node(20)
+  temp.next = temp.next.next = node(40)
+
+Result: head→[10]→[20]→[40]→NULL ✓  (node 30 bypassed)
+
+── NAVIGATION (from tutorialspoint PDF) ───────────────
+current = head (= First)
+while current != NULL:
+    display current.data
+    current = current.next  ← advance to Next Link`,
+        time: { best: "O(1) head ops", avg: "O(n)", worst: "O(n)" },
+        space: "O(1) extra", stable: undefined,
+        when: "Prefer LL insert/delete at head when building stacks or queues. For arbitrary position operations, arrays are faster if index is known.",
+        pros: ["O(1) insert/delete at head — no shifting", "Insertion in middle only needs pointer rewiring (not shifting)", "Delete a node in doubly LL is O(1) if you have its pointer"],
+        cons: ["O(n) for all other operations", "No O(1) random access by index", "Must traverse to find position before operating"],
+        cpp: `// Core Operations — C++ (from notes + tutorialspoint)
+
+// Insert at beginning — O(1)
+void insertFirst(Node*& head, int val) {
+    Node* link = new Node(val);
+    link->next = head;   // point to old first
+    head = link;         // update head
+}
+
+// Delete at beginning — O(1)
+Node* deleteFirst(Node*& head) {
+    Node* tempLink = head;
+    head = head->next;   // mark next as first
+    return tempLink;     // return deleted link
+}
+
+// Insert at position k (1-indexed) — O(k)
+void insertAt(Node*& head, int val, int k) {
+    if (k == 1) { insertFirst(head, val); return; }
+    Node* temp = head;
+    for (int i = 1; i < k-1 && temp; i++)
+        temp = temp->next;
+    if (!temp) return;   // out of bounds
+    Node* newNode = new Node(val);
+    newNode->next = temp->next;
+    temp->next = newNode;
+}
+
+// Delete by value — O(n)
+void deleteByVal(Node*& head, int val) {
+    if (!head) return;
+    if (head->data == val) { deleteFirst(head); return; }
+    Node* temp = head;
+    while (temp->next && temp->next->data != val)
+        temp = temp->next;
+    if (temp->next)
+        temp->next = temp->next->next;
+}`,
+        python: `# Core Operations — Python
+
+class LinkedList:
+    def __init__(self): self.head = None
+
+    # Insert at beginning — O(1)
+    def insert_first(self, val):
+        node = Node(val)
+        node.next = self.head
+        self.head = node
+
+    # Insert at end — O(n)
+    def insert_end(self, val):
+        node = Node(val)
+        if not self.head:
+            self.head = node; return
+        temp = self.head
+        while temp.next: temp = temp.next
+        temp.next = node
+
+    # Insert at position k (0-indexed) — O(k)
+    def insert_at(self, val, k):
+        if k == 0: self.insert_first(val); return
+        temp = self.head
+        for _ in range(k - 1):
+            if not temp: return   # out of bounds
+            temp = temp.next
+        node = Node(val)
+        node.next = temp.next
+        temp.next = node
+
+    # Delete by value — O(n)
+    def delete_by_val(self, val):
+        if not self.head: return
+        if self.head.data == val:
+            self.head = self.head.next; return
+        temp = self.head
+        while temp.next and temp.next.data != val:
+            temp = temp.next
+        if temp.next:
+            temp.next = temp.next.next`,
+        practice: [
+          { name: "Remove Linked List Elements", diff: "easy" },
+          { name: "Delete Node in a Linked List", diff: "medium" },
+          { name: "Insert into a Sorted Circular Linked List", diff: "medium" }
+        ]
+      },
+      "Slow-Fast Pointer": {
+        diff: "medium",
+        explanation: "The slow-fast pointer (or tortoise-and-hare) technique uses two pointers moving at different speeds through the list. The slow pointer advances one step at a time; the fast pointer advances two steps. This asymmetry lets you find the middle in one pass and detect cycles without extra space. It is the most important linked list technique for interviews.",
+        intuition: "If you and a friend run laps on a circular track — you at walking speed, they at double speed — they will always lap you. That's Floyd's cycle detection. For finding the middle: when the hare reaches the end, the tortoise is exactly halfway. These are both O(n) time, O(1) space — elegant and optimal.",
+        steps: [
+          "FIND MIDDLE: slow=head, fast=head. Loop while fast and fast.next: slow=slow.next, fast=fast.next.next. When fast reaches end, slow is at middle.",
+          "DETECT CYCLE (Floyd's): same movement. If slow==fast at any point, cycle exists. Return True.",
+          "FIND CYCLE START: after detection (slow==fast), move one pointer to head. Then advance both one step at a time. They meet at the cycle start.",
+          "Even-length list: slow ends up at the second middle node. Use fast!=NULL && fast.next!=NULL as loop condition.",
+          "Odd-length list: slow ends exactly at the middle node."
+        ],
+        dryRun: `── FIND MIDDLE: [1→2→3→4→5] ────────────────────────────
+Init: slow=1, fast=1
+Step 1: slow=2, fast=3
+Step 2: slow=3, fast=5
+fast.next = NULL → STOP
+Middle = slow = node(3) ✓
+
+── DETECT CYCLE: [1→2→3→4→2 (cycle)] ───────────────────
+Init: slow=1, fast=1
+Step 1: slow=2, fast=3
+Step 2: slow=3, fast=2  (fast looped around)
+Step 3: slow=4, fast=4  ← slow == fast → CYCLE DETECTED ✓
+
+── FIND CYCLE START ──────────────────────────────────────
+After detection: slow=fast=meeting point
+Move slow back to head, keep fast at meeting point
+Both advance 1 step:
+  slow: 1→2→3→4→...
+  fast: meeting_point→...
+They meet at: cycle start node ✓`,
+        time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
+        space: "O(1)", stable: undefined,
+        when: "Finding middle → slow-fast. Detecting cycle → Floyd's. Nth from end → two pointers n apart. Checking palindrome LL → find middle + reverse second half.",
+        pros: ["O(1) space — no extra data structure needed", "O(n) time — single pass", "Works for any linked list without modification"],
+        cons: ["Finding cycle START requires an extra pass", "Off-by-one with even-length lists — be careful with loop condition"],
+        cpp: `// Slow-Fast Pointer — C++
+
+// Find Middle — O(n), O(1)
+Node* findMiddle(Node* head) {
+    Node* slow = head;
+    Node* fast = head;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    return slow; // middle node
+}
+
+// Detect Cycle — Floyd's Algorithm, O(n), O(1)
+bool hasCycle(Node* head) {
+    Node* slow = head;
+    Node* fast = head;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+        if (slow == fast) return true; // cycle!
+    }
+    return false;
+}
+
+// Find Cycle Start — O(n), O(1)
+Node* cycleStart(Node* head) {
+    Node* slow = head, *fast = head;
+    // Phase 1: detect cycle
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+        if (slow == fast) break;
+    }
+    if (!fast || !fast->next) return nullptr; // no cycle
+    // Phase 2: find entry point
+    slow = head;
+    while (slow != fast) {
+        slow = slow->next;
+        fast = fast->next;
+    }
+    return slow; // cycle start
+}`,
+        python: `# Slow-Fast Pointer — Python
+
+# Find Middle — O(n), O(1)
+def find_middle(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    return slow  # middle node
+
+# Detect Cycle — Floyd's, O(n), O(1)
+def has_cycle(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow is fast:
+            return True   # cycle detected!
+    return False
+
+# Find Cycle Start — O(n), O(1)
+def cycle_start(head):
+    slow = fast = head
+    # Phase 1: detect
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow is fast: break
+    else:
+        return None  # no cycle
+    # Phase 2: find entry
+    slow = head
+    while slow is not fast:
+        slow = slow.next
+        fast = fast.next
+    return slow  # cycle start node`,
+        practice: [
+          { name: "Linked List Cycle", diff: "easy" },
+          { name: "Linked List Cycle II (find start)", diff: "medium" },
+          { name: "Middle of the Linked List", diff: "easy" },
+          { name: "Happy Number (cycle in sequence)", diff: "easy" }
+        ]
+      },
+      "Reverse & Classic Algorithms": {
+        diff: "medium",
+        explanation: "Reversing a linked list is the #1 most asked linked list interview question. The iterative approach uses three pointers (prev, curr, next) to reverse pointer directions one node at a time — O(n) time, O(1) space. Recursion reverses naturally but uses O(n) stack space. Two other classics: Merge Two Sorted Lists (merge-sort style with a dummy head node) and Remove Nth Node from End (two-pointer gap technique).",
+        intuition: "Reversal: at each step, make curr.next point backward (to prev) instead of forward. Save next before destroying it. The three-pointer dance: save→flip→advance. Merge two sorted lists: the dummy node trick avoids special-casing the first node. Nth from end: move fast pointer n steps ahead, then both pointers until fast reaches end — slow is at the node before the target.",
+        steps: [
+          "REVERSE ITERATIVE: prev=NULL, curr=head. Loop: next=curr.next, curr.next=prev, prev=curr, curr=next. After loop: head=prev.",
+          "REVERSE RECURSIVE: base case curr==NULL or curr.next==NULL, return curr. Recurse on curr.next. Make curr.next.next=curr, curr.next=NULL.",
+          "MERGE SORTED: dummy node as sentinel. tail=dummy. Compare l1.data vs l2.data, attach smaller, advance. Append remaining. Return dummy.next.",
+          "REMOVE NTH FROM END: move fast n steps. If fast==NULL, delete head. Move both until fast.next==NULL. slow.next = slow.next.next.",
+          "PALINDROME CHECK: find middle → reverse second half → compare both halves from outside in → restore (optional)."
+        ],
+        dryRun: `── REVERSE [1→2→3→4→5] ────────────────────────────────
+prev=NULL, curr=1
+Step 1: next=2, 1.next=NULL, prev=1, curr=2  → [NULL←1] [2→3→4→5]
+Step 2: next=3, 2.next=1,   prev=2, curr=3  → [NULL←1←2] [3→4→5]
+Step 3: next=4, 3.next=2,   prev=3, curr=4  → [NULL←1←2←3] [4→5]
+Step 4: next=5, 4.next=3,   prev=4, curr=5
+Step 5: next=NULL, 5.next=4, prev=5, curr=NULL → DONE
+head = prev = 5
+Result: 5→4→3→2→1→NULL ✓
+
+── MERGE [1→3→5] and [2→4→6] ──────────────────────────
+dummy → tail
+1<2: tail→1, l1=3      → dummy→1
+3>2: tail→2, l2=4      → dummy→1→2
+3<4: tail→3, l1=5      → dummy→1→2→3
+5>4: tail→4, l2=6      → dummy→1→2→3→4
+5<6: tail→5, l1=NULL   → dummy→1→2→3→4→5
+l2 remaining: tail→6   → dummy→1→2→3→4→5→6 ✓`,
+        time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
+        space: "O(1) iterative, O(n) recursive", stable: undefined,
+        when: "Reverse: always iterative in interviews (O(1) space). Merge: used as subroutine in Merge Sort on linked lists. Palindrome: the reverse-second-half trick is the optimal O(n)/O(1) approach.",
+        pros: ["Iterative reverse is O(1) space", "Three-pointer pattern is universally applicable", "Dummy node in merge avoids edge-case code"],
+        cons: ["Recursive reverse uses O(n) stack — avoid for large lists", "Palindrome check destroys original list unless you restore second half", "K-group reverse is significantly more complex"],
+        cpp: `// Reverse & Classics — C++
+
+// Reverse Linked List — O(n), O(1)  ← MUST KNOW
+void reverse(Node** head) {
+    Node* prev = nullptr;
+    Node* curr = *head;
+    while (curr) {
+        Node* next = curr->next;  // save next
+        curr->next = prev;        // flip pointer
+        prev = curr;              // advance prev
+        curr = next;              // advance curr
+    }
+    *head = prev;  // new head is last node
+}
+
+// Merge Two Sorted Lists — O(n+m), O(1)
+Node* mergeSorted(Node* l1, Node* l2) {
+    Node dummy(-1);             // sentinel head
+    Node* tail = &dummy;
+    while (l1 && l2) {
+        if (l1->data <= l2->data) {
+            tail->next = l1; l1 = l1->next;
+        } else {
+            tail->next = l2; l2 = l2->next;
+        }
+        tail = tail->next;
+    }
+    tail->next = l1 ? l1 : l2; // append remaining
+    return dummy.next;
+}
+
+// Remove Nth from End — O(n), O(1)
+Node* removeNth(Node* head, int n) {
+    Node dummy(0); dummy.next = head;
+    Node* fast = &dummy, *slow = &dummy;
+    for (int i = 0; i <= n; i++) fast = fast->next;
+    while (fast) { fast = fast->next; slow = slow->next; }
+    slow->next = slow->next->next;
+    return dummy.next;
+}`,
+        python: `# Reverse & Classics — Python
+
+# Reverse Linked List — O(n), O(1)
+def reverse_list(head):
+    prev = None
+    curr = head
+    while curr:
+        next_node = curr.next  # save next
+        curr.next = prev       # flip pointer
+        prev = curr            # advance prev
+        curr = next_node       # advance curr
+    return prev  # new head
+
+# Merge Two Sorted Lists — O(n+m), O(1)
+def merge_sorted(l1, l2):
+    dummy = Node(-1)           # sentinel head
+    tail = dummy
+    while l1 and l2:
+        if l1.data <= l2.data:
+            tail.next = l1; l1 = l1.next
+        else:
+            tail.next = l2; l2 = l2.next
+        tail = tail.next
+    tail.next = l1 or l2       # append remaining
+    return dummy.next
+
+# Remove Nth from End — O(n), O(1)
+def remove_nth(head, n):
+    dummy = Node(0); dummy.next = head
+    fast = slow = dummy
+    for _ in range(n + 1): fast = fast.next
+    while fast:
+        fast = fast.next
+        slow = slow.next
+    slow.next = slow.next.next
+    return dummy.next`,
+        practice: [
+          { name: "Reverse Linked List", diff: "easy" },
+          { name: "Reverse Linked List II (sublist)", diff: "medium" },
+          { name: "Merge Two Sorted Lists", diff: "easy" },
+          { name: "Remove Nth Node From End", diff: "medium" },
+          { name: "Palindrome Linked List", diff: "easy" },
+          { name: "Reverse Nodes in K-Group", diff: "hard" }
+        ]
+      },
+      "Complexity & Interview Guide": {
+        diff: "easy",
+        explanation: "Complete complexity reference for all linked list operations and a curated must-know problem list for interviews. Linked lists appear in nearly every technical interview — master these 7 problems and you cover ~90% of what gets asked. The dummy node pattern, two-pointer gap, and slow-fast are the three core tricks.",
+        intuition: "Linked list interviews test pointer manipulation, not algorithmic complexity. The difficulty is in getting the pointer updates right without losing nodes. Always draw the list, label pointers before and after, then code. Use dummy nodes to avoid edge-case handling for head operations.",
+        steps: [
+          "Access: O(n) — must traverse from head. No formula.",
+          "Search: O(n) — scan all nodes.",
+          "Insert at head: O(1) — two pointer updates.",
+          "Insert at end/position: O(n) — traverse first.",
+          "Delete head: O(1). Delete other: O(n).",
+          "INTERVIEW TRICK: always ask 'do I need to handle empty list? single node? two nodes?' — these are the common edge cases."
+        ],
+        dryRun: `Operation      | Time  | Space | Notes
+───────────────┼───────┼───────┼────────────────────────
+Access (index) | O(n)  | O(1)  | Must traverse
+Search         | O(n)  | O(1)  | Scan each node
+Insert (head)  | O(1)  | O(1)  | Signature advantage
+Insert (end)   | O(n)  | O(1)  | Traverse to tail
+Insert (mid)   | O(n)  | O(1)  | Traverse to position
+Delete (head)  | O(1)  | O(1)  | Just update head
+Delete (end)   | O(n)  | O(1)  | Traverse to 2nd last
+Delete (mid)   | O(n)  | O(1)  | Traverse to prev node
+Reverse        | O(n)  | O(1)  | 3-pointer iterative
+Detect cycle   | O(n)  | O(1)  | Floyd's algorithm
+Find middle    | O(n)  | O(1)  | Slow-fast pointer
+
+Interview Edge Cases:
+  ✓ head = NULL (empty list)
+  ✓ Single node list
+  ✓ Two node list
+  ✓ k > length (remove nth from end)
+  ✓ All same values`,
+        time: { best: "O(1) head ops", avg: "O(n)", worst: "O(n)" },
+        space: "O(1) most ops", stable: undefined,
+        when: "Use this as your interview quick-reference. Draw the list before coding. Use dummy nodes for cleaner code. Always check for NULL before dereferencing.",
+        pros: ["O(1) head insert/delete — no shifting like arrays", "Dynamic size — grows as needed", "Efficient for stacks, queues, adjacency lists"],
+        cons: ["No O(1) random access — must traverse", "Cache unfriendly — scattered memory", "Extra memory for pointer fields"],
+        cpp: `// Interview Patterns Quick Reference — C++
+
+// PATTERN 1: Dummy head node (avoids edge cases)
+Node dummy(0);
+dummy.next = head;
+Node* tail = &dummy;
+// ... build result list by modifying tail->next
+return dummy.next;
+
+// PATTERN 2: Two pointers with gap of n
+Node* fast = head, *slow = head;
+for (int i = 0; i < n; i++) fast = fast->next;
+while (fast->next) { fast = fast->next; slow = slow->next; }
+// slow is now n steps behind fast
+
+// PATTERN 3: Intersection of two lists
+// Two pointers switch lists when they hit NULL
+Node* a = headA, *b = headB;
+while (a != b) {
+    a = a ? a->next : headB;
+    b = b ? b->next : headA;
+}
+return a; // intersection node (or NULL)
+
+// PATTERN 4: Always check NULL before ->next
+while (temp && temp->next) { // NOT while(temp->next)
+    // safe to access temp->next->next
+}`,
+        python: `# Interview Patterns — Python
+
+# PATTERN 1: Dummy head
+dummy = Node(0)
+dummy.next = head
+tail = dummy
+# build result... return dummy.next
+
+# PATTERN 2: Two pointers with gap of n
+fast = slow = head
+for _ in range(n):
+    fast = fast.next
+while fast.next:   # stop when fast is at last node
+    fast = fast.next
+    slow = slow.next
+# slow.next is the nth from end
+
+# PATTERN 3: Intersection (switch on None)
+a, b = head_a, head_b
+while a is not b:
+    a = a.next if a else head_b
+    b = b.next if b else head_a
+# a is intersection node or None
+
+# PATTERN 4: Safe traversal check
+temp = head
+while temp and temp.next:   # check both!
+    # access temp.next safely
+    temp = temp.next
+
+# Common edge cases to always check:
+# if not head: return None / return head
+# if not head.next: return head  (single node)`,
+        practice: [
+          { name: "Reverse Linked List", diff: "easy" },
+          { name: "Linked List Cycle II", diff: "medium" },
+          { name: "Intersection of Two Linked Lists", diff: "easy" },
+          { name: "Sort List (Merge Sort on LL)", diff: "medium" },
+          { name: "Reorder List", diff: "medium" },
+          { name: "Copy List with Random Pointer", diff: "medium" }
+        ]
+      }
+    }
+  },
   Stack: { icon: "📚", diff: "easy", desc: "LIFO. Powers recursion, expression parsing, monotonic stack problems.", subtopics: {} },
   Queue: { icon: "🎫", diff: "easy", desc: "FIFO. BFS, task scheduling, sliding window maximum.", subtopics: {} },
   Recursion: { icon: "🔄", diff: "medium", desc: "Self-reference. The mental model behind trees, graphs, and DP.", subtopics: {} },
@@ -2240,211 +2967,252 @@ PATTERNS = {
 
 // ─── SYNTAX HIGHLIGHTER ───────────────────────────────────────────
 function highlight(code, lang) {
-  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const esc = (s) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   let h = esc(code);
   if (lang === "cpp") {
-    h = h.replace(/(\/\/.*)/g, '<span class="cm">$1</span>');
-    h = h.replace(/\b(void|int|bool|auto|return|if|else|while|for|vector|swap|break|true|false|size_t)\b/g, '<span class="kw">$1</span>');
-    h = h.replace(/\b([A-Za-z_]\w*)\s*(?=\()/g, '<span class="fn">$1</span>');
-    h = h.replace(/\b(\d+)\b/g, '<span class="num">$1</span>');
+    h = h.replace(/(\/\/.*)/g,'<span class="cm">$1</span>');
+    h = h.replace(/\b(void|int|bool|auto|return|if|else|while|for|vector|swap|break|true|false|size_t|struct|nullptr|new|delete|string|using|namespace|std|include|cout|endl)\b/g,'<span class="kw">$1</span>');
+    h = h.replace(/\b([A-Za-z_]\w*)\s*(?=\()/g,'<span class="fn">$1</span>');
+    h = h.replace(/\b(\d+)\b/g,'<span class="num">$1</span>');
   } else {
-    h = h.replace(/(#.*)/g, '<span class="cm">$1</span>');
-    h = h.replace(/\b(def|return|if|else|elif|while|for|import|in|range|len|not|and|or|True|False|None)\b/g, '<span class="kw">$1</span>');
-    h = h.replace(/\b([a-z_]\w*)\s*(?=\()/g, '<span class="fn">$1</span>');
-    h = h.replace(/\b(\d+)\b/g, '<span class="num">$1</span>');
+    h = h.replace(/(#.*)/g,'<span class="cm">$1</span>');
+    h = h.replace(/\b(def|return|if|else|elif|while|for|import|in|range|len|not|and|or|True|False|None|class|self|from|pass|break|continue|lambda|with|as)\b/g,'<span class="kw">$1</span>');
+    h = h.replace(/\b([a-z_]\w*)\s*(?=\()/g,'<span class="fn">$1</span>');
+    h = h.replace(/\b(\d+)\b/g,'<span class="num">$1</span>');
   }
   return h;
 }
 
-// ─── SMALL COMPONENTS ────────────────────────────────────────────
+// ─── TAG ─────────────────────────────────────────────────────────
 function Tag({ diff }) {
   const cls = diff === "easy" ? "tag te" : diff === "medium" ? "tag tm" : "tag th";
   return <span className={cls}>{diff}</span>;
 }
 
+// ─── CODE BLOCK ───────────────────────────────────────────────────
 function CodeBlock({ cpp, python }) {
   const [lang, setLang] = useState("cpp");
   return (
     <div>
       <div className="code-tabs">
-        <button className={`ctab${lang === "cpp" ? " active" : ""}`} onClick={() => setLang("cpp")}>C++</button>
-        <button className={`ctab${lang === "python" ? " active" : ""}`} onClick={() => setLang("python")}>Python</button>
+        <button className={`ctab${lang==="cpp"?" active":""}`} onClick={()=>setLang("cpp")}>C++</button>
+        <button className={`ctab${lang==="python"?" active":""}`} onClick={()=>setLang("python")}>Python</button>
       </div>
       <div className="cblock">
-        <pre dangerouslySetInnerHTML={{ __html: highlight(lang === "cpp" ? cpp : python, lang) }} />
+        <pre dangerouslySetInnerHTML={{__html:highlight(lang==="cpp"?cpp:python,lang)}}/>
       </div>
     </div>
   );
 }
 
-// ─── MEMORY VISUALIZER ──────────────────────────────────────────
-function MemViz({ arr, base = 1000, size = 4 }) {
+// ─── MEM VIZ ─────────────────────────────────────────────────────
+function MemViz({ arr, base=1000, size=4 }) {
   return (
-    <div style={{ marginTop: 8 }}>
+    <div style={{marginTop:8}}>
       <div className="mem-viz">
-        {arr.map((v, i) => (
+        {arr.map((v,i)=>(
           <div className="mem-cell" key={i}>
-            <div className="mc-val" style={{ borderRight: i === arr.length - 1 ? "1px solid var(--accent)" : "none" }}>{v}</div>
+            <div className="mc-val" style={{borderRight:i===arr.length-1?"1px solid var(--accent)":"none"}}>{v}</div>
             <div className="mc-idx">[{i}]</div>
-            <div className="mc-addr">{base + i * size}</div>
+            <div className="mc-addr">{base+i*size}</div>
           </div>
         ))}
       </div>
-      <div style={{ fontSize: ".68rem", color: "var(--text3)", fontFamily: "'Space Mono',monospace", marginTop: 2 }}>
-        index ↑ &nbsp;&nbsp; address ↑ &nbsp;(base={base}, size={size}B)
+      <div style={{fontSize:".68rem",color:"var(--text3)",fontFamily:"'Space Mono',monospace",marginTop:2}}>
+        index ↑ &nbsp; address ↑ &nbsp;(base={base}, size={size}B)
       </div>
     </div>
   );
 }
 
-// ─── SUBTOPIC VIEW ───────────────────────────────────────────────
+// ─── NODE VIZ ────────────────────────────────────────────────────
+function NodeViz({ nodes, showHead=true, highlight={} }) {
+  return (
+    <div className="ll-viz">
+      {nodes.map((n,i)=>(
+        <div className="ll-node" key={i}>
+          <div className="ll-wrap">
+            {showHead&&i===0?<div className="ll-head-lbl">head</div>:<div style={{height:18}}/>}
+            <div className="ll-box" style={highlight[i]?{borderColor:highlight[i]}:{}}>
+              <div className="ll-data" style={highlight[i]?{color:highlight[i]}:{}}>{n.val}</div>
+              <div className="ll-next">{i<nodes.length-1?"next →":"next"}</div>
+            </div>
+            {n.label&&<div className="ll-lbl">{n.label}</div>}
+          </div>
+          {i<nodes.length-1&&<div className="ll-arrow">→</div>}
+          {i===nodes.length-1&&<div className="ll-null">→ NULL</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── CHAR GRID ───────────────────────────────────────────────────
+function CharGrid({ str, highlights={} }) {
+  return (
+    <div className="char-grid">
+      {str.split("").map((c,i)=>(
+        <div className="cg-cell" key={i}>
+          <div className="cg-char" style={highlights[i]?{background:highlights[i],borderColor:highlights[i],color:"#fff"}:{}}>
+            {c===" "?"·":c}
+          </div>
+          <div className="cg-idx">{i}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
+// ─── SUBTOPIC VIEW ────────────────────────────────────────────────
 function SubtopicView({ data, name }) {
   if (!data || Object.keys(data).length === 0)
     return (
       <div className="empty">
         <div className="eicon">🚧</div>
         <div className="etitle">Coming Soon</div>
-        <div className="esub">This subtopic is being prepared. Check back soon!</div>
+        <div className="esub">This topic is being prepared. Check back soon!</div>
       </div>
     );
 
-  const dryRunHtml = data.dryRun
-    .replace(/✓/g, '<span class="hl">✓</span>')
-    .replace(/→/g, '<span style="color:var(--accent2)">→</span>')
-    .replace(/⚠/g, '<span style="color:var(--yellow)">⚠</span>');
+  const dryRunHtml = (data.dryRun || "")
+    .replace(/✓/g,'<span class="hl">✓</span>')
+    .replace(/→/g,'<span style="color:var(--accent2)">→</span>')
+    .replace(/⚠/g,'<span style="color:var(--yellow)">⚠</span>');
 
-  // Arrays-specific extras
-  const isArrayIntro = name === "Introduction & Memory";
-  const isPatterns = name === "Key Patterns";
-  const isComplexity = name === "Complexity & Edge Cases";
+  const is = (n) => name === n;
 
-  // Strings-specific extras
-  const isStringBasics = name === "Basics & Representations";
-  const isCoreTech = name === "Core Techniques";
-  const isPatternMatching = name === "Pattern Matching Algorithms";
-  const isStrAdvanced = name === "Advanced Structures";
-  const isConstraints = name === "Constraints & Strategy";
   return (
-    <div key={name} style={{ animation: "fadeIn .28s ease" }}>
+    <div key={name} style={{animation:"fadeIn .28s ease"}}>
+
+      {/* ── TITLE ROW ── */}
       <div className="ctitle">{name}</div>
       <div className="drow">
-        <Tag diff={data.diff} />
-        {data.stable !== undefined && (
-          <span style={{ fontSize: ".72rem", color: "var(--text3)", background: "var(--bg3)", padding: "2px 10px", borderRadius: 20 }}>
-            {data.stable ? "✓ Stable" : "✗ Unstable"}
+        <Tag diff={data.diff}/>
+        {data.stable!==undefined&&(
+          <span style={{fontSize:".72rem",color:"var(--text3)",background:"var(--bg3)",padding:"2px 10px",borderRadius:20}}>
+            {data.stable?"✓ Stable":"✗ Unstable"}
           </span>
         )}
         <span className="lang-badge lb-cpp">C++</span>
         <span className="lang-badge lb-py">Python</span>
       </div>
 
-      {/* Arrays: memory diagram */}
-      {isArrayIntro && (
+      {/* ── ARRAYS: memory diagram ── */}
+      {is("Introduction & Memory")&&(
         <div className="sec">
           <div className="stitle">Memory Layout</div>
-          <div className="prose" style={{ marginBottom: 8 }}>How <code style={{ background: "var(--bg3)", padding: "1px 6px", borderRadius: 4, fontFamily: "'Space Mono',monospace", fontSize: ".82rem" }}>arr = [10, 20, 30, 40]</code> looks in memory:</div>
-          <MemViz arr={[10, 20, 30, 40]} />
-          <div className="callout callout-tip" style={{ marginTop: 12 }}>
+          <div className="prose" style={{marginBottom:8}}>
+            How <code style={{background:"var(--bg3)",padding:"1px 6px",borderRadius:4,fontFamily:"'Space Mono',monospace",fontSize:".82rem"}}>arr=[10,20,30,40]</code> lives in memory:
+          </div>
+          <MemViz arr={[10,20,30,40]}/>
+          <div className="callout callout-tip" style={{marginTop:12}}>
             <span className="callout-icon">💡</span>
-            <div className="callout-text"><strong>Why O(1) access?</strong> The CPU doesn't iterate — it computes the address directly: <code style={{ fontFamily: "'Space Mono',monospace" }}>1000 + (2 × 4) = 1008</code>. No loops, no traversal.</div>
+            <div className="callout-text"><strong>Why O(1) access?</strong> CPU computes address directly: <code style={{fontFamily:"'Space Mono',monospace"}}>1000+(2×4)=1008</code>. No loops needed.</div>
           </div>
         </div>
       )}
 
-      {/* Key Patterns: pill overview */}
-      {isPatterns && (
+      {/* ── ARRAYS: key patterns ── */}
+      {is("Key Patterns")&&(
         <div className="sec">
           <div className="stitle">Pattern Toolkit</div>
           <div className="pattern-pills">
-            {["Prefix Sum","Sliding Window","Two Pointers","Kadane's Algorithm","Dutch National Flag","Binary Search"].map(p => (
+            {["Prefix Sum","Sliding Window","Two Pointers","Kadane's Algorithm","Dutch National Flag","Binary Search"].map(p=>(
               <div className="ppill" key={p}>{p}</div>
             ))}
           </div>
-          <div className="callout callout-warn" style={{ marginTop: 12 }}>
+          <div className="callout callout-warn" style={{marginTop:12}}>
             <span className="callout-icon">⚡</span>
             <div className="callout-text"><strong>Interview tip:</strong> ~80% of array problems use one of these 6 patterns. Identifying the pattern in the first 2 minutes is the key skill.</div>
           </div>
         </div>
       )}
 
-      {/* Complexity: quick-ref table */}
-      {isComplexity && (
+      {/* ── ARRAYS: complexity table ── */}
+      {is("Complexity & Edge Cases")&&(
         <div className="sec">
           <div className="stitle">Quick Reference Table</div>
           <table className="fn-table">
-            <thead><tr><th>Operation</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th></tr></thead>
+            <thead><tr><th>Operation</th><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th></tr></thead>
             <tbody>
-              {[
-                ["Access arr[i]","O(1)","O(1)","O(1)","O(1)","g","g","g","g"],
+              {[["Access arr[i]","O(1)","O(1)","O(1)","O(1)","g","g","g","g"],
                 ["Search (linear)","O(1)","O(n)","O(n)","O(1)","g","y","y","g"],
-                ["Insert (middle)","O(n)","O(n)","O(n)","O(1)","y","y","y","g"],
-                ["Delete (middle)","O(n)","O(n)","O(n)","O(1)","y","y","y","g"],
+                ["Insert (mid)","O(n)","O(n)","O(n)","O(1)","y","y","y","g"],
+                ["Delete (mid)","O(n)","O(n)","O(n)","O(1)","y","y","y","g"],
                 ["Append (dynamic)","O(1)","O(1)*","O(n)","O(1)","g","g","y","g"],
                 ["Binary Search","O(1)","O(log n)","O(log n)","O(1)","g","g","g","g"],
-              ].map(([op,b,avg,w,sp,cb,ca,cw,cs]) => (
+              ].map(([op,b,av,w,sp,cb,ca,cw,cs])=>(
                 <tr key={op}>
                   <td className="op">{op}</td>
                   <td className={`cx-${cb}`}>{b}</td>
-                  <td className={`cx-${ca}`}>{avg}</td>
+                  <td className={`cx-${ca}`}>{av}</td>
                   <td className={`cx-${cw}`}>{w}</td>
                   <td className={`cx-${cs}`}>{sp}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div style={{fontSize:".68rem",color:"var(--text3)",marginTop:6,fontFamily:"'Space Mono',monospace"}}>* amortised — occasional O(n) resize</div>
+          <div style={{fontSize:".68rem",color:"var(--text3)",marginTop:6,fontFamily:"'Space Mono',monospace"}}>* amortised</div>
         </div>
       )}
 
-
-      {/* Strings: representation comparison */}
-      {isStringBasics && (
+      {/* ── STRINGS: char grid ── */}
+      {is("Basics & Representations")&&(
         <div className="sec">
-          <div className="stitle">Representation Comparison</div>
-          <table className="fn-table">
-            <thead><tr><th>Operation</th><th>Null-Terminated</th><th>Pointer / Length</th></tr></thead>
-            <tbody>
-              {[
-                ["Get length","O(n) scan to $","O(1) already stored"],
-                ["Get char at i","O(1)","O(1)"],
-                ["Extract substring","O(k) copy","O(1) new (p+i, m) pair"],
-                ["Used in","C, C++ char*","Tries, Patricia, Suffix Trees"],
-              ].map(([op,nt,pl],idx) => (
-                <tr key={idx}>
-                  <td className="op">{op}</td>
-                  <td style={{color:"var(--yellow)",fontFamily:"Space Mono,monospace",fontSize:".76rem"}}>{nt}</td>
-                  <td style={{color:"var(--green)",fontFamily:"Space Mono,monospace",fontSize:".76rem"}}>{pl}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="callout callout-tip" style={{marginTop:12}}>
-            <span className="callout-icon">&#128161;</span>
-            <div className="callout-text"><strong>Key insight:</strong> Pointer/length substring is pure arithmetic -- no copying. Patricia Trees and Suffix Trees store all substrings in O(n) total space using this trick.</div>
+          <div className="stitle">String Memory Layout</div>
+          <CharGrid str="hello$" highlights={{5:"var(--accent)"}}/>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Null-terminated vs Pointer/Length:</strong> C uses null-terminator — length is O(n). Python/Java store length — O(1). Pointer/length gives O(1) substring extraction.</div>
           </div>
         </div>
       )}
 
-      {/* Strings: pattern quick map */}
-      {isCoreTech && (
+      {/* ── STRINGS: technique pills ── */}
+      {is("Core Techniques")&&(
         <div className="sec">
-          <div className="stitle">Pattern Quick Map</div>
-          <table className="fn-table">
-            <thead><tr><th>Problem Type</th><th>Pattern</th><th>Time</th></tr></thead>
+          <div className="stitle">Technique Toolkit</div>
+          <div className="pattern-pills">
+            {["Two Pointers","Sliding Window","Frequency Count (size-26)","Hashing","Stack","Recursion / DP"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>freq[26] trick:</strong> For lowercase only, use <code style={{fontFamily:"'Space Mono',monospace"}}>int freq[26]</code> — O(26)=O(1) comparison, faster than HashMap.</div>
+          </div>
+        </div>
+      )}
+
+      {/* ── STRINGS: pattern matching ── */}
+      {is("Pattern Matching Algorithms")&&(
+        <div className="sec">
+          <div className="stitle">Algorithms at a Glance</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>
+            <span className="algo-badge ab-kmp">KMP — O(n+m)</span>
+            <span className="algo-badge ab-z">Z-Algorithm — O(n+m)</span>
+            <span className="algo-badge ab-rk">Rabin-Karp — O(n+m) avg</span>
+            <span className="algo-badge ab-sa">Aho-Corasick — O(n+m+k)</span>
+          </div>
+          <div className="theorem-box">
+            <div className="theorem-label">Key Theorem</div>
+            <div className="theorem-text">KMP and Z-Algorithm preprocess pattern P in O(m), then scan text T in O(n) without ever going backwards. Beats naïve O(nm).</div>
+          </div>
+          <table className="fn-table" style={{marginTop:12}}>
+            <thead><tr><th>Algorithm</th><th>Preprocess</th><th>Search</th><th>Worst</th></tr></thead>
             <tbody>
-              {[
-                ["Palindrome check","Two Pointers","O(n)","g"],
-                ["Anagram / frequency","Freq Count[26]","O(n)","g"],
-                ["Longest no-repeat substr","Sliding Window + Map","O(n)","g"],
-                ["Pattern in text","KMP / Z-algo","O(n+m)","g"],
-                ["Multiple patterns","Rabin-Karp","O(n+m) avg","g"],
-                ["Prefix / autocomplete","Trie","O(|s|)","g"],
-                ["Subsequences / edit ops","DP 2D table","O(n*m)","y"],
-              ].map(([prob,pat,t,c],idx) => (
-                <tr key={idx}>
-                  <td style={{color:"var(--text)"}}>{prob}</td>
-                  <td className="op">{pat}</td>
-                  <td className={`cx-${c}`}>{t}</td>
+              {[["Naive","O(1)","O(n)","O(nm)","r"],
+                ["KMP","O(m)","O(n)","O(n+m)","g"],
+                ["Z-Algorithm","O(n+m)","O(n+m)","O(n+m)","g"],
+                ["Rabin-Karp","O(m)","O(n)","O(nm) collision","y"],
+                ["Aho-Corasick","O(Σ|p|)","O(n+k)","O(n+k)","g"],
+              ].map(([a,p,s,w,c],i)=>(
+                <tr key={i}>
+                  <td className="op">{a}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{p}</td>
+                  <td style={{color:"var(--green)",fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{s}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{w}</td>
                 </tr>
               ))}
             </tbody>
@@ -2452,87 +3220,52 @@ function SubtopicView({ data, name }) {
         </div>
       )}
 
-      {/* Strings: algorithm comparison */}
-      {isPatternMatching && (
-        <div className="sec">
-          <div className="stitle">Algorithm Comparison</div>
-          <table className="fn-table">
-            <thead><tr><th>Algorithm</th><th>Preprocess</th><th>Search</th><th>Worst</th><th>Best for</th></tr></thead>
-            <tbody>
-              {[
-                ["Naive","O(1)","O(n)","O(nm)","r","tiny n,m"],
-                ["KMP","O(m)","O(n)","O(n+m)","g","single pattern"],
-                ["Z-Algorithm","O(n+m)","O(n+m)","O(n+m)","g","single pattern"],
-                ["Rabin-Karp","O(m)","O(n)","O(nm) collision","y","multiple patterns"],
-                ["Aho-Corasick","O(sum|p|)","O(n+k)","O(n+k)","g","many patterns"],
-              ].map(([algo,pre,srch,worst,c,use],idx) => (
-                <tr key={idx}>
-                  <td className="op">{algo}</td>
-                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{pre}</td>
-                  <td style={{color:"var(--green)",fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{srch}</td>
-                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{worst}</td>
-                  <td style={{color:"var(--text3)",fontSize:".74rem"}}>{use}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Strings: advanced structures theorem boxes */}
-      {isStrAdvanced && (
+      {/* ── STRINGS: advanced structures ── */}
+      {is("Advanced Structures")&&(
         <div className="sec">
           <div className="stitle">Formal Complexities (Chapter 7 — Morin)</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[
-              ["Trie (Theorem 19)","Insert/Delete: O(|s|·|Σ|) | Search: O(|s|) | Space: O(N·|Σ|)"],
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {[["Trie (Theorem 19)","Insert/Delete: O(|s|·|Σ|) | Search: O(|s|) | Space: O(N·|Σ|)"],
               ["Patricia Tree (Theorem 20)","Insert/Delete: O(|s|+|Σ|) | Search: O(|s|) | Space: O(n·|Σ|+N)"],
-              ["Suffix Tree (Theorem 22)","Build: O(n·|Σ|+n²) naïve, O(n) optimal | Substring check: O(|s|) | All k occurrences: O(|s|+k)"],
-              ["Suffix Array (Theorem 23)","Build: O(n) skew algorithm | Search: O(|s|+log n) with LCP | Space: 3n words"],
-              ["Rope (Theorem 18)","Insert/Delete: O(log n) | Report l chars: O(l+log n)"],
-            ].map(([nm, info]) => (
-              <div className="theorem-box" key={nm} style={{ padding: "10px 16px" }}>
+              ["Suffix Tree (Theorem 22)","Build: O(n) optimal | Substring: O(|s|) | All k: O(|s|+k)"],
+              ["Suffix Array (Theorem 23)","Build: O(n) skew | Search: O(|s|+log n) with LCP | Space: 3n"],
+              ["Rope (Theorem 18)","Insert/Delete: O(log n) | Report: O(l+log n)"],
+            ].map(([nm,info])=>(
+              <div className="theorem-box" key={nm} style={{padding:"10px 16px"}}>
                 <div className="theorem-label">{nm}</div>
-                <div className="theorem-text" style={{ fontFamily: "'Space Mono',monospace", fontSize: ".76rem" }}>{info}</div>
+                <div className="theorem-text" style={{fontFamily:"'Space Mono',monospace",fontSize:".76rem"}}>{info}</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Strings: constraint-based strategy */}
-      {isConstraints && (
+      {/* ── STRINGS: constraints ── */}
+      {is("Constraints & Strategy")&&(
         <div className="sec">
           <div className="stitle">Constraint → Algorithm Map</div>
           <div className="constraint-row">
-            {[
-              ["n ≤ 100","Brute force OK. O(n²/n³) DP: LCS, Edit Distance, palindromic subsequence."],
-              ["n ≤ 10⁵","O(n log n) or O(n). Sliding window, KMP, Z-algo, Trie, rolling hash."],
-              ["n ≥ 10⁶","Only O(n). KMP, Z-algo, Suffix Array. No DP tables — too slow."],
-            ].map(([n, algo]) => (
-              <div className="cr-card" key={n}>
-                <div className="cr-n">{n}</div>
-                <div className="cr-algo">{algo}</div>
-              </div>
+            {[["n ≤ 100","Brute force. DP: LCS, Edit Distance."],
+              ["n ≤ 10⁵","Sliding window, KMP, Z-algo, Trie."],
+              ["n ≥ 10⁶","Only O(n): KMP, Z-algo, Suffix Array."],
+            ].map(([n,a])=>(
+              <div className="cr-card" key={n}><div className="cr-n">{n}</div><div className="cr-algo">{a}</div></div>
             ))}
           </div>
-          <div className="stitle" style={{ marginTop: 20 }}>Pattern → Technique Map</div>
-          <table className="fn-table" style={{ marginTop: 8 }}>
+          <table className="fn-table" style={{marginTop:16}}>
             <thead><tr><th>Problem Type</th><th>Technique</th><th>Complexity</th></tr></thead>
             <tbody>
-              {[
-                ["Palindrome check/longest","Two Pointers / Expand Center","O(n)"],
-                ["Anagram / permutation","Sliding Window + freq[26]","O(n)"],
+              {[["Palindrome","Two Pointers / Expand Center","O(n)"],
+                ["Anagram / Permutation","Sliding Window + freq[26]","O(n)"],
                 ["Pattern in text","KMP or Z-Algorithm","O(n+m)"],
-                ["Multiple patterns in text","Aho-Corasick","O(n+Σ|p|)"],
-                ["Subsequences / edit ops","DP (LCS, Edit Distance)","O(nm)"],
-                ["Prefix queries / autocomplete","Trie","O(|s|)"],
-                ["All substring occurrences","Suffix Array + LCP","O(n)"],
-              ].map(([prob,tech,cx]) => (
-                <tr key={prob}>
-                  <td style={{color:"var(--text2)",fontSize:".78rem"}}>{prob}</td>
-                  <td className="op" style={{fontSize:".76rem"}}>{tech}</td>
-                  <td style={{color:"var(--accent3)",fontFamily:"'Space Mono',monospace",fontSize:".74rem"}}>{cx}</td>
+                ["Subsequences / edits","DP (LCS, Edit Distance)","O(nm)"],
+                ["Prefix queries","Trie","O(|s|)"],
+                ["All substrings","Suffix Array + LCP","O(n)"],
+              ].map(([p,t,c])=>(
+                <tr key={p}>
+                  <td style={{color:"var(--text2)",fontSize:".78rem"}}>{p}</td>
+                  <td className="op" style={{fontSize:".76rem"}}>{t}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"'Space Mono',monospace",fontSize:".74rem"}}>{c}</td>
                 </tr>
               ))}
             </tbody>
@@ -2540,7 +3273,138 @@ function SubtopicView({ data, name }) {
         </div>
       )}
 
+      {/* ── LINKED LIST: node visualizer ── */}
+      {is("Basics & Node Structure")&&(
+        <div className="sec">
+          <div className="stitle">What a Linked List Looks Like</div>
+          <NodeViz nodes={[{val:10},{val:20},{val:30},{val:40}]}/>
+          <div className="callout callout-tip" style={{marginTop:12}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Key difference from arrays:</strong> Nodes are NOT contiguous. Each node holds the address of the next. Access = O(n). Insert at head = O(1).</div>
+          </div>
+        </div>
+      )}
 
+      {/* ── LINKED LIST: types visual ── */}
+      {is("Types of Linked Lists")&&(
+        <div className="sec">
+          <div className="stitle">Visual Comparison</div>
+          <div style={{display:"flex",flexDirection:"column",gap:18}}>
+            <div>
+              <div style={{fontSize:".72rem",color:"var(--accent3)",fontFamily:"'Space Mono',monospace",marginBottom:6}}>SINGLY — forward only</div>
+              <NodeViz nodes={[{val:"A"},{val:"B"},{val:"C"},{val:"D"}]}/>
+            </div>
+            <div>
+              <div style={{fontSize:".72rem",color:"var(--accent2)",fontFamily:"'Space Mono',monospace",marginBottom:4}}>DOUBLY — bidirectional</div>
+              <div style={{fontFamily:"'Space Mono',monospace",fontSize:".78rem",color:"var(--text2)",background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:10,padding:"10px 16px"}}>
+                NULL ← <span style={{color:"var(--accent2)"}}>A</span> ⇄ <span style={{color:"var(--accent2)"}}>B</span> ⇄ <span style={{color:"var(--accent2)"}}>C</span> ⇄ <span style={{color:"var(--accent2)"}}>D</span> → NULL
+              </div>
+            </div>
+            <div>
+              <div style={{fontSize:".72rem",color:"var(--yellow)",fontFamily:"'Space Mono',monospace",marginBottom:4}}>CIRCULAR — loops back to head ↺</div>
+              <div style={{fontFamily:"'Space Mono',monospace",fontSize:".78rem",color:"var(--text2)",background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:10,padding:"10px 16px"}}>
+                <span style={{color:"var(--yellow)"}}>A</span> → <span style={{color:"var(--yellow)"}}>B</span> → <span style={{color:"var(--yellow)"}}>C</span> → <span style={{color:"var(--yellow)"}}>D</span> → (back to A)
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── LINKED LIST: core ops badges ── */}
+      {is("Core Operations")&&(
+        <div className="sec">
+          <div className="stitle">Operation Complexities</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>
+            <span className="op-badge ob-o1">Insert Head — O(1)</span>
+            <span className="op-badge ob-on">Insert End — O(n)</span>
+            <span className="op-badge ob-on">Insert at k — O(n)</span>
+            <span className="op-badge ob-o1">Delete Head — O(1)</span>
+            <span className="op-badge ob-on">Delete End — O(n)</span>
+            <span className="op-badge ob-on">Search — O(n)</span>
+          </div>
+          <div className="callout callout-warn">
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>vs Array:</strong> Array = O(1) access, O(n) insert. Linked List = O(1) head insert, O(n) access. Choose based on dominant operation.</div>
+          </div>
+        </div>
+      )}
+
+      {/* ── LINKED LIST: slow-fast visualizer ── */}
+      {is("Slow-Fast Pointer")&&(
+        <div className="sec">
+          <div className="stitle">Finding Middle — After 2 Steps</div>
+          <NodeViz
+            nodes={[{val:1,label:"slow/fast"},{val:2},{val:3,label:"slow"},{val:4},{val:5,label:"fast"}]}
+            highlight={{0:"var(--green)",2:"var(--green)",4:"var(--accent2)"}}
+          />
+          <div style={{fontSize:".7rem",color:"var(--text3)",fontFamily:"'Space Mono',monospace",marginTop:4}}>
+            🟢 slow=node[2] (middle) &nbsp; 🟣 fast=node[4] (end) ✓
+          </div>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Cycle detection (Floyd's):</strong> If slow==fast → cycle exists. Move slow to head, advance both 1-step → meeting point = cycle start.</div>
+          </div>
+        </div>
+      )}
+
+      {/* ── LINKED LIST: advanced problems table ── */}
+      {is("Reverse & Classic Algorithms")&&(
+        <div className="sec">
+          <div className="stitle">Must-Know Problems Cheatsheet</div>
+          <table className="fn-table">
+            <thead><tr><th>Problem</th><th>Technique</th><th>Time</th><th>Space</th></tr></thead>
+            <tbody>
+              {[["Reverse LL","3-pointer (prev,curr,next)","O(n)","O(1)"],
+                ["Detect Cycle","Floyd's slow-fast","O(n)","O(1)"],
+                ["Find Cycle Start","Move ptr to head + 1-step","O(n)","O(1)"],
+                ["Find Middle","Slow-fast pointer","O(n)","O(1)"],
+                ["Palindrome LL","Find mid + reverse 2nd half","O(n)","O(1)"],
+                ["Merge Two Sorted","Dummy node + two pointers","O(n+m)","O(1)"],
+                ["Remove Nth from End","Two pointers gap of n","O(n)","O(1)"],
+                ["Intersection of Two","Switch lists on null","O(n+m)","O(1)"],
+                ["Reverse in K-Groups","Recurse + reverse chunk","O(n)","O(k)"],
+              ].map(([p,t,ti,sp])=>(
+                <tr key={p}>
+                  <td style={{color:"var(--text2)",fontSize:".78rem"}}>{p}</td>
+                  <td className="op" style={{fontSize:".74rem"}}>{t}</td>
+                  <td style={{color:"var(--green)",fontFamily:"'Space Mono',monospace",fontSize:".72rem"}}>{ti}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"'Space Mono',monospace",fontSize:".72rem"}}>{sp}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── LINKED LIST: complexity guide ── */}
+      {is("Complexity & Interview Guide")&&(
+        <div className="sec">
+          <div className="stitle">Full Operation Reference</div>
+          <table className="fn-table">
+            <thead><tr><th>Operation</th><th>Time</th><th>Space</th><th>Notes</th></tr></thead>
+            <tbody>
+              {[["Access (index)","O(n)","O(1)","Must traverse from head"],
+                ["Search","O(n)","O(1)","Scan each node"],
+                ["Insert (head)","O(1)","O(1)","Signature advantage over array"],
+                ["Insert (end/mid)","O(n)","O(1)","Traverse first"],
+                ["Delete (head)","O(1)","O(1)","Just update head pointer"],
+                ["Delete (end/mid)","O(n)","O(1)","Traverse to prev node"],
+                ["Reverse","O(n)","O(1)","3-pointer iterative"],
+                ["Detect cycle","O(n)","O(1)","Floyd's algorithm"],
+              ].map(([op,t,sp,note])=>(
+                <tr key={op}>
+                  <td className="op">{op}</td>
+                  <td style={{color:t==="O(1)"?"var(--green)":"var(--yellow)",fontFamily:"'Space Mono',monospace",fontSize:".74rem"}}>{t}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"'Space Mono',monospace",fontSize:".74rem"}}>{sp}</td>
+                  <td style={{color:"var(--text3)",fontSize:".74rem"}}>{note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── STANDARD SECTIONS (all subtopics) ── */}
       <div className="sec">
         <div className="stitle">Concept Explanation</div>
         <div className="prose">{data.explanation}</div>
@@ -2554,191 +3418,175 @@ function SubtopicView({ data, name }) {
       <div className="sec">
         <div className="stitle">Step-by-Step Breakdown</div>
         <div className="steps">
-          {data.steps.map((s, i) => (
+          {(data.steps||[]).map((s,i)=>(
             <div className="step" key={i}>
-              <div className="snum">{i + 1}</div>
+              <div className="snum">{i+1}</div>
               <div className="stext">{s}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="sec">
-        <div className="stitle">Dry Run Example</div>
-        <div className="dry-run" dangerouslySetInnerHTML={{ __html: dryRunHtml }} />
-      </div>
-
-      <div className="sec">
-        <div className="stitle">Time & Space Complexity</div>
-        <div className="cxgrid">
-          <div className="cxcard"><div className="cxl">Best Case</div><div className="cxv" style={{ color: "var(--green)" }}>{data.time.best}</div></div>
-          <div className="cxcard"><div className="cxl">Average Case</div><div className="cxv">{data.time.avg}</div></div>
-          <div className="cxcard"><div className="cxl">Worst Case</div><div className="cxv" style={{ color: "var(--red)" }}>{data.time.worst}</div></div>
-          <div className="cxcard"><div className="cxl">Space</div><div className="cxv" style={{ color: "var(--accent3)" }}>{data.space}</div></div>
-        </div>
-      </div>
-
-      <div className="sec">
-        <div className="stitle">Code Implementation</div>
-        <CodeBlock cpp={data.cpp} python={data.python} />
-      </div>
-
-      <div className="sec">
-        <div className="stitle">When to Use</div>
-        <div className="when-box">{data.when}</div>
-      </div>
-
-      <div className="sec">
-        <div className="stitle">Pros & Cons</div>
-        <div className="pcgrid">
-          <div className="pcbox">
-            <div className="pct" style={{ color: "var(--green)" }}>✓ Pros</div>
-            <ul className="pcl">{data.pros.map((p, i) => <li key={i}><span style={{ color: "var(--green)", flexShrink: 0 }}>+</span>{p}</li>)}</ul>
-          </div>
-          <div className="pcbox">
-            <div className="pct" style={{ color: "var(--red)" }}>✗ Cons</div>
-            <ul className="pcl">{data.cons.map((c, i) => <li key={i}><span style={{ color: "var(--red)", flexShrink: 0 }}>−</span>{c}</li>)}</ul>
-          </div>
-        </div>
-      </div>
-
-      {data.practice?.length > 0 && (
+      {data.dryRun&&(
         <div className="sec">
-          <div className="stitle">Practice Questions</div>
-          <div className="pqlist">
-            {data.practice.map((q, i) => (
-              <div className="pq" key={i}>
-                <div className="pqn">{q.name}</div>
-                <Tag diff={q.diff} />
-              </div>
-            ))}
+          <div className="stitle">Dry Run Example</div>
+          <div className="dry-run" dangerouslySetInnerHTML={{__html:dryRunHtml}}/>
+        </div>
+      )}
+
+      {data.time&&(
+        <div className="sec">
+          <div className="stitle">Time & Space Complexity</div>
+          <div className="cxgrid">
+            <div className="cxcard"><div className="cxl">Best Case</div><div className="cxv" style={{color:"var(--green)"}}>{data.time.best}</div></div>
+            <div className="cxcard"><div className="cxl">Average Case</div><div className="cxv">{data.time.avg}</div></div>
+            <div className="cxcard"><div className="cxl">Worst Case</div><div className="cxv" style={{color:"var(--red)"}}>{data.time.worst}</div></div>
+            <div className="cxcard"><div className="cxl">Space</div><div className="cxv" style={{color:"var(--accent3)"}}>{data.space}</div></div>
           </div>
         </div>
       )}
 
-      {/* Arrays: language functions quick ref */}
-      {(name === "Core Operations" || name === "Types of Arrays") && (
+      {data.cpp&&data.python&&(
         <div className="sec">
-          <div className="stitle">Language Functions Cheatsheet</div>
-          <table className="fn-table">
-            <thead><tr><th>Operation</th><th><span className="lang-badge lb-cpp">C++</span></th><th><span className="lang-badge lb-py">Python</span></th><th>Time</th></tr></thead>
-            <tbody>
-              {[
-                ["Append","v.push_back(x)","a.append(x)","O(1)*"],
-                ["Remove last","v.pop_back()","a.pop()","O(1)"],
-                ["Insert at i","v.insert(it,x)","a.insert(i,x)","O(n)"],
-                ["Delete at i","v.erase(it)","a.pop(i) / del a[i]","O(n)"],
-                ["Length","v.size()","len(a)","O(1)"],
-                ["Sort","sort(v.begin(),v.end())","a.sort()","O(n log n)"],
-                ["Reverse","reverse(v.begin(),v.end())","a.reverse()","O(n)"],
-                ["Find","find(v.begin(),v.end(),x)","a.index(x) / x in a","O(n)"],
-              ].map(([op,cpp,py,t]) => (
-                <tr key={op}>
-                  <td className="op">{op}</td>
-                  <td style={{color:"var(--accent2)",fontFamily:"'Space Mono',monospace",fontSize:".72rem"}}>{cpp}</td>
-                  <td style={{color:"var(--accent3)",fontFamily:"'Space Mono',monospace",fontSize:".72rem"}}>{py}</td>
-                  <td style={{color:"var(--text3)"}}>{t}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="stitle">Code Implementation</div>
+          <CodeBlock cpp={data.cpp} python={data.python}/>
+        </div>
+      )}
+
+      {data.when&&(
+        <div className="sec">
+          <div className="stitle">When to Use</div>
+          <div className="when-box">{data.when}</div>
+        </div>
+      )}
+
+      {(data.pros||data.cons)&&(
+        <div className="sec">
+          <div className="stitle">Pros & Cons</div>
+          <div className="pcgrid">
+            <div className="pcbox">
+              <div className="pct" style={{color:"var(--green)"}}>✓ Pros</div>
+              <ul className="pcl">{(data.pros||[]).map((p,i)=><li key={i}><span style={{color:"var(--green)",flexShrink:0}}>+</span>{p}</li>)}</ul>
+            </div>
+            <div className="pcbox">
+              <div className="pct" style={{color:"var(--red)"}}>✗ Cons</div>
+              <ul className="pcl">{(data.cons||[]).map((c,i)=><li key={i}><span style={{color:"var(--red)",flexShrink:0}}>−</span>{c}</li>)}</ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {data.practice&&data.practice.length>0&&(
+        <div className="sec">
+          <div className="stitle">Practice Questions</div>
+          <div className="pqlist">
+            {data.practice.map((q,i)=>(
+              <div className="pq" key={i}>
+                <div className="pqn">{q.name}</div>
+                <Tag diff={q.diff}/>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-// ─── TOPIC PAGE ──────────────────────────────────────────────────
+
+// ─── TOPIC PAGE ───────────────────────────────────────────────────
 function TopicPage({ topic, goHome }) {
   const data = DSA_DATA[topic];
   const subtopics = Object.keys(data.subtopics || {});
   const [active, setActive] = useState(subtopics[0] || null);
 
-  function tagCls(d) {
-    return d === "easy" ? { bg: "rgba(6,255,165,.12)", color: "var(--green)" }
-      : d === "medium" ? { bg: "rgba(255,209,102,.12)", color: "var(--yellow)" }
-        : { bg: "rgba(255,92,92,.12)", color: "var(--red)" };
-  }
+  const tagStyle = (d) =>
+    d==="easy"?{bg:"rgba(6,255,165,.12)",color:"var(--green)"}
+    :d==="medium"?{bg:"rgba(255,209,102,.12)",color:"var(--yellow)"}
+    :{bg:"rgba(255,92,92,.12)",color:"var(--red)"};
 
   return (
     <div className="tpage">
       <div className="sidebar">
         <div className="sbt">{topic}</div>
         {subtopics.length === 0
-          ? <div style={{ padding: "18px", color: "var(--text3)", fontSize: ".82rem" }}>Content coming soon…</div>
+          ? <div style={{padding:"18px",color:"var(--text3)",fontSize:".82rem"}}>Content coming soon…</div>
           : subtopics.map(s => {
-            const tc = tagCls(data.subtopics[s].diff);
-            return (
-              <div key={s} className={`sbi${active === s ? " active" : ""}`} onClick={() => setActive(s)}>
-                <span>{s}</span>
-                <span style={{ fontSize: ".65rem", padding: "2px 8px", borderRadius: 12, fontWeight: 700, background: tc.bg, color: tc.color }}>
-                  {data.subtopics[s].diff}
-                </span>
-              </div>
-            );
-          })}
+              const ts = tagStyle(data.subtopics[s].diff);
+              return (
+                <div key={s} className={`sbi${active===s?" active":""}`} onClick={()=>setActive(s)}>
+                  <span>{s}</span>
+                  <span style={{fontSize:".65rem",padding:"2px 8px",borderRadius:12,fontWeight:700,background:ts.bg,color:ts.color}}>
+                    {data.subtopics[s].diff}
+                  </span>
+                </div>
+              );
+            })
+        }
       </div>
       <div className="tcontent">
         <div className="bc">
           <span onClick={goHome}>Home</span>
           <span className="bcsep">›</span>
-          <span onClick={goHome} style={{ color: "var(--text2)" }}>{topic}</span>
-          {active && <><span className="bcsep">›</span><span style={{ color: "var(--accent)" }}>{active}</span></>}
+          <span onClick={goHome} style={{color:"var(--text2)"}}>{topic}</span>
+          {active&&<><span className="bcsep">›</span><span style={{color:"var(--accent)"}}>{active}</span></>}
         </div>
         {active
-          ? <SubtopicView data={data.subtopics[active]} name={active} />
+          ? <SubtopicView data={data.subtopics[active]} name={active}/>
           : <div className="empty">
-            <div className="eicon">{data.icon}</div>
-            <div className="etitle">{topic}</div>
-            <div className="esub">{data.desc}</div>
-          </div>}
+              <div className="eicon">{data.icon}</div>
+              <div className="etitle">{topic}</div>
+              <div className="esub">{data.desc}</div>
+            </div>
+        }
       </div>
     </div>
   );
 }
 
-// ─── APP ROOT ────────────────────────────────────────────────────
+// ─── APP ──────────────────────────────────────────────────────────
 export default function App() {
   const [dark, setDark] = useState(true);
   const [page, setPage] = useState("home");
   const [query, setQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
 
-  const searchIndex = useMemo(() => {
-    const idx = [];
-    Object.entries(DSA_DATA).forEach(([topic, td]) => {
-      idx.push({ label: topic, sub: "Topic", topic });
-      Object.keys(td.subtopics || {}).forEach(s => idx.push({ label: s, sub: topic, topic }));
-    });
-    return idx;
-  }, []);
+  // flat search index
+  const searchIndex = Object.entries(DSA_DATA).flatMap(([topic, td]) => [
+    { label: topic, sub: "Topic", topic },
+    ...Object.keys(td.subtopics || {}).map(s => ({ label: s, sub: topic, topic }))
+  ]);
 
-  const results = useMemo(() => {
-    if (!query.trim()) return [];
-    const q = query.toLowerCase();
-    return searchIndex.filter(i => i.label.toLowerCase().includes(q) || i.sub.toLowerCase().includes(q)).slice(0, 8);
-  }, [query]);
+  const results = query.trim()
+    ? searchIndex.filter(i =>
+        i.label.toLowerCase().includes(query.toLowerCase()) ||
+        i.sub.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 8)
+    : [];
 
   function goTo(topic) { setPage(topic); setQuery(""); setShowResults(false); }
 
   return (
-    <div className={dark ? "" : "light"} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", transition: "all .25s" }}>
+    <div className={dark ? "" : "light"} style={{minHeight:"100vh",background:"var(--bg)",color:"var(--text)",transition:"all .25s"}}>
       <style>{css + `@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
-      {/* NAV */}
+      {/* ── NAV ── */}
       <nav className="nav">
-        <div className="logo" onClick={() => setPage("home")}>DSA<span>forge</span></div>
+        <div className="logo" onClick={()=>setPage("home")}>DSA<span>forge</span></div>
         <div className="sw">
           <span className="s-icon">⌕</span>
-          <input className="si" placeholder="Search topics or algorithms…" value={query}
-            onChange={e => { setQuery(e.target.value); setShowResults(true); }}
-            onFocus={() => setShowResults(true)}
-            onBlur={() => setTimeout(() => setShowResults(false), 180)}
+          <input
+            className="si"
+            placeholder="Search topics or algorithms…"
+            value={query}
+            onChange={e=>{setQuery(e.target.value);setShowResults(true);}}
+            onFocus={()=>setShowResults(true)}
+            onBlur={()=>setTimeout(()=>setShowResults(false),180)}
           />
           {showResults && results.length > 0 && (
             <div className="sr">
-              {results.map((r, i) => (
-                <div key={i} className="sri" onMouseDown={() => goTo(r.topic)}>
+              {results.map((r,i)=>(
+                <div key={i} className="sri" onMouseDown={()=>goTo(r.topic)}>
                   <div className="sri-t">{r.label}</div>
                   <div className="sri-s">{r.sub}</div>
                 </div>
@@ -2746,16 +3594,16 @@ export default function App() {
             </div>
           )}
         </div>
-        <button className="tbtn" onClick={() => setDark(!dark)}>{dark ? "☀ Light" : "☾ Dark"}</button>
+        <button className="tbtn" onClick={()=>setDark(!dark)}>{dark?"☀ Light":"☾ Dark"}</button>
       </nav>
 
-      {/* PAGES */}
+      {/* ── PAGES ── */}
       {page === "home" ? (
         <main className="home">
           <div className="hero">
             <div className="htag">⚡ BITS Pilani CS · Interview Ready</div>
-            <h1>Master DSA,<br />Ace Every Interview.</h1>
-            <p>Structured, visual, and code-first. Every major algorithm with explanations, dry runs, complexity tables, and C++ / Python code.</p>
+            <h1>Master DSA,<br/>Ace Every Interview.</h1>
+            <p>Structured, visual, and code-first. Every algorithm with dry runs, complexity tables, and C++ / Python code.</p>
             <div className="stats">
               <div><div className="sn">18</div><div className="sl">Topics</div></div>
               <div><div className="sn">50+</div><div className="sl">Algorithms</div></div>
@@ -2765,17 +3613,17 @@ export default function App() {
           <div className="slabel">// explore all topics</div>
           <div className="tgrid">
             {Object.entries(DSA_DATA).map(([name, d]) => (
-              <div key={name} className="tc" onClick={() => setPage(name)}>
+              <div key={name} className="tc" onClick={()=>setPage(name)}>
                 <div className="tci">{d.icon}</div>
                 <div className="tcn">{name}</div>
-                <div className="tcc">{Object.keys(d.subtopics || {}).length} subtopics</div>
-                <Tag diff={d.diff} />
+                <div className="tcc">{Object.keys(d.subtopics||{}).length} subtopics</div>
+                <Tag diff={d.diff}/>
               </div>
             ))}
           </div>
         </main>
       ) : (
-        <TopicPage topic={page} goHome={() => setPage("home")} />
+        <TopicPage topic={page} goHome={()=>setPage("home")}/>
       )}
     </div>
   );
