@@ -900,7 +900,662 @@ def solve(head):
       }
     }
   },
-  Stack: { icon: "📚", diff: "easy", desc: "LIFO. Powers recursion, expression parsing, monotonic stack problems.", subtopics: {} },
+  Stack: {
+    icon: "📚", diff: "easy",
+    desc: "LIFO structure. Push, pop, peek all O(1). Powers recursion, expression evaluation, parsing, and monotonic stack problems.",
+    subtopics: {
+      "Basics & LIFO": {
+        diff: "easy",
+        explanation: "A stack is a non-primitive linear data structure. It is an ordered list in which addition of new data items and deletion of already existing data items is done from only one end, known as the Top of Stack (TOS). Because all insertions and deletions happen at the top, the last added element is the first to be removed — this is why a stack is called a Last-In-First-Out (LIFO) type of list. Core terms: Top — pointer/index to the last inserted element. Push — insert an element. Pop — remove the top element. Peek — return top element without removing it. isEmpty — check if stack is empty. isFull — check if stack is full (array implementation only).",
+        intuition: "Think of a pile of plates at a marriage party. Fresh plates are pushed onto the top and popped off the top. Or biscuits in a pack torn at one end — you push biscuits back in and pop them out from the same end. Whenever a stack is created the base remains fixed. As new elements are added the top increases; as elements are removed the top decrements.",
+        steps: [
+          "PUSH: (1) Check if stack is full (overflow check). (2) Increment top. (3) Insert element at stack[top].",
+          "POP: (1) Check if stack is empty (underflow check). (2) Save stack[top] in NUM. (3) Decrement top. (4) Return NUM.",
+          "PEEK: Return stack[top] without changing top. Check empty first.",
+          "isEmpty: Return top == -1 (array) or top == NULL (linked list).",
+          "isFull: Return top == MAXSIZE - 1 (array implementation only).",
+          "OVERFLOW: Trying to push when stack is full. UNDERFLOW: Trying to pop when stack is empty."
+        ],
+        dryRun: `Stack: [10, 20, 30]  top=2
+
+Push(40):
+  top == MAXSIZE-1? No → top=3, stack[3]=40
+  Stack: [10, 20, 30, 40]  top=3 ✓
+
+Pop():
+  top == -1? No → NUM=stack[3]=40, top=2
+  Stack: [10, 20, 30]  top=2 ✓
+
+Peek():
+  top == -1? No → return stack[2]=30
+  Stack unchanged ✓
+
+Push on full stack (MAXSIZE=3, top=2):
+  top == MAXSIZE-1? YES → STACK OVERFLOW ✗
+
+Pop on empty stack (top=-1):
+  top == -1? YES → STACK UNDERFLOW ✗`,
+        time: { best: "O(1)", avg: "O(1)", worst: "O(1)" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Use a stack whenever you need LIFO access: function call management, undo/redo, expression evaluation, backtracking, DFS, balanced parentheses checking.",
+        pros: [
+          "All operations O(1) — push, pop, peek are constant time",
+          "Simple to implement (array or linked list)",
+          "Natural fit for recursion simulation and backtracking",
+          "Memory efficient for LIFO use cases"
+        ],
+        cons: [
+          "Array-based: fixed size — overflow if capacity exceeded",
+          "No random access — can only access the top element",
+          "Linked list-based: extra memory per node for pointer",
+          "Not suitable when you need to access arbitrary elements"
+        ],
+        cpp: `// Stack — Array-based (Static Implementation)
+#define MAXSIZE 100
+class Stack {
+    int top;
+    int arr[MAXSIZE];
+public:
+    Stack() { top = -1; }
+
+    void push(int x) {
+        if (top >= MAXSIZE - 1) {
+            cout << "Stack Overflow\n"; return;
+        }
+        arr[++top] = x;    // increment top, then insert
+    }
+
+    int pop() {
+        if (top < 0) {
+            cout << "Stack Underflow\n"; return -1;
+        }
+        return arr[top--]; // return top, then decrement
+    }
+
+    int peek() {
+        if (top < 0) return -1;
+        return arr[top];   // just look, don't remove
+    }
+
+    bool isEmpty() { return top < 0; }
+    bool isFull()  { return top >= MAXSIZE - 1; }
+};
+
+// STL stack (preferred in interviews)
+#include <stack>
+stack<int> st;
+st.push(10);          // push
+int x = st.top();     // peek
+st.pop();             // pop
+bool empty = st.empty();`,
+        python: `# Stack — using Python list (dynamic, no size limit)
+class Stack:
+    def __init__(self):
+        self.stack = []
+
+    def push(self, x):
+        self.stack.append(x)       # O(1) amortised
+
+    def pop(self):
+        if not self.stack:
+            return "Underflow"
+        return self.stack.pop()    # O(1)
+
+    def peek(self):
+        if not self.stack:
+            return None
+        return self.stack[-1]      # O(1), no removal
+
+    def is_empty(self):
+        return len(self.stack) == 0
+
+    def size(self):
+        return len(self.stack)
+
+# Usage
+s = Stack()
+s.push(10); s.push(20); s.push(30)
+print(s.peek())   # 30
+print(s.pop())    # 30
+print(s.pop())    # 20`,
+        practice: [
+          { name: "Implement Stack using Arrays", diff: "easy" },
+          { name: "Valid Parentheses", diff: "easy" },
+          { name: "Min Stack", diff: "medium" }
+        ]
+      },
+      "Implementations": {
+        diff: "easy",
+        explanation: "Stacks can be implemented in two ways: (1) Static Implementation (Array-based) — uses a fixed-size array. Fast access, but size must be declared at design time. If too few elements are stored, memory is wasted; if too many elements need to be stored, the fixed size causes overflow. (2) Dynamic Implementation (Linked List-based) — uses nodes with data and a link pointer. No fixed size limit (until memory is full). The pointer to the beginning of the linked list serves as the top of the stack. Each push allocates a new node; each pop deallocates the top node. (3) Dynamic Stack (C++ vector/Python list) — resizes automatically; best of both worlds for most use cases.",
+        intuition: "Array stack: contiguous memory, cache-friendly, but rigid. Linked list stack: flexible size, but each node needs extra memory for the pointer. In interviews, Python list or C++ STL stack are preferred — they handle resizing automatically. Know both for exam questions on static vs dynamic implementation.",
+        steps: [
+          "ARRAY PUSH: if top==MAXSIZE-1 → overflow. Else arr[++top]=value.",
+          "ARRAY POP: if top==-1 → underflow. Else return arr[top--].",
+          "LINKED LIST PUSH: allocate new node PTR. PTR->info=value. PTR->link=top. top=PTR.",
+          "LINKED LIST POP: if top==NULL → underflow. PTR=top. NUM=PTR->info. top=top->link. free(PTR). Return NUM.",
+          "Array: top starts at -1. Full when top==MAXSIZE-1.",
+          "Linked list: top starts as NULL. Full only when system memory is exhausted."
+        ],
+        dryRun: `── ARRAY STACK (MAXSIZE=5, top=-1 initially) ─────────
+Push(23): top=-1 → top=0, arr[0]=23
+Push(-16): top=0 → top=1, arr[1]=-16
+Push(11): top=1 → top=2, arr[2]=11
+Push(10): top=2 → top=3, arr[3]=10
+Stack: [23,-16,11,10]  top=3
+
+Pop(): NUM=arr[3]=10, top=2 ✓
+Stack: [23,-16,11]  top=2
+
+── LINKED LIST STACK (top=NULL initially) ────────
+Push(23): new node PTR. PTR->info=23. PTR->link=NULL. top=PTR
+  top → [23|NULL]
+Push(-16): new node. link=top. top=new
+  top → [-16|→] → [23|NULL]
+Push(11):  top → [11|→] → [-16|→] → [23|NULL]
+
+Pop(): PTR=top. NUM=11. top=top->link. free(PTR)
+  top → [-16|→] → [23|NULL] ✓`,
+        time: { best: "O(1)", avg: "O(1)", worst: "O(1)" },
+        space: "O(n) array / O(n) linked list + pointer overhead",
+        stable: undefined,
+        when: "Array: when max size is known and speed matters. Linked list: when size is unknown or varies greatly. Python list / C++ vector: default choice — dynamic sizing with amortised O(1) push.",
+        pros: [
+          "Array: faster (cache-friendly), no pointer overhead",
+          "Linked list: truly dynamic — no overflow (until out of memory)",
+          "Both give O(1) push and pop"
+        ],
+        cons: [
+          "Array: fixed size declared at design time — wasted memory or overflow",
+          "Linked list: extra memory for pointer in every node",
+          "Linked list: slightly slower due to dynamic allocation"
+        ],
+        cpp: `// Static (Array) Stack — from textbook
+#define MAXSIZE 5
+int stack[MAXSIZE], top = -1;
+
+void push(int num) {
+    if (top == MAXSIZE - 1) { printf("Overflow"); return; }
+    stack[++top] = num;
+}
+int pop() {
+    if (top == -1) { printf("Underflow"); return -1; }
+    return stack[top--];
+}
+
+// Dynamic (Linked List) Stack — from textbook
+struct Node {
+    int info;
+    Node* link;
+};
+Node* top_ptr = nullptr;
+
+void push_ll(int num) {
+    Node* ptr = new Node();
+    ptr->info = num;
+    ptr->link = top_ptr;  // point to old top
+    top_ptr = ptr;        // new top
+}
+void pop_ll() {
+    if (!top_ptr) { printf("Underflow"); return; }
+    Node* ptr = top_ptr;
+    int num = ptr->info;
+    top_ptr = top_ptr->link;
+    delete ptr;           // free memory
+}`,
+        python: `# Static-style Stack (fixed max size) — Python
+class ArrayStack:
+    def __init__(self, maxsize=100):
+        self.arr = [0] * maxsize
+        self.top = -1
+        self.maxsize = maxsize
+
+    def push(self, num):
+        if self.top == self.maxsize - 1:
+            print("Stack Overflow"); return
+        self.top += 1
+        self.arr[self.top] = num
+
+    def pop(self):
+        if self.top == -1:
+            print("Stack Underflow"); return -1
+        num = self.arr[self.top]
+        self.top -= 1
+        return num
+
+# Dynamic Stack — Python list (preferred)
+class DynamicStack:
+    def __init__(self):
+        self.stack = []   # grows/shrinks automatically
+
+    def push(self, num): self.stack.append(num)
+    def pop(self):
+        return self.stack.pop() if self.stack else "Underflow"
+    def peek(self): return self.stack[-1] if self.stack else None`,
+        practice: [
+          { name: "Implement Stack using Linked List", diff: "easy" },
+          { name: "Implement Stack using Queues", diff: "medium" },
+          { name: "Design Min Stack", diff: "medium" }
+        ]
+      },
+      "Polish Notations": {
+        diff: "medium",
+        explanation: "A Polish mathematician suggested a notation called Polish notation to remove ambiguity from arithmetic expressions. It has two forms: (1) Prefix — operator is written BEFORE operands (e.g. +AB). (2) Postfix — operator is written AFTER operands (e.g. AB+). The standard form we use in maths with operator between operands (A+B) is called Infix notation. The key property of Polish notation: the order of operations is completely determined by positions of operators and operands — parentheses are NOT required. Operator precedence (highest to lowest): ^ (exponent) > *,/ (multiply/divide) > +,- (add/subtract).",
+        intuition: "In infix A+B*C, we need BODMAS rules to know * comes before +. In postfix ABC*+, the position alone tells us: multiply B and C first (BC*), then add A. A computer evaluating postfix needs only a stack — scan left to right, push operands, on operator pop two operands, compute, push result. No precedence rules needed. This is why compilers convert infix to postfix internally.",
+        steps: [
+          "INFIX TO POSTFIX MANUAL: (1) Parenthesize fully from left to right, higher-precedence operators first. (2) Move each operator to replace its corresponding right parenthesis. (3) Remove all parentheses.",
+          "INFIX TO POSTFIX ALGORITHM: Push '(' onto stack, append ')' to expression. Scan left to right: operand→add to output. '('→push. operator→pop higher/equal precedence operators to output, then push. ')'→pop until '(' (discard both parens).",
+          "EVALUATE POSTFIX: scan left to right. Operand→push. Operator→pop two operands (b=pop, a=pop), compute a⊕b, push result. Final answer = stack top.",
+          "PRECEDENCE: ^ (3, right-assoc) > */ (2) > +- (1). When comparing operators at step 2, right-associative ^ does NOT pop equal precedence.",
+          "EXAMPLE A+B*C: fully parenthesized = A+(B*C). Postfix = ABC*+.",
+          "EXAMPLE (A+B)*(C-D): postfix = AB+CD-*."
+        ],
+        dryRun: `── INFIX TO POSTFIX: A + B * C ─────────────────────
+Infix:  A + B * C
+Step 1: A + (B * C)        [* higher than +]
+Step 2: A + (BC*)          [move * inside right paren]
+Step 3: A(BC*)+ → ABC*+   [move + inside right paren]
+Postfix: ABC*+ ✓
+
+── INFIX TO POSTFIX: (A+B)/(C-D) ───────────────────
+(A+B) → (AB+)
+(C-D) → (CD-)
+(AB+)/(CD-) → AB+CD-/
+Postfix: AB+CD-/ ✓
+
+── EVALUATE POSTFIX: 2 3 4 * + ──────────────────────
+Scan '2': push → [2]
+Scan '3': push → [2,3]
+Scan '4': push → [2,3,4]
+Scan '*': pop 4,3 → 3*4=12 → push → [2,12]
+Scan '+': pop 12,2 → 2+12=14 → push → [14]
+Result = 14 ✓   (same as 2 + 3*4 = 14 infix)
+
+── INFIX TO POSTFIX ALGORITHM TRACE: A+B*C ──────────
+Stack: [(]  Output: ""
+Scan A: output → "A"
+Scan +: stack=[(,+]  Output: "A"
+Scan B: output → "AB"
+Scan *: * > + so push → stack=[(,+,*]  Output: "AB"
+Scan C: output → "ABC"
+Scan ): pop * → "ABC*", pop + → "ABC*+", pop (
+Output: ABC*+ ✓`,
+        time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
+        space: "O(n) stack",
+        stable: undefined,
+        when: "Compilers use infix→postfix conversion to generate machine instructions. Calculators evaluate postfix internally. Exam questions on expression conversion are very common.",
+        pros: [
+          "Postfix/Prefix remove need for parentheses and precedence rules",
+          "Postfix evaluation is simple O(n) single-pass with a stack",
+          "Unambiguous — position alone determines order of operations"
+        ],
+        cons: [
+          "Less human-readable than infix",
+          "Requires knowledge of algorithm for conversion",
+          "Right-associative operators (^) need special handling"
+        ],
+        cpp: `// Evaluate Postfix Expression — C++
+#include <stack>
+#include <string>
+int evalPostfix(string expr) {
+    stack<int> st;
+    for (char c : expr) {
+        if (isdigit(c)) {
+            st.push(c - '0');    // push operand
+        } else {
+            int b = st.top(); st.pop();  // second operand
+            int a = st.top(); st.pop();  // first operand
+            if (c == '+') st.push(a + b);
+            if (c == '-') st.push(a - b);
+            if (c == '*') st.push(a * b);
+            if (c == '/') st.push(a / b);
+        }
+    }
+    return st.top();  // final result
+}
+
+// Infix to Postfix — C++
+int prec(char c){
+    if(c=='^') return 3;
+    if(c=='*'||c=='/') return 2;
+    if(c=='+'||c=='-') return 1;
+    return 0;
+}
+string infixToPostfix(string s) {
+    stack<char> st; string result = "";
+    for (char c : s) {
+        if (isalnum(c)) result += c;
+        else if (c == '(') st.push(c);
+        else if (c == ')') {
+            while (st.top() != '(') { result+=st.top(); st.pop(); }
+            st.pop();
+        } else {
+            while (!st.empty() && prec(st.top()) >= prec(c))
+                { result += st.top(); st.pop(); }
+            st.push(c);
+        }
+    }
+    while (!st.empty()) { result += st.top(); st.pop(); }
+    return result;
+}`,
+        python: `# Evaluate Postfix Expression — Python
+def eval_postfix(expr):
+    stack = []
+    for token in expr.split():
+        if token.lstrip('-').isdigit():
+            stack.append(int(token))   # push operand
+        else:
+            b = stack.pop()  # second operand
+            a = stack.pop()  # first operand
+            if token == '+': stack.append(a + b)
+            elif token == '-': stack.append(a - b)
+            elif token == '*': stack.append(a * b)
+            elif token == '/': stack.append(int(a / b))
+    return stack[0]  # result
+
+# Infix to Postfix — Python
+def infix_to_postfix(expr):
+    prec = {'^':3, '*':2, '/':2, '+':1, '-':1, '(':0}
+    stack, result = [], []
+    for c in expr:
+        if c.isalnum(): result.append(c)
+        elif c == '(': stack.append(c)
+        elif c == ')':
+            while stack and stack[-1] != '(': result.append(stack.pop())
+            stack.pop()  # remove '('
+        else:
+            while stack and prec.get(stack[-1],0) >= prec[c]:
+                result.append(stack.pop())
+            stack.append(c)
+    while stack: result.append(stack.pop())
+    return ''.join(result)
+
+# Test: A+B*C → ABC*+
+print(infix_to_postfix("A+B*C"))  # ABC*+`,
+        practice: [
+          { name: "Evaluate Reverse Polish Notation", diff: "medium" },
+          { name: "Basic Calculator II (infix with +,-,*,/)", diff: "medium" },
+          { name: "Basic Calculator (with parentheses)", diff: "hard" }
+        ]
+      },
+      "Important Patterns": {
+        diff: "medium",
+        explanation: "Four critical stack patterns appear repeatedly in interviews: (1) Balanced Parentheses — push opening brackets, on closing bracket check and match top. (2) Next Greater Element — use a decreasing monotonic stack; when current element is greater than stack top, the top's NGE is current element. (3) Monotonic Stack — maintains elements in increasing or decreasing order; processes each element in O(1) amortised giving O(n) total. (4) Min Stack — store (value, current_min) pairs so getMin() is O(1).",
+        intuition: "Monotonic stack insight: each element is pushed and popped at most once → O(n) total even though there's a nested while loop. This is the amortised analysis. For balanced parentheses: a closing bracket can only be valid if it matches the most recent unmatched opening bracket — exactly what a stack top gives you.",
+        steps: [
+          "BALANCED PARENS: for each char: if '(' or '[' or '{' → push. If ')' or ']' or '}': check empty (invalid), pop and verify match. At end: stack must be empty.",
+          "NEXT GREATER ELEMENT: for each element, while stack not empty AND current > stack.top(): stack.top()'s NGE = current, pop. Push current. After loop, remaining elements have no NGE (-1).",
+          "PREVIOUS SMALLER ELEMENT: same as NGE but looking backward — pop while stack.top() >= current, then PSE = stack.top() (or -1 if empty), then push current.",
+          "MIN STACK: push (val, min(val, current_min)). getMin() returns top's second element. Pop removes pair.",
+          "LARGEST RECTANGLE IN HISTOGRAM: use stack. For each bar: while stack top bar >= current bar height, pop and calculate area (height × width). Width = current_index - stack.top() - 1.",
+          "STOCK SPAN: for each price, pop while stack.top() price <= current price. Span = current_index - stack.top() (or current_index+1 if empty). Push current index."
+        ],
+        dryRun: `── BALANCED PARENTHESES: "{[()]}" ───────────────────
+Scan '{': push → [{]
+Scan '[': push → [{,[]
+Scan '(': push → [{,[,(]
+Scan ')': pop '(' → match ')' ✓ stack=[{,[]
+Scan ']': pop '[' → match ']' ✓ stack=[{]
+Scan '}': pop '{' → match '}' ✓ stack=[]
+Stack empty → VALID ✓
+
+── NEXT GREATER ELEMENT [4,5,2,10,8] ────────────────
+i=0: push 4     → stack=[4]
+i=1: 5>4 → NGE[4]=5, pop. Push 5 → stack=[5]
+i=2: 2<5 → push  → stack=[5,2]
+i=3: 10>2 → NGE[2]=10, pop. 10>5 → NGE[5]=10, pop. Push 10 → stack=[10]
+i=4: 8<10 → push → stack=[10,8]
+End: stack=[10,8] → NGE[10]=-1, NGE[8]=-1
+Result: NGE = [5, 10, 10, -1, -1] ✓
+
+── MIN STACK: push 5,3,7,2 ──────────────────────────
+push(5): stack=[(5,5)]          getMin()=5
+push(3): stack=[(5,5),(3,3)]    getMin()=3
+push(7): stack=[(5,5),(3,3),(7,3)] getMin()=3
+push(2): stack=[(5,5),(3,3),(7,3),(2,2)] getMin()=2
+pop():   stack=[(5,5),(3,3),(7,3)] getMin()=3 ✓`,
+        time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Balanced parens → any parsing/compiler problem. NGE/PSE → histogram, stock span, trap water. Monotonic stack → range problems where you need nearest greater/smaller. Min stack → when O(1) minimum with push/pop is needed.",
+        pros: [
+          "Monotonic stack: O(n) amortised — each element pushed and popped at most once",
+          "NGE/PSE solves problems that naïve O(n²) approach misses",
+          "Min stack achieves O(1) getMin with only O(n) extra space"
+        ],
+        cons: [
+          "Monotonic stack logic requires careful order (push before or after pop?)",
+          "Off-by-one errors common in histogram/span problems",
+          "Multiple variations (NGE, PSE, NSE, PGE) easy to confuse"
+        ],
+        cpp: `// Important Stack Patterns — C++
+
+// 1. Balanced Parentheses
+bool isBalanced(string s) {
+    stack<char> st;
+    for (char c : s) {
+        if (c=='('||c=='['||c=='{') st.push(c);
+        else {
+            if (st.empty()) return false;
+            char top = st.top(); st.pop();
+            if (c==')' && top!='(') return false;
+            if (c==']' && top!='[') return false;
+            if (c=='}' && top!='{') return false;
+        }
+    }
+    return st.empty();
+}
+
+// 2. Next Greater Element — O(n)
+vector<int> nextGreater(vector<int>& arr) {
+    int n = arr.size();
+    vector<int> res(n, -1);
+    stack<int> st; // store indices
+    for (int i = 0; i < n; i++) {
+        while (!st.empty() && arr[st.top()] < arr[i]) {
+            res[st.top()] = arr[i];
+            st.pop();
+        }
+        st.push(i);
+    }
+    return res; // remaining in stack have no NGE → -1
+}
+
+// 3. Min Stack — O(1) getMin
+class MinStack {
+    stack<pair<int,int>> st; // {val, current_min}
+public:
+    void push(int x) {
+        int mn = st.empty() ? x : min(x, st.top().second);
+        st.push({x, mn});
+    }
+    void pop() { st.pop(); }
+    int top() { return st.top().first; }
+    int getMin() { return st.top().second; }
+};`,
+        python: `# Important Stack Patterns — Python
+
+# 1. Balanced Parentheses
+def is_balanced(s):
+    stack = []
+    match = {')':'(', ']':'[', '}':'{'}
+    for c in s:
+        if c in '([{': stack.append(c)
+        elif c in ')]}':
+            if not stack or stack[-1] != match[c]: return False
+            stack.pop()
+    return len(stack) == 0
+
+# 2. Next Greater Element — O(n)
+def next_greater(arr):
+    n = len(arr)
+    res = [-1] * n
+    stack = []  # store indices
+    for i in range(n):
+        while stack and arr[stack[-1]] < arr[i]:
+            res[stack.pop()] = arr[i]
+        stack.append(i)
+    return res  # remaining indices have no NGE
+
+# 3. Min Stack — O(1) getMin
+class MinStack:
+    def __init__(self): self.stack = []  # (val, min_so_far)
+
+    def push(self, x):
+        mn = x if not self.stack else min(x, self.stack[-1][1])
+        self.stack.append((x, mn))
+
+    def pop(self): self.stack.pop()
+    def top(self): return self.stack[-1][0]
+    def get_min(self): return self.stack[-1][1]
+
+# 4. Reverse string using stack
+def reverse_string(s):
+    stack = list(s)    # push all chars
+    return ''.join(stack.pop() for _ in range(len(stack)))`,
+        practice: [
+          { name: "Valid Parentheses", diff: "easy" },
+          { name: "Next Greater Element I", diff: "easy" },
+          { name: "Min Stack", diff: "medium" },
+          { name: "Largest Rectangle in Histogram", diff: "hard" },
+          { name: "Daily Temperatures (NGE variant)", diff: "medium" },
+          { name: "Trapping Rain Water", diff: "hard" }
+        ]
+      },
+      "Applications & Complexity": {
+        diff: "easy",
+        explanation: "Stack operations are all O(1). Space is O(n) for n elements. Real-world applications: (1) Undo/Redo in text editors — each action pushed onto undo stack; undo pops it. (2) Browser history — Back button pops from history stack. (3) Function call management — the call stack stores return addresses and local variables; recursion uses the call stack. (4) Expression evaluation — compilers convert infix to postfix, then evaluate. (5) DFS (Depth First Search) — uses an explicit or implicit (recursion) stack. (6) Syntax parsing in compilers. From the textbook chapter: 'monotonic stack is very important for competitive programming.'",
+        intuition: "Every recursive function call implicitly uses the call stack. When you call f(n) which calls f(n-1), each call frame is pushed. When a call returns, its frame is popped. Stack overflow in recursion = call stack overflow. Explicitly using a stack in DFS iteratively is equivalent to the implicit recursive call stack.",
+        steps: [
+          "All operations: Push O(1), Pop O(1), Peek O(1), isEmpty O(1).",
+          "Space complexity: O(n) where n = number of elements stored.",
+          "Array vs Linked List: Array faster (no allocation overhead), fixed size. LL dynamic, extra pointer memory.",
+          "Recursion = implicit stack. Every function call pushes a frame. Return pops it.",
+          "Monotonic Stack: each element pushed and popped at most once → O(n) amortised for the whole array.",
+          "Stack overflow: too deep recursion or array-based stack exceeds MAXSIZE."
+        ],
+        dryRun: `Operation Complexity Summary:
+Operation | Time  | Space | Notes
+──────────┼───────┼───────┼──────────────────────────
+Push      | O(1)  | O(1)  | Increment top, assign
+Pop       | O(1)  | O(1)  | Return top, decrement top
+Peek      | O(1)  | O(1)  | Read top, no change
+isEmpty   | O(1)  | O(1)  | Check top == -1
+isFull    | O(1)  | O(1)  | Check top == MAXSIZE-1
+
+Array vs Linked List:
+Feature      | Array Stack    | LL Stack
+─────────────┼────────────────┼────────────────
+Size         | Fixed          | Dynamic
+Speed        | Faster         | Slightly slower
+Overflow     | Yes (at max)   | Only if OOM
+Memory       | Contiguous     | Scattered
+Extra space  | None           | Pointer per node
+
+Real-world applications:
+  ✓ Undo/Redo in editors (Ctrl+Z)
+  ✓ Browser back/forward navigation
+  ✓ Function call stack (recursion)
+  ✓ Expression evaluation (compilers)
+  ✓ Syntax parsing (bracket matching)
+  ✓ DFS graph traversal`,
+        time: { best: "O(1) all ops", avg: "O(1) all ops", worst: "O(1) all ops" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Any time LIFO access is needed. The call stack is already a stack. Expression parsing, undo systems, DFS are all natural stack applications.",
+        pros: [
+          "Simplest O(1) data structure for LIFO",
+          "Works in O(n) for most common interview problems via monotonic stack",
+          "STL stack / Python list make implementation trivial"
+        ],
+        cons: [
+          "Only top element accessible — no random access",
+          "Array stack has fixed size — must set MAXSIZE carefully"
+        ],
+        cpp: `// Stack Applications — C++
+
+// 1. Reverse a string using stack
+string reverseStr(string s) {
+    stack<char> st;
+    for (char c : s) st.push(c);
+    string res = "";
+    while (!st.empty()) { res += st.top(); st.pop(); }
+    return res;
+}
+
+// 2. DFS using explicit stack (no recursion)
+void dfs(vector<vector<int>>& adj, int start) {
+    stack<int> st;
+    vector<bool> visited(adj.size(), false);
+    st.push(start);
+    while (!st.empty()) {
+        int node = st.top(); st.pop();
+        if (visited[node]) continue;
+        visited[node] = true;
+        cout << node << " ";
+        for (int nb : adj[node])
+            if (!visited[nb]) st.push(nb);
+    }
+}
+
+// 3. Stock Span Problem — O(n)
+vector<int> stockSpan(vector<int>& prices) {
+    int n = prices.size();
+    vector<int> span(n);
+    stack<int> st; // store indices
+    for (int i = 0; i < n; i++) {
+        while (!st.empty() && prices[st.top()] <= prices[i])
+            st.pop();
+        span[i] = st.empty() ? i+1 : i - st.top();
+        st.push(i);
+    }
+    return span;
+}`,
+        python: `# Stack Applications — Python
+
+# 1. Reverse string using stack
+def reverse_str(s):
+    stack = list(s)
+    return ''.join(stack.pop() for _ in range(len(stack)))
+
+# 2. DFS using explicit stack
+def dfs_iterative(adj, start):
+    visited = set()
+    stack = [start]
+    order = []
+    while stack:
+        node = stack.pop()
+        if node in visited: continue
+        visited.add(node); order.append(node)
+        for nb in adj[node]:
+            if nb not in visited: stack.append(nb)
+    return order
+
+# 3. Simulate call stack (recursion → iteration)
+def factorial_stack(n):
+    stack = []
+    result = 1
+    while n > 1:
+        stack.append(n)
+        n -= 1
+    while stack:
+        result *= stack.pop()
+    return result
+
+# Stack vs Queue comparison
+# Stack: LIFO, one end (top)
+# Queue: FIFO, two ends (front for dequeue, back for enqueue)
+# Deque: flexible, both ends — superset of both`,
+        practice: [
+          { name: "Implement Stack using Queues", diff: "medium" },
+          { name: "Stock Span Problem", diff: "medium" },
+          { name: "Evaluate Postfix Expression", diff: "medium" },
+          { name: "Largest Rectangle in Histogram", diff: "hard" },
+          { name: "Trapping Rain Water (stack approach)", diff: "hard" }
+        ]
+      }
+    }
+  },
   Queue: { icon: "🎫", diff: "easy", desc: "FIFO. BFS, task scheduling, sliding window maximum.", subtopics: {} },
   Recursion: { icon: "🔄", diff: "medium", desc: "Self-reference. The mental model behind trees, graphs, and DP.", subtopics: {} },
   Searching: { icon: "🔍", diff: "easy", desc: "Linear O(n) to Binary O(log n). Master binary search and its variants.", subtopics: {} },
@@ -1299,6 +1954,107 @@ function SubtopicView({ data, name }) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Stack: LIFO visualizer */}
+      {is("Basics & LIFO") && (
+        <div className="sec">
+          <div className="stitle">LIFO Visualized</div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div style={{ fontSize: ".68rem", color: "var(--accent)", fontFamily: "'Space Mono',monospace", marginBottom: 4 }}>← top</div>
+              {[30, 20, 10].map((v, i) => (
+                <div key={i} style={{ background: i === 0 ? "var(--accent)" : "var(--bg3)", border: "1px solid var(--accent2)", borderRadius: 6, padding: "8px 24px", fontFamily: "'Space Mono',monospace", fontSize: ".85rem", fontWeight: 700, color: i === 0 ? "#fff" : "var(--text2)", width: 120, textAlign: "center" }}>{v}</div>
+              ))}
+              <div style={{ fontSize: ".6rem", color: "var(--text3)", fontFamily: "'Space Mono',monospace", marginTop: 4 }}>stack bottom</div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="callout callout-tip" style={{ marginTop: 0, minWidth: 200 }}>
+                <span className="callout-icon">💡</span>
+                <div className="callout-text"><strong>Push(40)</strong> → goes on top. <strong>Pop()</strong> removes 30 (top). Stack is LIFO — Last In, First Out.</div>
+              </div>
+              <div className="callout callout-warn" style={{ marginTop: 0 }}>
+                <span className="callout-icon">⚠️</span>
+                <div className="callout-text">Push when full → <strong>OVERFLOW</strong>. Pop when empty → <strong>UNDERFLOW</strong>.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stack: operations complexity table */}
+      {is("Applications & Complexity") && (
+        <div className="sec">
+          <div className="stitle">Operations at a Glance</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            <span className="op-badge ob-o1">Push — O(1)</span>
+            <span className="op-badge ob-o1">Pop — O(1)</span>
+            <span className="op-badge ob-o1">Peek — O(1)</span>
+            <span className="op-badge ob-o1">isEmpty — O(1)</span>
+          </div>
+          <table className="fn-table">
+            <thead><tr><th>Feature</th><th>Array Stack</th><th>LL Stack</th></tr></thead>
+            <tbody>
+              {[
+                ["Size","Fixed (MAXSIZE)","Dynamic"],
+                ["Speed","Faster (cache)","Slightly slower"],
+                ["Overflow","Yes (at MAXSIZE)","Only if out of memory"],
+                ["Extra memory","None","Pointer per node"],
+                ["Best for","Known max size","Unknown/variable size"],
+              ].map(([f,a,l]) => (
+                <tr key={f}>
+                  <td className="op">{f}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{a}</td>
+                  <td style={{color:"var(--accent2)",fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{l}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Stack: notation conversion quick ref */}
+      {is("Polish Notations") && (
+        <div className="sec">
+          <div className="stitle">Notation Quick Reference</div>
+          <table className="fn-table">
+            <thead><tr><th>Notation</th><th>Operator Position</th><th>Example A+B</th><th>Parentheses?</th></tr></thead>
+            <tbody>
+              {[
+                ["Infix","Between operands","A + B","Required"],
+                ["Prefix","Before operands","+ A B","Not needed"],
+                ["Postfix","After operands","A B +","Not needed"],
+              ].map(([n,p,e,par]) => (
+                <tr key={n}>
+                  <td className="op">{n}</td>
+                  <td style={{color:"var(--text2)",fontSize:".78rem"}}>{p}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".76rem"}}>{e}</td>
+                  <td style={{color:par==="Not needed"?"var(--green)":"var(--yellow)",fontSize:".76rem"}}>{par}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-tip" style={{marginTop:12}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Operator precedence:</strong> ^ (highest) &gt; *, / &gt; +, - (lowest). Right-to-left for ^ (right-associative). This determines parenthesization order in infix→postfix conversion.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Stack: patterns pill overview */}
+      {is("Important Patterns") && (
+        <div className="sec">
+          <div className="stitle">Pattern Toolkit</div>
+          <div className="pattern-pills">
+            {["Balanced Parentheses","Next Greater Element","Previous Smaller Element","Monotonic Stack","Min Stack","Largest Rectangle","Stock Span","Trapping Rain Water"].map(p => (
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Monotonic stack key insight:</strong> Each element is pushed and popped at most once → O(n) total, even with the inner while loop. This amortised analysis is what makes it efficient.</div>
+          </div>
         </div>
       )}
 
