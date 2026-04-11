@@ -135,6 +135,27 @@ pre{padding:18px 22px;font-size:.78rem;line-height:1.8;font-family:'Space Mono',
 .callout-tip{background:rgba(6,255,165,.06);border:1px solid rgba(6,255,165,.18)}
 .callout-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
 .callout-text{font-size:.83rem;color:var(--text2);line-height:1.7}
+/* ── LINKED LIST VIZ ── */
+.ll-viz{display:flex;align-items:flex-end;flex-wrap:nowrap;overflow-x:auto;gap:0;margin:12px 0 4px}
+.ll-node{display:flex;align-items:flex-end;flex-shrink:0}
+.ll-wrap{display:flex;flex-direction:column;align-items:center}
+.ll-box{display:flex;flex-direction:column;border:1px solid var(--accent2);border-radius:6px;overflow:hidden;min-width:54px}
+.ll-data{background:var(--bg3);padding:8px;font-family:'Space Mono',monospace;font-size:.82rem;font-weight:700;color:var(--text);text-align:center;border-bottom:1px solid var(--accent2)}
+.ll-next{background:var(--bg2);padding:5px 6px;font-family:'Space Mono',monospace;font-size:.6rem;color:var(--accent2);text-align:center}
+.ll-arrow{display:flex;align-items:center;padding:0 5px;color:var(--accent2);font-size:1rem;flex-shrink:0;margin-bottom:10px}
+.ll-null{display:flex;align-items:center;padding:0 8px;font-family:'Space Mono',monospace;font-size:.72rem;color:var(--red);font-weight:700;margin-bottom:10px}
+.ll-lbl{font-size:.62rem;color:var(--accent3);font-family:'Space Mono',monospace;text-align:center;margin-top:4px}
+.ll-head-lbl{font-size:.6rem;color:var(--accent);font-family:'Space Mono',monospace;font-weight:700;margin-bottom:3px;text-align:center}
+.op-badge{display:inline-flex;padding:3px 10px;border-radius:6px;font-size:.7rem;font-weight:700;font-family:'Space Mono',monospace;margin:2px}
+.ob-o1{background:rgba(6,255,165,.1);color:var(--green);border:1px solid rgba(6,255,165,.25)}
+.ob-on{background:rgba(255,209,102,.1);color:var(--yellow);border:1px solid rgba(255,209,102,.25)}
+.theorem-box{background:linear-gradient(135deg,rgba(124,92,252,.08),rgba(192,132,252,.05));border:1px solid rgba(124,92,252,.3);border-left:3px solid var(--accent);border-radius:10px;padding:14px 18px;margin-top:8px}
+.theorem-label{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.theorem-text{font-size:.85rem;color:var(--text2);line-height:1.8}
+.constraint-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.cr-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;flex:1;min-width:160px}
+.cr-n{font-family:'Space Mono',monospace;font-size:.82rem;color:var(--accent2);font-weight:700;margin-bottom:4px}
+.cr-algo{font-size:.78rem;color:var(--text2);line-height:1.7}
 @media(max-width:700px){
   .hero h1{font-size:1.9rem}.sidebar{display:none}.tcontent{padding:18px 16px}
   .cxgrid,.pcgrid,.info-cards{grid-template-columns:1fr}.tgrid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
@@ -148,2081 +169,737 @@ const DSA_DATA = {
     icon: "⚡", diff: "medium",
     desc: "Comparison-based (Selection, Bubble, Insertion, Merge, Quick) and non-comparison-based (Radix) sorting. Covers in-place and stable properties.",
     subtopics: {
-      "Selection Sort": {
-        diff: "easy",
-        explanation: "Given an array of n items: (1) find the largest item x in the range [0…n−1], (2) swap x with the (n−1)th item, (3) reduce n by 1 and repeat. This grows a sorted region at the right end of the array one element per pass. Note: you can also find the smallest and place it at the front instead.",
-        intuition: "Each pass selects the maximum from the unsorted region and places it in its final sorted position at the end. After n−1 passes every element is placed. It always does exactly n−1 swaps — the minimum possible for any comparison sort.",
-        steps: [
-          "Set i = n−1 (last index of unsorted region).",
-          "Find maxIdx = index of the maximum element in a[0..i].",
-          "Swap a[i] with a[maxIdx] — the maximum is now in its final position.",
-          "Decrement i by 1 (shrink unsorted region).",
-          "Repeat until i = 0. Array is sorted."
-        ],
-        dryRun: `Array: [29, 10, 14, 37, 13]
-
-Pass 1 (i=4): max=37 @ idx3 → swap(idx3,idx4) → [29,10,14,13,37]
-Pass 2 (i=3): max=29 @ idx0 → swap(idx0,idx3) → [13,10,14,29,37]
-Pass 3 (i=2): max=14 @ idx2 → swap(idx2,idx2) → [13,10,14,29,37]
-Pass 4 (i=1): max=13 @ idx0 → swap(idx0,idx1) → [10,13,14,29,37]
-
-Result: [10, 13, 14, 29, 37] ✓`,
-        time: { best: "O(n²)", avg: "O(n²)", worst: "O(n²)" },
-        space: "O(1)", stable: false,
-        when: "When the cost of memory writes (swaps) must be minimised — Selection Sort always does exactly n−1 swaps. Not suitable for large n due to always-O(n²) time.",
-        pros: ["Exactly n−1 swaps — minimum possible", "In-place: O(1) extra space", "Simple to implement"],
-        cons: ["Always O(n²) — no early exit optimization", "Not stable (relative order of equal elements may change)", "Worse cache performance than Insertion Sort"],
-        cpp: `// Selection Sort — C++ (find max, place at end)
-void selectionSort(int a[], int n) {
-    for (int i = n - 1; i >= 1; i--) {
-        int maxIdx = i;
-        // Step 1: find index of maximum in a[0..i]
-        for (int j = 0; j < i; j++)
-            if (a[j] >= a[maxIdx])
-                maxIdx = j;
-        // Step 2: swap maximum to position i
-        swap(a[i], a[maxIdx]);
-    }
-}`,
-        python: `# Selection Sort — Python (find max, place at end)
-def selection_sort(a):
-    n = len(a)
-    for i in range(n - 1, 0, -1):
-        max_idx = i
-        # Step 1: find index of maximum in a[0..i]
-        for j in range(i):
-            if a[j] >= a[max_idx]:
-                max_idx = j
-        # Step 2: swap maximum element to position i
-        a[i], a[max_idx] = a[max_idx], a[i]
-    return a`,
-        practice: [
-          { name: "Minimum Number of Swaps to Sort", diff: "medium" },
-          { name: "Find the Minimum in Rotated Sorted Array", diff: "medium" }
-        ]
-      },
-      "Bubble Sort": {
-        diff: "easy",
-        explanation: "Given an array of n items: (1) compare each pair of adjacent items, (2) swap if they are out of order, (3) repeat until the end of the array — the largest item 'bubbles' to the last position. (4) Reduce n by 1 and repeat. Version 2 adds an early-termination flag: if an entire inner pass completes with no swaps, the array is already sorted and we stop.",
-        intuition: "Large items are like bubbles that float to the end of the array. After each pass, the next largest unsorted element reaches its final position. The early-termination trick makes the best case O(n) — if the array is already sorted, the first pass detects it immediately.",
-        steps: [
-          "Outer loop: i runs from n−1 down to 1 (size of unsorted region).",
-          "Set is_sorted = true before the inner loop.",
-          "Inner loop: j runs from 1 to i. If a[j−1] > a[j], swap them and set is_sorted = false.",
-          "After the inner loop, if is_sorted is still true, return immediately — array is sorted.",
-          "Otherwise decrement i and repeat."
-        ],
-        dryRun: `Array: [29, 10, 14, 37, 13]
-
-Pass 1 (i=4):
-  (29,10)→swap → (10,29) | (29,14)→swap | (14,37)→ok | (37,13)→swap
-  After: [10,14,29,13,37]  ← 37 fixed ✓
-
-Pass 2 (i=3):
-  (10,14)→ok | (14,29)→ok | (29,13)→swap
-  After: [10,14,13,29,37]  ← 29 fixed ✓
-
-Pass 3 (i=2): [10,13,14,29,37] ← 14 fixed ✓
-Pass 4 (i=1): no swaps → is_sorted=true → return early ✓
-
-Result: [10, 13, 14, 29, 37] ✓`,
-        time: { best: "O(n) v2", avg: "O(n²)", worst: "O(n²) descending" },
-        space: "O(1)", stable: true,
-        when: "Almost never in practice due to O(n²). The early-termination version (v2) is useful when input is nearly sorted. Teaches comparison-based sorting fundamentals.",
-        pros: ["Stable sort", "In-place: O(1) extra space", "V2 early termination: O(n) best case on already-sorted input", "Easy to understand and visualise"],
-        cons: ["O(n²) worst case — very slow for large n", "Worst case is descending order input", "More swaps per pass compared to Insertion Sort"],
-        cpp: `// Bubble Sort v2 — C++ with early termination
-void bubbleSort(int a[], int n) {
-    for (int i = n - 1; i >= 1; i--) {
-        bool is_sorted = true;       // Assume sorted
-        for (int j = 1; j <= i; j++) {
-            if (a[j-1] > a[j]) {
-                swap(a[j], a[j-1]);
-                is_sorted = false;   // A swap happened
-            }
-        }
-        if (is_sorted) return;       // No swaps → done!
-    }
-}`,
-        python: `# Bubble Sort v2 — Python with early termination
-def bubble_sort(a):
-    n = len(a)
-    for i in range(n - 1, 0, -1):
-        is_sorted = True              # Assume sorted
-        for j in range(1, i + 1):
-            if a[j-1] > a[j]:
-                a[j-1], a[j] = a[j], a[j-1]
-                is_sorted = False     # A swap happened
-        if is_sorted:
-            return a                  # No swaps → done!
-    return a`,
-        practice: [
-          { name: "Check if Array is Sorted and Rotated", diff: "easy" },
-          { name: "Sort Colors (Dutch National Flag)", diff: "medium" },
-          { name: "Minimum Swaps to Sort", diff: "medium" }
-        ]
-      },
-
-      "Insertion Sort": {
-        diff: "easy",
-        explanation: "Insertion Sort is similar to how most people arrange a hand of poker cards. Start with one card in hand, pick the next card and insert it into its proper sorted position, repeat for all cards. In array terms: the left portion a[0..i−1] is always sorted; for each new element a[i], we shift larger sorted elements rightward to make room, then place a[i] at the correct gap.",
-        intuition: "You hold sorted cards in your left hand. Each new card from the deck slides left into its correct slot. The outer loop runs n−1 times; the inner loop shifts elements. Best case: already sorted array — inner loop never runs → O(n). Worst case: reverse sorted — every new element shifts all existing ones → O(n²).",
-        steps: [
-          "Start with i = 1 (treat a[0] as a sorted subarray of size 1).",
-          "Save next = a[i] (the element to be inserted).",
-          "Set j = i − 1. While j ≥ 0 AND a[j] > next: shift a[j] one position right (a[j+1] = a[j]), then j−−.",
-          "Insert next at a[j+1].",
-          "Increment i and repeat until i = n."
-        ],
-        dryRun: `Array: [40, 13, 20, 8]
-
-i=1: next=13, 40>13 → shift 40 right → [40,40,20,8] → insert 13 → [13,40,20,8]
-i=2: next=20, 40>20 → shift 40 right → [13,40,40,8] → insert 20 → [13,20,40,8]
-i=3: next=8,  40>8,20>8,13>8 → shift all → insert 8 → [8,13,20,40]
-
-Result: [8, 13, 20, 40] ✓`,
-        time: { best: "O(n) sorted", avg: "O(n²)", worst: "O(n²) reverse" },
-        space: "O(1)", stable: true,
-        when: "Small arrays (n < 20), nearly-sorted data, or online/streaming scenarios (sort as data arrives). Also used inside Timsort for small runs.",
-        pros: ["Stable sort", "In-place: O(1) extra space", "O(n) best case on already-sorted input", "Online algorithm — can sort data as it arrives", "Very fast for small n in practice"],
-        cons: ["O(n²) worst case on reverse-sorted data", "Many element shifts for large n"],
-        cpp: `// Insertion Sort — C++
-void insertionSort(int a[], int n) {
-    for (int i = 1; i < n; i++) {
-        int next = a[i];   // Item to be inserted
-        int j;
-        // Shift sorted items rightward to make room
-        for (j = i - 1; j >= 0 && a[j] > next; j--)
-            a[j + 1] = a[j];
-        a[j + 1] = next;   // Insert at correct location
-    }
-}`,
-        python: `# Insertion Sort — Python
-def insertion_sort(a):
-    for i in range(1, len(a)):
-        next_val = a[i]       # Item to be inserted
-        j = i - 1
-        # Shift sorted items rightward to make room
-        while j >= 0 and a[j] > next_val:
-            a[j + 1] = a[j]
-            j -= 1
-        a[j + 1] = next_val   # Insert at correct location
-    return a`,
-        practice: [
-          { name: "Insertion Sort List (LeetCode 147)", diff: "medium" },
-          { name: "Sort Nearly Sorted Array (k-sorted)", diff: "medium" }
-        ]
-      },
-      "Merge Sort": {
-        diff: "medium",
-        explanation: "Merge Sort is a divide-and-conquer sorting algorithm. Divide step: split the array into two equal halves and recursively sort each half. Conquer step: merge the two sorted halves into one sorted array. The key insight is that merging two sorted arrays of size k takes O(k) time, and the recursion tree has O(log n) levels, giving O(n log n) total — in all cases.",
-        intuition: "Two sorted arrays can be merged with two pointers in O(n). Divide until each sub-array has size 1 (trivially sorted), then conquer by merging upward. At every level of the recursion tree we do O(n) total merge work, and there are O(log n) levels → O(n log n). Performance is guaranteed — unlike Quick Sort, there is no bad input.",
-        steps: [
-          "Base case: if low >= high (0 or 1 item), return — already sorted.",
-          "Divide: compute mid = (low + high) / 2.",
-          "Recursively call mergeSort(a, low, mid) — sort left half.",
-          "Recursively call mergeSort(a, mid+1, high) — sort right half.",
-          "Conquer: call merge(a, low, mid, high) to merge the two sorted halves.",
-          "In merge(): use a temporary array b[]. Two pointers (left, right) compare elements; always pick the smaller one into b[].",
-          "Copy any remaining items into b[], then copy b[] back into a[low..high]."
-        ],
-        dryRun: `Array: [38, 16, 27, 39, 12, 27]
-
-── Divide Phase ──────────────────────────────
-mergeSort([38,16,27,39,12,27])
-  mergeSort([38,16,27])        mergeSort([39,12,27])
-    mergeSort([38,16])           mergeSort([39,12])
-      mergeSort([38])              mergeSort([39]) → base
-      mergeSort([16])              mergeSort([12]) → base
-      merge([38],[16]) → [16,38]   merge([39],[12]) → [12,39]
-    mergeSort([27]) → base       mergeSort([27]) → base
-
-── Conquer (Merge) Phase ─────────────────────
-merge([16,38],[27])   → [16,27,38]
-merge([12,39],[27])   → [12,27,39]
-merge([16,27,38],[12,27,39]):
-  12<16 → 12 | 16<27 → 16 | 27≤27 → 27 | 27<38 → 27 | 38<39 → 38 | 39 → 39
-
-Result: [12, 16, 27, 27, 38, 39] ✓`,
-        time: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)" },
-        space: "O(n) temp array", stable: true,
-        when: "When guaranteed O(n log n) performance is required regardless of input. Excellent for sorting linked lists. When stability matters.",
-        pros: ["Guaranteed O(n log n) — performance unaffected by input order", "Stable sort", "Suitable for extremely large inputs", "Can operate on input portion by portion (external sort)"],
-        cons: ["Not in-place — requires O(n) extra memory for temporary array", "Not easy to implement correctly", "Slower than Quick Sort in practice due to cache misses and memory allocation"],
-        cpp: `// Merge Sort — C++ (from lecture)
-void merge(int a[], int low, int mid, int high) {
-    int n = high - low + 1;
-    int* b = new int[n];          // Temporary array
-    int left = low, right = mid+1, bIdx = 0;
-    // Merge while both halves have items
-    while (left <= mid && right <= high) {
-        if (a[left] <= a[right])
-            b[bIdx++] = a[left++];
-        else
-            b[bIdx++] = a[right++];
-    }
-    // Copy remaining items
-    while (left  <= mid)   b[bIdx++] = a[left++];
-    while (right <= high)  b[bIdx++] = a[right++];
-    // Copy merged result back into a[]
-    for (int k = 0; k < n; k++)
-        a[low + k] = b[k];
-    delete[] b;                   // Free allocated memory
-}
-
-void mergeSort(int a[], int low, int high) {
-    if (low < high) {             // Base case: low>=high means 0 or 1 item
-        int mid = (low + high) / 2;
-        mergeSort(a, low,   mid);   // Sort left half
-        mergeSort(a, mid+1, high);  // Sort right half
-        merge(a, low, mid, high);   // Merge sorted halves
-    }
-}`,
-        python: `# Merge Sort — Python
-def merge_sort(a, low, high):
-    if low < high:                # Base case: 0 or 1 item
-        mid = (low + high) // 2
-        merge_sort(a, low, mid)       # Sort left half
-        merge_sort(a, mid + 1, high)  # Sort right half
-        merge(a, low, mid, high)      # Merge sorted halves
-
-def merge(a, low, mid, high):
-    b = []                        # Temporary array
-    left, right = low, mid + 1
-    # Merge while both halves have items
-    while left <= mid and right <= high:
-        if a[left] <= a[right]:
-            b.append(a[left]);  left  += 1
-        else:
-            b.append(a[right]); right += 1
-    # Copy remaining items
-    while left  <= mid:  b.append(a[left]);  left  += 1
-    while right <= high: b.append(a[right]); right += 1
-    # Copy merged result back into a[]
-    for k in range(len(b)):
-        a[low + k] = b[k]`,
-        practice: [
-          { name: "Sort a Linked List", diff: "medium" },
-          { name: "Count Inversions in Array", diff: "hard" },
-          { name: "Merge Sorted Arrays", diff: "easy" }
-        ]
-      },
-      "Quick Sort": {
-        diff: "medium",
-        explanation: "Quick Sort selects a 'pivot' element and partitions the array so that all elements smaller than the pivot go left, and all larger go right. The pivot is now in its final sorted position. Recursively apply to the left and right partitions.",
-        intuition: "After partitioning, the pivot never moves again — it's already in its final position. We only need to sort the two smaller sub-arrays. With a random pivot, expected depth is O(log n), and at each level we do O(n) work. Cache-friendly and in-place, making it fastest in practice.",
-        steps: [
-          "Choose a pivot (last element in Lomuto; random for safety).",
-          "Partition: scan left-to-right, placing elements ≤ pivot before pointer i, elements > pivot after.",
-          "Swap pivot to position i+1 — pivot is now at its FINAL sorted position.",
-          "Recursively QuickSort the left sub-array [low..pi-1].",
-          "Recursively QuickSort the right sub-array [pi+1..high].",
-          "Base case: sub-array of size 0 or 1 needs no sorting."
-        ],
-        dryRun: `Array: [27, 38, 12, 39, 27, 16], pivot = a[0] = 27
-
-Partition (m starts at 0):
-  k=1: 38 ≥ 27 → S2, skip
-  k=2: 12 < 27 → m=1, swap(a[1],a[2]) → [27,12,38,39,27,16]
-  k=3: 39 ≥ 27 → S2, skip
-  k=4: 27 ≥ 27 → S2, skip
-  k=5: 16 < 27 → m=2, swap(a[2],a[5]) → [27,12,16,39,27,38]
-
-Place pivot: swap(a[0],a[2]) → [16,12,27,39,27,38]
-Pivot 27 is at index 2  ✓  (FINAL)
-
-Left  [16,12] → recurse → [12,16] ✓
-Right [39,27,38] → recurse → [27,38,39] ✓
-
-Result: [12, 16, 27, 27, 38, 39] ✓`,
-        time: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n²) sorted input" },
-        space: "O(log n) stack", stable: false,
-        when: "General-purpose in-place sorting. Fastest in practice for random data. Always randomize pivot or use median-of-3 to avoid O(n²) on sorted input.",
-        pros: ["Fastest in practice — cache-friendly and in-place", "O(n log n) average/best case", "Pivot ends in its final position — conquer step is trivial", "In-place: O(log n) stack space"],
-        cons: ["O(n²) worst case on sorted/reverse-sorted arrays without randomization", "Not stable — relative order of equal elements not preserved", "Recursive depth O(n) in worst case → stack overflow risk"],
-        cpp: `// Quick Sort — C++ (Lecture partition: a[i] as pivot)
-int partition(int a[], int i, int j) {
-    int p = a[i];    // Pivot is first element
-    int m = i;       // m tracks end of S1 (items < p)
-    for (int k = i + 1; k <= j; k++) {
-        if (a[k] < p) {
-            m++;
-            swap(a[k], a[m]);   // Move to S1
-        }
-        // else: a[k] >= p → stays in S2, do nothing
-    }
-    swap(a[i], a[m]);  // Place pivot at correct position
-    return m;          // Return pivot index
-}
-
-void quickSort(int a[], int low, int high) {
-    if (low < high) {
-        int pivotIdx = partition(a, low, high);
-        quickSort(a, low, pivotIdx - 1);   // Sort S1
-        quickSort(a, pivotIdx + 1, high);  // Sort S2
-    }
-}`,
-        python: `# Quick Sort — Python (lecture partition: a[low] as pivot)
-def partition(a, i, j):
-    p = a[i]     # Pivot is first element
-    m = i        # m tracks end of S1 (items < p)
-    for k in range(i + 1, j + 1):
-        if a[k] < p:
-            m += 1
-            a[k], a[m] = a[m], a[k]   # Move to S1
-        # else: a[k] >= p → stays in S2, do nothing
-    a[i], a[m] = a[m], a[i]  # Place pivot at position m
-    return m                  # Return pivot index
-
-def quick_sort(a, low, high):
-    if low < high:
-        pivot_idx = partition(a, low, high)
-        quick_sort(a, low, pivot_idx - 1)   # Sort S1
-        quick_sort(a, pivot_idx + 1, high)  # Sort S2`,
-        practice: [
-          { name: "Kth Largest Element in Array", diff: "medium" },
-          { name: "Sort Array by Parity", diff: "easy" },
-          { name: "Wiggle Sort II", diff: "hard" }
-        ]
-      },
-      "Radix Sort": {
-        diff: "medium",
-        explanation: "Radix Sort is a non-comparison-based sorting algorithm. It treats each number as a string of digits and groups items by one digit position at a time — from least significant (1s) to most significant. Items are placed into 10 queues (one per digit 0–9), then concatenated. This is repeated for each of d digit positions.",
-        intuition: "Instead of comparing elements, we group by digit. Using queues preserves the relative order of items with the same digit (stable). After d passes, all digit positions have been processed and the array is sorted. Total time is O(dn) — faster than O(n log n) when d is small (e.g. sorting n integers each ≤ 999 means d=3).",
-        steps: [
-          "Determine d = maximum number of digits in any element.",
-          "Set power = 1 (starts at 1s place).",
-          "distribute(): for each element v[i], compute digit = (v[i] / power) % 10, push v[i] into digitQueue[digit].",
-          "collect(): concatenate queues 0 through 9 back into the array in order.",
-          "Multiply power by 10 (move to next digit position).",
-          "Repeat steps 3–5 for all d digit positions."
-        ],
-        dryRun: `Array: [170, 45, 75, 90, 802, 24, 2, 66]  (d=3)
-
-Pass 1 (power=1, 1s digit):
-  Buckets: 0:[170,90] 2:[802,2] 4:[24] 5:[45,75] 6:[66]
-  Collect: [170, 90, 802, 2, 24, 45, 75, 66]
-
-Pass 2 (power=10, 10s digit):
-  Buckets: 0:[802,2] 2:[24] 4:[45] 6:[66] 7:[170,75] 9:[90]
-  Collect: [802, 2, 24, 45, 66, 170, 75, 90]
-
-Pass 3 (power=100, 100s digit):
-  Buckets: 0:[2,24,45,66,75,90] 1:[170] 8:[802]
-  Collect: [2, 24, 45, 66, 75, 90, 170, 802] ✓`,
-        time: { best: "O(dn)", avg: "O(dn)", worst: "O(dn)" },
-        space: "O(n)", stable: true,
-        when: "Sorting large volumes of integers with a small number of digits d. Outperforms comparison sorts when d << log n. Used in database systems and network packet sorting.",
-        pros: ["O(dn) — beats O(n log n) when d is small", "Stable sort", "No element comparisons needed", "Predictable, consistent time regardless of input order"],
-        cons: ["Not in-place — requires extra queue/array storage O(n)", "Only works on integers or fixed-length strings", "Performance degrades when d is large (e.g. floats, large integers)"],
-        cpp: `// Radix Sort — C++
-#include <queue>
-void distribute(vector<int>& v, queue<int> dq[], int power) {
-    for (int i = 0; i < v.size(); i++) {
-        int digit = (v[i] / power) % 10;  // Extract digit
-        dq[digit].push(v[i]);
-    }
-}
-void collect(queue<int> dq[], vector<int>& v) {
-    int i = 0;
-    for (int d = 0; d < 10; d++)
-        while (!dq[d].empty()) {
-            v[i++] = dq[d].front();
-            dq[d].pop();
-        }
-}
-void radixSort(vector<int>& v, int d) {
-    queue<int> digitQueue[10]; // 10 buckets, one per digit
-    int power = 1;
-    for (int i = 0; i < d; i++) {
-        distribute(v, digitQueue, power);
-        collect(digitQueue, v);
-        power *= 10;
-    }
-}`,
-        python: `# Radix Sort — Python
-from collections import deque
-
-def radix_sort(v, d):
-    power = 1
-    for _ in range(d):
-        buckets = [deque() for _ in range(10)]
-        # distribute(): place into correct bucket by digit
-        for num in v:
-            digit = (num // power) % 10
-            buckets[digit].append(num)
-        # collect(): concatenate buckets back into v
-        i = 0
-        for bucket in buckets:
-            while bucket:
-                v[i] = bucket.popleft()
-                i += 1
-        power *= 10
-    return v`,
-        practice: [
-          { name: "Maximum Gap", diff: "hard" },
-          { name: "Sort an Array (Counting Sort variant)", diff: "medium" },
-          { name: "Sort Characters by Frequency", diff: "medium" }
-        ]
-      },
-      "Algorithm Comparison": {
-        diff: "easy",
-        explanation: "A summary of all sorting algorithms covered in the lecture, comparing their time complexities, space usage, stability, and in-place property. This is a classic exam question — know the table cold.",
-        intuition: "Each algorithm makes different trade-offs. O(n²) algorithms are simple and in-place but slow. O(n log n) algorithms are faster but may need extra memory or sacrifice stability. Radix Sort beats them all when d is small but requires non-comparison input.",
-        steps: [
-          "Selection Sort: O(n²)/O(n²) | In-place ✓ | NOT stable ✗",
-          "Insertion Sort: O(n)/O(n²) | In-place ✓ | Stable ✓",
-          "Bubble Sort v1: O(n²)/O(n²) | In-place ✓ | Stable ✓",
-          "Bubble Sort v2: O(n)/O(n²)  | In-place ✓ | Stable ✓",
-          "Merge Sort:     O(n lg n)/O(n lg n) | NOT in-place ✗ | Stable ✓",
-          "Quick Sort:     O(n lg n)/O(n²)     | In-place ✓ | NOT stable ✗",
-          "Radix Sort:     O(dn)/O(dn)          | NOT in-place ✗ | Stable ✓"
-        ],
-        dryRun: `Algorithm        Best        Worst       In-place  Stable
-─────────────────────────────────────────────────────────
-Selection Sort   O(n²)       O(n²)       Yes       No
-Insertion Sort   O(n)        O(n²)       Yes       Yes
-Bubble Sort v1   O(n²)       O(n²)       Yes       Yes
-Bubble Sort v2   O(n)        O(n²)       Yes       Yes
-Merge Sort       O(n lg n)   O(n lg n)   No        Yes
-Quick Sort       O(n lg n)   O(n²)       Yes       No
-Radix Sort       O(dn)       O(dn)       No        Yes
-
-Lower bound for comparison-based sorting: Ω(n log n)
-→ Merge Sort is optimal among comparison sorts ✓`,
-        time: { best: "Varies", avg: "Varies", worst: "Varies" },
-        space: "Varies", stable: true,
-        when: "Use this as a reference sheet before exams. Know which algorithms are stable, which are in-place, and why Quick Sort has O(n²) worst case.",
-        pros: ["Merge Sort: guaranteed O(n log n), stable", "Quick Sort: fastest in practice, in-place", "Insertion Sort: best for small/nearly-sorted n", "Radix Sort: beats O(n log n) for integer data with small d"],
-        cons: ["No single algorithm wins on all criteria", "Merge Sort needs O(n) extra memory", "Quick Sort degrades to O(n²) on sorted input", "Radix Sort is limited to integers/fixed strings"],
-        cpp: `// Choosing the right sort in C++:
-// std::sort       → introsort (Quick + Heap + Insertion)
-// std::stable_sort → merge sort (stable, O(n log n))
-// std::partial_sort → heap-based (top-k)
-
-// For nearly sorted array → Insertion Sort
-// For guaranteed O(n log n) stable → Merge Sort
-// For general purpose (fast avg) → Quick Sort
-// For integers with small range → Counting/Radix Sort`,
-        python: `# Choosing the right sort in Python:
-# sorted() / list.sort() → Timsort (Merge + Insertion)
-# Timsort is stable and O(n log n) worst case
-
-# For nearly sorted → Python's built-in (Timsort shines)
-# For integers only → Radix Sort (O(dn))
-# For custom key → sorted(arr, key=lambda x: x[1])
-# For stability requirement → sorted() is always stable`,
-        practice: [
-          { name: "Sort Colors (3-way partition)", diff: "medium" },
-          { name: "Largest Number (custom sort)", diff: "medium" },
-          { name: "Merge Intervals", diff: "medium" }
-        ]
-      }
+      "Selection Sort": { diff: "easy", explanation: "Given an array of n items: (1) find the largest item x in the range [0…n−1], (2) swap x with the (n−1)th item, (3) reduce n by 1 and repeat.", intuition: "Each pass selects the maximum from the unsorted region and places it in its final sorted position. Always does exactly n−1 swaps.", steps: ["Set i = n−1 (last index of unsorted region).","Find maxIdx = index of the maximum element in a[0..i].","Swap a[i] with a[maxIdx] — the maximum is now in its final position.","Decrement i by 1 (shrink unsorted region).","Repeat until i = 0. Array is sorted."], dryRun: `Array: [29, 10, 14, 37, 13]\n\nPass 1 (i=4): max=37 @ idx3 → swap(idx3,idx4) → [29,10,14,13,37]\nPass 2 (i=3): max=29 @ idx0 → swap(idx0,idx3) → [13,10,14,29,37]\nPass 3 (i=2): max=14 @ idx2 → swap(idx2,idx2) → [13,10,14,29,37]\nPass 4 (i=1): max=13 @ idx0 → swap(idx0,idx1) → [10,13,14,29,37]\n\nResult: [10, 13, 14, 29, 37] ✓`, time: { best: "O(n²)", avg: "O(n²)", worst: "O(n²)" }, space: "O(1)", stable: false, when: "When minimising memory writes (exactly n−1 swaps). Not suitable for large n.", pros: ["Exactly n−1 swaps — minimum possible","In-place: O(1) extra space","Simple to implement"], cons: ["Always O(n²) — no early exit","Not stable","Worse cache performance than Insertion Sort"], cpp: `void selectionSort(int a[], int n) {\n    for (int i = n - 1; i >= 1; i--) {\n        int maxIdx = i;\n        for (int j = 0; j < i; j++)\n            if (a[j] >= a[maxIdx]) maxIdx = j;\n        swap(a[i], a[maxIdx]);\n    }\n}`, python: `def selection_sort(a):\n    n = len(a)\n    for i in range(n - 1, 0, -1):\n        max_idx = i\n        for j in range(i):\n            if a[j] >= a[max_idx]: max_idx = j\n        a[i], a[max_idx] = a[max_idx], a[i]\n    return a`, practice: [{ name: "Minimum Number of Swaps to Sort", diff: "medium" }] },
+      "Bubble Sort": { diff: "easy", explanation: "Compare adjacent pairs, swap if out of order, bubble largest to end each pass. Version 2 adds early-termination: if no swaps in a pass, array is sorted — stop.", intuition: "Large items bubble to the end each pass. Early-termination makes best case O(n) on already-sorted input.", steps: ["Outer loop: i runs from n−1 down to 1.","Set is_sorted = true before inner loop.","Inner loop j from 1 to i: if a[j−1] > a[j], swap and set is_sorted = false.","If is_sorted still true after inner loop, return — array is sorted.","Otherwise decrement i and repeat."], dryRun: `Array: [29, 10, 14, 37, 13]\n\nPass 1 (i=4): after swaps → [10,14,29,13,37] ← 37 fixed ✓\nPass 2 (i=3): after swaps → [10,14,13,29,37] ← 29 fixed ✓\nPass 3 (i=2): [10,13,14,29,37] ← 14 fixed ✓\nPass 4 (i=1): no swaps → is_sorted=true → return early ✓\n\nResult: [10, 13, 14, 29, 37] ✓`, time: { best: "O(n) v2", avg: "O(n²)", worst: "O(n²) descending" }, space: "O(1)", stable: true, when: "Nearly sorted data with v2 early termination. Educational purposes.", pros: ["Stable sort","In-place: O(1)","O(n) best case with early termination"], cons: ["O(n²) worst case","More swaps than Insertion Sort"], cpp: `void bubbleSort(int a[], int n) {\n    for (int i = n - 1; i >= 1; i--) {\n        bool is_sorted = true;\n        for (int j = 1; j <= i; j++) {\n            if (a[j-1] > a[j]) {\n                swap(a[j], a[j-1]);\n                is_sorted = false;\n            }\n        }\n        if (is_sorted) return;\n    }\n}`, python: `def bubble_sort(a):\n    n = len(a)\n    for i in range(n - 1, 0, -1):\n        is_sorted = True\n        for j in range(1, i + 1):\n            if a[j-1] > a[j]:\n                a[j-1], a[j] = a[j], a[j-1]\n                is_sorted = False\n        if is_sorted: return a\n    return a`, practice: [{ name: "Sort Colors (Dutch National Flag)", diff: "medium" }] },
+      "Insertion Sort": { diff: "easy", explanation: "Like sorting poker cards. Left portion a[0..i−1] is always sorted; for each new element a[i], shift larger sorted elements right, insert a[i] at the correct gap.", intuition: "Each new card slides left into correct position. Best case: sorted array — O(n). Worst case: reverse sorted — O(n²).", steps: ["Start with i=1 (a[0] is sorted subarray of size 1).","Save next = a[i] (element to insert).","While j ≥ 0 AND a[j] > next: shift a[j] right, j−−.","Insert next at a[j+1].","Repeat until i = n."], dryRun: `Array: [40, 13, 20, 8]\n\ni=1: next=13, 40>13 → shift → insert → [13,40,20,8]\ni=2: next=20, 40>20 → shift → insert → [13,20,40,8]\ni=3: next=8,  all>8 → shift → insert → [8,13,20,40]\n\nResult: [8, 13, 20, 40] ✓`, time: { best: "O(n) sorted", avg: "O(n²)", worst: "O(n²) reverse" }, space: "O(1)", stable: true, when: "Small arrays (n<20), nearly-sorted data, online/streaming. Used inside Timsort.", pros: ["Stable, in-place","O(n) best case","Online algorithm"], cons: ["O(n²) worst case","Many element shifts for large n"], cpp: `void insertionSort(int a[], int n) {\n    for (int i = 1; i < n; i++) {\n        int next = a[i];\n        int j;\n        for (j = i - 1; j >= 0 && a[j] > next; j--)\n            a[j + 1] = a[j];\n        a[j + 1] = next;\n    }\n}`, python: `def insertion_sort(a):\n    for i in range(1, len(a)):\n        next_val = a[i]\n        j = i - 1\n        while j >= 0 and a[j] > next_val:\n            a[j + 1] = a[j]\n            j -= 1\n        a[j + 1] = next_val\n    return a`, practice: [{ name: "Insertion Sort List (LeetCode 147)", diff: "medium" }] },
+      "Merge Sort": { diff: "medium", explanation: "Divide-and-conquer. Divide: split into two halves, recursively sort. Conquer: merge the sorted halves. Merging two sorted arrays of size k takes O(k). Recursion tree has O(log n) levels → O(n log n) total, guaranteed.", intuition: "Divide until size-1 (trivially sorted), then merge upward. O(n) work per level × O(log n) levels = O(n log n). No bad inputs — guaranteed.", steps: ["Base case: low >= high → return.","Compute mid = (low+high)/2.","mergeSort(a, low, mid) — sort left half.","mergeSort(a, mid+1, high) — sort right half.","merge(a, low, mid, high) using temp array b[].","Two pointers pick smaller element into b[]. Copy remaining. Copy b[] back."], dryRun: `Array: [38, 16, 27, 39, 12, 27]\n\nDivide → [38,16,27] | [39,12,27]\n         [38,16]|[27] [39,12]|[27]\n         [38][16]     [39][12]\n\nMerge up:\n[16,38] [12,39] → [16,27,38] [12,27,39]\nFinal merge → [12,16,27,27,38,39] ✓`, time: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)" }, space: "O(n) temp array", stable: true, when: "Guaranteed O(n log n) needed. Sorting linked lists. Stability required.", pros: ["Guaranteed O(n log n)","Stable sort","External sort capable"], cons: ["O(n) extra memory","Slower than Quick Sort in practice (cache misses)"], cpp: `void merge(int a[], int low, int mid, int high) {\n    int n = high - low + 1;\n    int* b = new int[n];\n    int left = low, right = mid+1, bIdx = 0;\n    while (left <= mid && right <= high)\n        b[bIdx++] = (a[left] <= a[right]) ? a[left++] : a[right++];\n    while (left  <= mid)  b[bIdx++] = a[left++];\n    while (right <= high) b[bIdx++] = a[right++];\n    for (int k = 0; k < n; k++) a[low+k] = b[k];\n    delete[] b;\n}\nvoid mergeSort(int a[], int low, int high) {\n    if (low < high) {\n        int mid = (low+high)/2;\n        mergeSort(a, low, mid);\n        mergeSort(a, mid+1, high);\n        merge(a, low, mid, high);\n    }\n}`, python: `def merge_sort(a, low, high):\n    if low < high:\n        mid = (low + high) // 2\n        merge_sort(a, low, mid)\n        merge_sort(a, mid+1, high)\n        merge(a, low, mid, high)\n\ndef merge(a, low, mid, high):\n    b = []\n    l, r = low, mid+1\n    while l <= mid and r <= high:\n        if a[l] <= a[r]: b.append(a[l]); l+=1\n        else: b.append(a[r]); r+=1\n    while l <= mid: b.append(a[l]); l+=1\n    while r <= high: b.append(a[r]); r+=1\n    for k in range(len(b)): a[low+k] = b[k]`, practice: [{ name: "Sort a Linked List", diff: "medium" },{ name: "Count Inversions in Array", diff: "hard" }] },
+      "Quick Sort": { diff: "medium", explanation: "Divide-and-conquer. Choose pivot p = a[i]. Partition array into S1 (items < p) and S2 (items ≥ p). Pivot lands in final sorted position. Recursively sort S1 and S2. Conquer step: do nothing — pivot is already placed.", intuition: "After partition, pivot never moves again. Only sort the two sub-arrays. Cache-friendly, in-place. Average O(n log n) but O(n²) worst case on sorted input.", steps: ["Choose pivot p = a[low]. Set m = low.","For k from low+1 to high: if a[k] < p, m++, swap(a[k], a[m]). Else skip (S2).","swap(a[low], a[m]) — place pivot at index m. Return m as pivotIdx.","quickSort(a, low, pivotIdx-1) — sort S1.","quickSort(a, pivotIdx+1, high) — sort S2.","Base case: low >= high."], dryRun: `Array: [27,38,12,39,27,16], pivot=27\n\nk=1: 38≥27 skip  k=2: 12<27 → m=1, swap → [27,12,38,39,27,16]\nk=3: 39≥27 skip  k=4: 27≥27 skip\nk=5: 16<27 → m=2, swap → [27,12,16,39,27,38]\nPlace pivot: swap(a[0],a[2]) → [16,12,27,39,27,38]\nPivot 27 at index 2 ✓ (FINAL)\nLeft [16,12]→[12,16]  Right [39,27,38]→[27,38,39]\nResult: [12,16,27,27,38,39] ✓`, time: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n²) sorted input" }, space: "O(log n) stack", stable: false, when: "General-purpose in-place sorting. Fastest in practice for random data. Randomize pivot to avoid O(n²).", pros: ["Fastest in practice — cache-friendly, in-place","O(n log n) average","Pivot in final position — trivial conquer"], cons: ["O(n²) worst case without randomization","Not stable","Recursive stack overflow risk on pathological input"], cpp: `int partition(int a[], int i, int j) {\n    int p = a[i], m = i;\n    for (int k = i+1; k <= j; k++)\n        if (a[k] < p) { m++; swap(a[k], a[m]); }\n    swap(a[i], a[m]);\n    return m;\n}\nvoid quickSort(int a[], int low, int high) {\n    if (low < high) {\n        int pi = partition(a, low, high);\n        quickSort(a, low, pi-1);\n        quickSort(a, pi+1, high);\n    }\n}`, python: `def partition(a, i, j):\n    p, m = a[i], i\n    for k in range(i+1, j+1):\n        if a[k] < p:\n            m += 1\n            a[k], a[m] = a[m], a[k]\n    a[i], a[m] = a[m], a[i]\n    return m\n\ndef quick_sort(a, low, high):\n    if low < high:\n        pi = partition(a, low, high)\n        quick_sort(a, low, pi-1)\n        quick_sort(a, pi+1, high)`, practice: [{ name: "Kth Largest Element in Array", diff: "medium" },{ name: "Wiggle Sort II", diff: "hard" }] },
+      "Radix Sort": { diff: "medium", explanation: "Non-comparison sort. Treats numbers as digit strings. Groups items by digit position (1s→10s→100s) using 10 queues. Repeat for d digit positions. O(dn) total — beats O(n log n) when d is small.", intuition: "No comparisons — group by digit. Queues preserve relative order (stable). After d passes the array is sorted. d=3 for numbers ≤999.", steps: ["Determine d = max digits in any element.","Set power=1 (1s place).","distribute(): push v[i] into digitQueue[(v[i]/power)%10].","collect(): concatenate queues 0–9 back into array.","power *= 10. Repeat d times."], dryRun: `Array: [170,45,75,90,802,24,2,66] (d=3)\n\nPass 1 (1s): buckets 0:[170,90] 2:[802,2] 4:[24] 5:[45,75] 6:[66]\n  Collect: [170,90,802,2,24,45,75,66]\nPass 2 (10s): buckets 0:[802,2] 2:[24] 4:[45] 6:[66] 7:[170,75] 9:[90]\n  Collect: [802,2,24,45,66,170,75,90]\nPass 3 (100s): buckets 0:[2,24,45,66,75,90] 1:[170] 8:[802]\n  Collect: [2,24,45,66,75,90,170,802] ✓`, time: { best: "O(dn)", avg: "O(dn)", worst: "O(dn)" }, space: "O(n)", stable: true, when: "Large volumes of integers with small d. d << log n → faster than comparison sorts.", pros: ["O(dn) beats O(n log n) when d small","Stable, no comparisons","Predictable performance"], cons: ["Not in-place — extra queue storage","Only integers or fixed-length strings","Degrades when d is large"], cpp: `#include <queue>\nvoid radixSort(vector<int>& v, int d) {\n    queue<int> dq[10];\n    int power = 1;\n    for (int i = 0; i < d; i++) {\n        for (int x : v) dq[(x/power)%10].push(x);\n        int k = 0;\n        for (int d = 0; d < 10; d++)\n            while (!dq[d].empty()) { v[k++]=dq[d].front(); dq[d].pop(); }\n        power *= 10;\n    }\n}`, python: `from collections import deque\ndef radix_sort(v, d):\n    power = 1\n    for _ in range(d):\n        buckets = [deque() for _ in range(10)]\n        for num in v: buckets[(num//power)%10].append(num)\n        i = 0\n        for b in buckets:\n            while b: v[i]=b.popleft(); i+=1\n        power *= 10\n    return v`, practice: [{ name: "Maximum Gap", diff: "hard" }] },
+      "Algorithm Comparison": { diff: "easy", explanation: "Summary table of all sorting algorithms: time complexity, space, stability, and in-place property. Classic exam question — know this cold.", intuition: "Each algorithm trades off differently. O(n²) = simple, in-place, slow. O(n log n) = faster but may need space or sacrifice stability.", steps: ["Selection Sort: O(n²)/O(n²) | In-place ✓ | NOT stable ✗","Insertion Sort: O(n)/O(n²) | In-place ✓ | Stable ✓","Bubble Sort v2: O(n)/O(n²) | In-place ✓ | Stable ✓","Merge Sort: O(n lg n)/O(n lg n) | NOT in-place ✗ | Stable ✓","Quick Sort: O(n lg n)/O(n²) | In-place ✓ | NOT stable ✗","Radix Sort: O(dn)/O(dn) | NOT in-place ✗ | Stable ✓"], dryRun: `Algorithm      Best       Worst      In-place  Stable\n────────────────────────────────────────────────────\nSelection      O(n²)      O(n²)      Yes       No\nInsertion      O(n)       O(n²)      Yes       Yes\nBubble v2      O(n)       O(n²)      Yes       Yes\nMerge          O(n lg n)  O(n lg n)  No        Yes\nQuick          O(n lg n)  O(n²)      Yes       No\nRadix          O(dn)      O(dn)      No        Yes\n\nLower bound for comparison sort: Ω(n log n)\nMerge Sort is optimal among comparison sorts ✓`, time: { best: "Varies", avg: "Varies", worst: "Varies" }, space: "Varies", stable: true, when: "Use as exam reference. Know stability, in-place, and why Quick Sort has O(n²) worst case.", pros: ["Merge Sort: guaranteed O(n log n), stable","Quick Sort: fastest in practice, in-place","Radix: beats O(n log n) for integer data with small d"], cons: ["No single algorithm wins all criteria","Merge needs O(n) memory","Quick degrades on sorted input"], cpp: `// std::sort       -> introsort (Quick+Heap+Insertion)\n// std::stable_sort -> merge sort (stable, O(n log n))\n// For nearly sorted  -> Insertion Sort\n// For guaranteed stable O(n log n) -> Merge Sort`, python: `# sorted()/list.sort() -> Timsort (Merge+Insertion)\n# Timsort: stable, O(n log n) worst case\n# For integers -> Radix Sort O(dn)\n# Custom key -> sorted(arr, key=lambda x: x[1])`, practice: [{ name: "Sort Colors", diff: "medium" },{ name: "Largest Number", diff: "medium" }] }
     }
   },
   Arrays: {
     icon: "📦", diff: "easy",
     desc: "Foundation of DSA — contiguous memory, O(1) access. Most-asked topic in coding interviews.",
     subtopics: {
-      "Introduction & Memory": {
+      "Introduction & Memory": { diff: "easy", explanation: "An array stores elements of the same type in contiguous memory. Each element is identified by an index (0-based). Address formula: Address(arr[i]) = Base + (i × size_of_element). This gives O(1) random access — no traversal needed.", intuition: "Like numbered lockers in a corridor. Locker #3 is always 3 steps from #0 — jump straight there. O(1) access. Trade-off: must book fixed number upfront; inserting in middle requires shifting.", steps: ["Declare array with fixed size or use dynamic type (vector/list).","Elements stored at consecutive addresses.","Access arr[i] in O(1): compute address directly.","Address = Base + (i × size). No loop needed.","Index range 0 to n−1. Accessing arr[n] → Index Out of Bounds."], dryRun: `arr=[10,20,30,40], Base=1000, size=4\n\narr[0]=1000+(0×4)=1000 → 10\narr[2]=1000+(2×4)=1008 → 30\narr[5]=1000+(5×4)=1020 → ⚠ Out of Bounds! ✗`, time: { best: "O(1)", avg: "O(1)", worst: "O(1)" }, space: "O(n)", stable: undefined, when: "Always — default data structure. Use for fast random access with known/bounded size.", pros: ["O(1) random access","Cache-friendly: contiguous memory","Foundation for stacks, queues, heaps"], cons: ["Fixed size in static arrays","O(n) insert/delete due to shifting","Memory wastage if over-allocated"], cpp: `int arr[4] = {10,20,30,40};  // static\nvector<int> v = {10,20,30,40}; // dynamic\ncout << arr[2]; // 30 — O(1)\nint mat[2][3] = {{1,2,3},{4,5,6}};`, python: `arr = [10,20,30,40]\nprint(arr[2])   # 30 — O(1)\nprint(arr[-1])  # 40 last element\nmat = [[1,2,3],[4,5,6]]\nprint(mat[1][2]) # 6`, practice: [{ name: "Find Maximum and Minimum", diff: "easy" },{ name: "Reverse an Array", diff: "easy" }] },
+      "Types of Arrays": { diff: "easy", explanation: "1D: flat sequence. 2D: matrix with rows/columns. Static: fixed size at compile time. Dynamic: resizable (vector, list, ArrayList). Dynamic arrays double capacity when full — O(1) amortised append.", intuition: "Static = fixed parking lot. Dynamic = lot that doubles when full, amortising O(n) copy cost over many inserts.", steps: ["1D: arr[i].","2D: arr[i][j] — row i, col j. Row-major memory storage.","Static: int arr[10] — size fixed.","Dynamic: auto-grows. O(1) amortised append. O(n) on resize.","Multi-dim: arr[i][j][k]..."], dryRun: `2D: mat=[[1,2,3],[4,5,6]]\nmat[1][2]=6  addr=base+(1×3+2)×4=base+20\n\nDynamic growth:\ncap=1→[10] push(20)→cap=2→[10,20]\npush(30)→cap=4→[10,20,30,_]\npush(50)→cap=8→[10,20,30,40,50,_,_,_] ✓`, time: { best: "O(1) access", avg: "O(1) access", worst: "O(n) resize" }, space: "O(n·m) for 2D", stable: undefined, when: "2D for grids/matrices/DP tables. Dynamic arrays (vector/list) almost always in interviews.", pros: ["2D models grids naturally","Dynamic: O(1) amortised append","Row-major keeps row access cache-friendly"], cons: ["2D traversal O(n×m)","Resize has occasional O(n) spike"], cpp: `vector<int> v = {1,2,3};\nv.push_back(4);  // O(1) amortised\nvector<vector<int>> grid(3, vector<int>(4,0));`, python: `arr = [1,2,3]\narr.append(4)   # O(1) amortised\ngrid = [[0]*4 for _ in range(3)]`, practice: [{ name: "Spiral Matrix", diff: "medium" },{ name: "Rotate Image", diff: "medium" }] },
+      "Core Operations": { diff: "easy", explanation: "Access O(1). Search O(n) linear / O(log n) binary (sorted). Insert O(n) — shift right. Delete O(n) — shift left. Update O(1). Insert/delete O(1) only at end of dynamic array.", intuition: "Access free — compute address. Search unsorted = check every element. Insert/delete mid-array = move everything. Update = overwrite in-place.", steps: ["ACCESS: arr[i] → compute address. O(1).","SEARCH linear: scan until found. O(n).","SEARCH binary (sorted): compare mid, eliminate half. O(log n).","INSERT at k: shift arr[k..n-1] right. O(n).","DELETE at k: shift arr[k+1..n-1] left. O(n).","UPDATE: arr[k] = value. O(1)."], dryRun: `INSERT 25 at index 2 in [10,20,30,40]:\nShift right → [10,20,_,30,40] → arr[2]=25 → [10,20,25,30,40] ✓\n\nDELETE index 1 from [10,20,30]:\nShift left → [10,30,30] → size-- → [10,30] ✓\n\nBINARY SEARCH 30 in [10,20,30,40,50]:\nlo=0,hi=4,mid=2 → arr[2]=30 ✓ O(log n)`, time: { best: "O(1) access/update", avg: "O(n) insert/delete", worst: "O(n) insert/delete" }, space: "O(1) extra", stable: undefined, when: "Access/update O(1) — perfect. Avoid frequent mid-array insert/delete; use linked list.", pros: ["O(1) access and update","Binary search O(log n) on sorted","In-place operations"], cons: ["O(n) insert/delete at arbitrary position","Must be sorted for binary search"], cpp: `vector<int> a={10,20,30,40};\nint x=a[2];          // O(1)\na[2]=99;             // O(1)\na.insert(a.begin()+2,25); // O(n)\na.erase(a.begin()+1);     // O(n)`, python: `a=[10,20,30,40]\nx=a[2]          # O(1)\na[2]=99         # O(1)\na.insert(2,25)  # O(n)\na.pop(1)        # O(n)`, practice: [{ name: "Search in Rotated Sorted Array", diff: "medium" },{ name: "Remove Element In-place", diff: "easy" }] },
+      "Key Patterns": { diff: "medium", explanation: "Five patterns solve ~80% of array interview problems: (1) Prefix Sum — O(1) range queries after O(n) build. (2) Sliding Window — O(n) subarray problems. (3) Two Pointers — eliminates nested loops on sorted arrays. (4) Kadane's Algorithm — max subarray sum O(n). (5) Dutch National Flag — 3-way partition O(n).", intuition: "Prefix sum trades precomputation for O(1) queries. Sliding window avoids recomputing overlapping windows. Two pointers replaces O(n²) nested loops. Kadane's DP recurrence: maxHere = max(arr[i], maxHere+arr[i]).", steps: ["PREFIX SUM: prefix[i]=prefix[i-1]+arr[i]. Range[l,r]=prefix[r]-prefix[l-1]. O(n) build, O(1) query.","SLIDING WINDOW: expand right, shrink left when constraint violated. O(n).","TWO POINTERS: l=0,r=n-1. Move based on comparison. O(n).","KADANE'S: maxHere=max(arr[i],maxHere+arr[i]). Track maxSoFar. O(n).","DUTCH FLAG: 3 pointers lo/mid/hi. Elements<pivot→left, =pivot→mid, >pivot→right. O(n)."], dryRun: `KADANE'S on [-2,1,-3,4,-1,2,1,-5,4]:\ni=3: cur=4,max=4  i=4: cur=3,max=4\ni=5: cur=5,max=5  i=6: cur=6,max=6 ← answer ✓\n\nTWO POINTERS: Two Sum sorted [2,7,11,15] target=9\nl=0,r=3: 17>9→r--  l=0,r=2: 13>9→r--\nl=0,r=1: 9==9 ✓ return [0,1]`, time: { best: "O(n)", avg: "O(n)", worst: "O(n)" }, space: "O(n) prefix, O(1) others", stable: undefined, when: "Range queries→Prefix Sum. Window subarray→Sliding Window. Sorted pair problems→Two Pointers. Max subarray→Kadane's.", pros: ["All O(n) — optimal","Eliminate O(n²) nested loops","Cover ~80% of array interview problems"], cons: ["Prefix sum uses O(n) space","Variable window can be tricky","Two pointers needs sorted array for many problems"], cpp: `// Prefix Sum\nvector<int> pre(n); pre[0]=arr[0];\nfor(int i=1;i<n;i++) pre[i]=pre[i-1]+arr[i];\nint sum=pre[r]-(l>0?pre[l-1]:0);\n// Kadane's\nint cur=arr[0],mx=arr[0];\nfor(int i=1;i<n;i++){cur=max(arr[i],cur+arr[i]);mx=max(mx,cur);}\n// Two Pointers\nint l=0,r=n-1;\nwhile(l<r){int s=arr[l]+arr[r];if(s==t)return{l,r};else if(s<t)l++;else r--;}`, python: `# Prefix Sum\npre=[0]*n; pre[0]=arr[0]\nfor i in range(1,n): pre[i]=pre[i-1]+arr[i]\n# Kadane's\ncur=mx=arr[0]\nfor x in arr[1:]: cur=max(x,cur+x); mx=max(mx,cur)\n# Two Pointers\nl,r=0,len(arr)-1\nwhile l<r:\n    s=arr[l]+arr[r]\n    if s==t: return [l,r]\n    elif s<t: l+=1\n    else: r-=1`, practice: [{ name: "Maximum Subarray (Kadane's)", diff: "medium" },{ name: "Two Sum", diff: "easy" },{ name: "Container With Most Water", diff: "medium" }] },
+      "Important Problems": { diff: "medium", explanation: "Canonical array problems every CS student must know from scratch: Reverse, Move Zeros, Remove Duplicates, Rotate (3-reversal), Merge Sorted, Majority Element (Boyer-Moore). All O(n)/O(1).", intuition: "3-reversal rotate: no extra O(n) space. Remove duplicates: slow/fast pointer. Move zeros: write pointer. Boyer-Moore majority: candidate+count.", steps: ["REVERSE: swap a[l] and a[r], move inward. O(n),O(1).","MOVE ZEROS: writePtr=0, copy non-zeros, fill rest with 0s. O(n),O(1).","REMOVE DUPS (sorted): writePtr=1, copy when arr[i]≠arr[i-1]. O(n),O(1).","ROTATE RIGHT k: reverse all, reverse first k, reverse last n-k. O(n),O(1).","MAJORITY (Boyer-Moore): candidate+count. O(n),O(1)."], dryRun: `ROTATE [1,2,3,4,5] right by 2:\nReverse all   → [5,4,3,2,1]\nReverse 0..1  → [4,5,3,2,1]\nReverse 2..4  → [4,5,1,2,3] ✓\n\nMOVE ZEROS [0,1,0,3,12]:\nw=0: skip0→write1→skip0→write3→write12→fill0s\n→ [1,3,12,0,0] ✓\n\nBOYER-MOORE [3,2,3]:\ncand=3,cnt=1 → 2≠3,cnt=0 → cand=3,cnt=1 → ans=3 ✓`, time: { best: "O(n)", avg: "O(n)", worst: "O(n)" }, space: "O(1) most", stable: undefined, when: "Building blocks — solve each in <5 min. Appear as sub-problems in harder questions.", pros: ["All O(n) time, O(1) space","Cover most common patterns"], cons: ["Off-by-one errors common in rotate","Majority only works when majority exists (>n/2)"], cpp: `void rotate(vector<int>&a,int k){int n=a.size();k%=n;\n  reverse(a.begin(),a.end());\n  reverse(a.begin(),a.begin()+k);\n  reverse(a.begin()+k,a.end());}\nint majority(vector<int>&a){\n  int c=a[0],cnt=1;\n  for(int i=1;i<a.size();i++) cnt+=(a[i]==c)?1:-1,cnt==0&&(c=a[i],cnt=1);\n  return c;}`, python: `def rotate(a,k):\n    n=len(a);k%=n\n    a.reverse();a[:k]=reversed(a[:k]);a[k:]=reversed(a[k:])\ndef majority(a):\n    c,cnt=a[0],1\n    for x in a[1:]: cnt+=1 if x==c else -1;\n    if cnt==0: c=x;cnt=1\n    return c`, practice: [{ name: "Rotate Array", diff: "medium" },{ name: "Move Zeroes", diff: "easy" },{ name: "Majority Element", diff: "easy" }] },
+      "Complexity & Edge Cases": { diff: "easy", explanation: "Complete complexity reference and edge case checklist. In interviews, state complexity and edge cases before coding.", intuition: "Complexity table is exam-mandatory. Edge cases break most solutions: empty array, single element, all duplicates, negatives, sorted/reversed.", steps: ["Access O(1) — address arithmetic.","Search O(n) — scan all worst case.","Insert/Delete O(n) — shift elements.","Append amortised O(1) — O(n) only on resize.","Binary search O(log n) — sorted only."], dryRun: `Operation     | Best    | Worst   | Space\n──────────────┼─────────┼─────────┼──────\nAccess arr[i] | O(1)    | O(1)    | O(1)\nSearch        | O(1)    | O(n)    | O(1)\nInsert (mid)  | O(n)    | O(n)    | O(1)\nDelete (mid)  | O(n)    | O(n)    | O(1)\nAppend        | O(1)*   | O(n)    | O(1)\nBinary Search | O(1)    | O(log n)| O(1)\n\nEdge Cases:\n  ✓ Empty array → check before indexing\n  ✓ Single element → loop-based solutions may break\n  ✓ All duplicates → remove-dups edge case\n  ✓ Negative numbers → max subarray, Two Sum\n  ✓ Already sorted / reverse sorted`, time: { best: "O(1) access", avg: "O(n) general", worst: "O(n) insert/del" }, space: "O(n) storage", stable: undefined, when: "Memorise this table. State complexity + 3 edge cases before writing code in any interview.", pros: ["O(1) access — unmatched","Binary search on sorted is powerful"], cons: ["O(n) insert/delete — frequent mods prefer linked list"], cpp: `void safe(vector<int>&a,int t){\n  if(a.empty()) return;\n  int lo=0,hi=a.size()-1;\n  while(lo<=hi){\n    int mid=lo+(hi-lo)/2; // avoid overflow\n    if(a[mid]==t) return;\n    else if(a[mid]<t) lo=mid+1;\n    else hi=mid-1;\n  }\n}`, python: `def safe(a,t):\n    if not a: return -1\n    lo,hi=0,len(a)-1\n    while lo<=hi:\n        mid=(lo+hi)//2\n        if a[mid]==t: return mid\n        elif a[mid]<t: lo=mid+1\n        else: hi=mid-1\n    return -1`, practice: [{ name: "Binary Search", diff: "easy" },{ name: "Missing Number", diff: "easy" },{ name: "Product of Array Except Self", diff: "medium" }] }
+    }
+  },
+  Strings: {
+    icon: "🔤", diff: "medium",
+    desc: "Sequences of characters. Two Pointers, KMP, Tries, Suffix Arrays — second most asked after arrays.",
+    subtopics: {
+      "Basics & Representations": { diff: "easy", explanation: "A string is a sequence of characters. Two representations: (1) Null-terminated — array ending with '$'. Length = O(n) scan. Used in C/C++. (2) Pointer/Length — (pointer, length) pair. Length = O(1). Substring = O(1) as new (p+i, m) pair. In Python/Java strings are immutable.", intuition: "Null-terminated: scan to '$' for length — wasteful. Pointer/length: length stored explicitly. Substring is pure pointer arithmetic — no copy. This is why Patricia Trees and Suffix Trees can store all substrings in O(n) total space.", steps: ["Null-terminated: access char[i] in O(1). Length requires O(n) scan.","Pointer/length: (p, l). Length = O(1). Substring s[i..i+m-1] = (p+i, m). O(1).","String comparison: O(min(|s1|,|s2|)) — not O(1).","Python/Java: immutable. Use ''.join() or StringBuilder for many concatenations.","C++ std::string: mutable, length() = O(1)."], dryRun: `"grain-fed organic" (length=17)\n\nNull-terminated: scan until '$' → O(17)\nPointer/length: p=&arr[0], l=17\nExtract "organ" (idx 10, len 5):\n  new pair (p+10, 5) → O(1), no copy ✓\n\nComparison "apple" vs "apply":\na==a,p==p,p==p,l==l,e<y → not equal  O(4) ✓`, time: { best: "O(1) access", avg: "O(n) compare", worst: "O(n) null-term length" }, space: "O(n)", stable: undefined, when: "Use pointer/length for many substring extractions. Null-terminated for C API compatibility.", pros: ["O(1) access","Pointer/length: O(1) substring","Chars are integers — usable as array indices"], cons: ["Comparison O(n)","Null-terminated length O(n)","Immutable strings make repeated += O(n²)"], cpp: `string s = "hello";\nchar c = s[4];       // O(1)\nint n = s.size();    // O(1) in C++ std::string\nstring sub = s.substr(1,3); // O(k) copy\nbool eq = (s == "hello");   // O(n) comparison`, python: `s = "hello"\nc = s[4]        # O(1)\nn = len(s)      # O(1)\nsub = s[1:4]    # O(k) copy\n# Build efficiently:\nresult = ''.join(['h','e','l','l','o']) # O(n)`, practice: [{ name: "Reverse a String", diff: "easy" },{ name: "Valid Palindrome", diff: "easy" }] },
+      "Core Techniques": { diff: "medium", explanation: "Six techniques cover ~80% of string problems: (1) Two Pointers — palindromes, reversals. (2) Sliding Window — substring with constraints. (3) Frequency Count int[26] — anagrams. (4) String Hashing — O(1) substring comparison. (5) Sorting — anagram canonical form. (6) Char as Index — c-'a' gives 0-25.", intuition: "Frequency count turns char comparison into integer array comparison. Sliding window avoids recomputing overlapping windows. Two pointers replaces O(n²) generation of all substrings.", steps: ["TWO POINTERS: l=0,r=n-1. Compare s[l] and s[r], move inward. O(n).","SLIDING WINDOW: expand right, shrink left on violation. O(n).","FREQ COUNT: freq[c-'a']++. Compare two freq arrays in O(26)=O(1).","HASHING: hash=(hash*base+s[i])%MOD. Slide in O(1).","CHAR AS INDEX: s[i]-'a' gives 0-25 directly — no HashMap needed."], dryRun: `TWO POINTERS: "racecar" palindrome?\nl=0,r=6: r==r ✓  l=1,r=5: a==a ✓\nl=2,r=4: c==c ✓  l=3,r=3: l>=r → YES ✓\n\nFREQ: "listen" vs "silent" anagram?\nfreq[listen]={l,i,s,t,e,n}\nfreq[silent]={s,i,l,e,n,t}\nArrays equal → YES ✓\n\nSLIDING WINDOW: longest no-repeat "abcabcbb"\nExpand: {a}→{a,b}→{a,b,c} len=3\nr=3:'a' repeat! shrink l to 1 → {b,c,a} len=3 ✓`, time: { best: "O(n)", avg: "O(n)", worst: "O(n)" }, space: "O(1) freq / O(n) window", stable: undefined, when: "Anagram→Freq. Substring→Sliding Window. Palindrome→Two Pointers. Duplicate substr→Hashing.", pros: ["All O(n)","freq[26] is O(1) space for fixed alphabets","Two pointers avoids O(n²) substr generation"], cons: ["Hashing has collision risk","Variable window conditions can be subtle"], cpp: `bool isPalindrome(string s){\n  int l=0,r=s.size()-1;\n  while(l<r) if(s[l++]!=s[r--]) return false;\n  return true;}\nbool isAnagram(string s,string t){\n  if(s.size()!=t.size()) return false;\n  int f[26]={};\n  for(char c:s) f[c-'a']++;\n  for(char c:t) f[c-'a']--;\n  for(int x:f) if(x) return false;\n  return true;}`, python: `def is_palindrome(s):\n    l,r=0,len(s)-1\n    while l<r:\n        if s[l]!=s[r]: return False\n        l+=1;r-=1\n    return True\ndef is_anagram(s,t):\n    if len(s)!=len(t): return False\n    f=[0]*26\n    for c in s: f[ord(c)-97]+=1\n    for c in t: f[ord(c)-97]-=1\n    return all(x==0 for x in f)`, practice: [{ name: "Valid Anagram", diff: "easy" },{ name: "Longest Substring Without Repeating Characters", diff: "medium" },{ name: "Minimum Window Substring", diff: "hard" }] },
+      "Pattern Matching": { diff: "medium", explanation: "KMP: builds LPS (Longest Proper Prefix = Suffix) array for pattern P in O(m). Search in O(n). Never backtracks in T. Z-Algorithm: Z[i] = length of longest substring starting at i that matches a prefix. O(n+m). Rabin-Karp: rolling hash for O(1) window comparison. O(n+m) average.", intuition: "KMP: on mismatch at j, LPS[j-1] tells how far to jump back in P without moving i backward in T. Z-algo encodes same info differently. Both guarantee O(n+m).", steps: ["KMP BUILD LPS: lps[0]=0,len=0,i=1. If p[i]==p[len]: lps[i++]=++len. Else if len>0: len=lps[len-1]. Else: lps[i++]=0.","KMP SEARCH: i scans T, j scans P. Match→i++,j++. j==m→found, j=lps[j-1]. Mismatch: j>0→j=lps[j-1] else i++.","Z-ALGO: maintain [l,r]. Z[i]=min(r-i,Z[i-l]) if i<r, then extend. Update l,r.","RABIN-KARP: rolling hash for each T window. On match verify chars. O(n+m) avg."], dryRun: `KMP LPS for "aabaabaaa": [0,1,0,1,2,3,4,5,2]\n\nSearch "aba" in "ababcababa":\ni=0,j=0:a==a→i=1,j=1  i=1,j=1:b==b→i=2,j=2\ni=2,j=2:a==a→j=3=m→MATCH@0 ✓ j=lps[2]=1\ni=3,j=1:b==b→i=4,j=2  i=4,j=2:c≠a→j=lps[1]=0\ni=5-7: match → MATCH@5 ✓  i=8-9: MATCH@7 ✓`, time: { best: "O(n+m)", avg: "O(n+m)", worst: "O(n+m) KMP/Z" }, space: "O(m) LPS", stable: undefined, when: "Single pattern→KMP/Z. Multiple→Rabin-Karp. Many patterns→Aho-Corasick.", pros: ["KMP/Z: guaranteed O(n+m)","Never backtracks in T"], cons: ["LPS construction adds complexity","Rabin-Karp O(nm) worst case on collisions"], cpp: `vector<int> buildLPS(string&p){\n  int m=p.size(); vector<int> lps(m,0);\n  int len=0,i=1;\n  while(i<m){\n    if(p[i]==p[len]) lps[i++]=++len;\n    else if(len>0) len=lps[len-1];\n    else lps[i++]=0;}\n  return lps;}`, python: `def build_lps(p):\n    m=len(p);lps=[0]*m;length=0;i=1\n    while i<m:\n        if p[i]==p[length]: length+=1;lps[i]=length;i+=1\n        elif length>0: length=lps[length-1]\n        else: lps[i]=0;i+=1\n    return lps`, practice: [{ name: "Find the Index of First Occurrence", diff: "easy" },{ name: "Repeated Substring Pattern", diff: "easy" },{ name: "Shortest Palindrome", diff: "hard" }] },
+      "DP on Strings": { diff: "hard", explanation: "Edit Distance: min insert/delete/replace to convert s1→s2. LCS: longest common subsequence (not contiguous). Longest Common Substring: must be contiguous. Palindromic Subsequence. All O(nm) DP on 2D table. Recurrence based on whether last chars match.", intuition: "All define dp[i][j] over prefixes. If last chars match: extend previous. Else: try skipping one char. Space reducible to O(min(n,m)) with rolling array.", steps: ["EDIT DIST: dp[i][j]=dp[i-1][j-1] if match, else 1+min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]).","LCS: dp[i][j]=dp[i-1][j-1]+1 if match, else max(dp[i-1][j],dp[i][j-1]).","LONGEST COMMON SUBSTR: same match case but reset to 0 on mismatch. Track max.","PALINDROMIC SUBSEQ: dp[i][j]=dp[i+1][j-1]+2 if s[i]==s[j], else max(dp[i+1][j],dp[i][j-1]).","BASE: dp[i][0]=i, dp[0][j]=j."], dryRun: `EDIT DISTANCE "horse"→"ros":\n     "" r  o  s\n""  [0  1  2  3]\nh   [1  1  2  3]\no   [2  2  1  2]\nr   [3  2  2  2]\ns   [4  3  3  2]\ne   [5  4  4  3] ← answer=3 ✓`, time: { best: "O(nm)", avg: "O(nm)", worst: "O(nm)" }, space: "O(nm) or O(min(n,m)) rolling", stable: undefined, when: "Edit distance: spell-check, diff tools. LCS: bioinformatics. n,m≤1000: O(n²) fine.", pros: ["Elegant 2D DP","Space reducible to O(min(n,m))"], cons: ["O(nm) — not for large n,m without optimisation"], cpp: `int editDist(string s1,string s2){\n  int n=s1.size(),m=s2.size();\n  vector<int> p(m+1),c(m+1);\n  iota(p.begin(),p.end(),0);\n  for(int i=1;i<=n;i++){\n    c[0]=i;\n    for(int j=1;j<=m;j++)\n      c[j]=s1[i-1]==s2[j-1]?p[j-1]:1+min({p[j],c[j-1],p[j-1]});\n    swap(p,c);}\n  return p[m];}`, python: `def edit_distance(s1,s2):\n    n,m=len(s1),len(s2)\n    prev=list(range(m+1))\n    for i in range(1,n+1):\n        cur=[i]+[0]*m\n        for j in range(1,m+1):\n            if s1[i-1]==s2[j-1]: cur[j]=prev[j-1]\n            else: cur[j]=1+min(prev[j],cur[j-1],prev[j-1])\n        prev=cur\n    return prev[m]`, practice: [{ name: "Edit Distance", diff: "hard" },{ name: "Longest Common Subsequence", diff: "medium" },{ name: "Longest Palindromic Subsequence", diff: "medium" }] },
+      "Important Problems": { diff: "medium", explanation: "Top 6 string interview problems: Longest Palindromic Substring (expand around center O(n)), Minimum Window Substring (variable sliding window), Group Anagrams (sorted key), Decode String (stack), Reverse Words (3-reversal), Valid Palindrome II (skip one char).", intuition: "Palindrome expansion: 2n-1 centers, expand while matching. O(n). Minimum Window: 'formed' counter avoids scanning freq array every step.", steps: ["PALINDROME EXPAND: for each center expand while s[l]==s[r]. O(n).","GROUP ANAGRAMS: sort each string as map key. O(nm log m).","MIN WINDOW: need/window dicts + formed counter. Expand r, shrink l when formed==required. O(n+m).","DECODE STRING: stack of (string, count). On ']': pop, repeat, concat. O(n).","REVERSE WORDS: strip, reverse all, reverse each word. O(n).","VALID PAL II: on mismatch try skip s[l] or s[r], check rest. O(n)."], dryRun: `LONGEST PAL "babad":\ncenter 'a'(idx1): expand → "bab" len=3 ✓\ncenter 'b'(idx2): expand → "aba" len=3 ✓\nAnswer: "bab" ✓\n\nGROUP ANAGRAMS ["eat","tea","tan","ate","nat","bat"]:\n"eat"→"aet"  "tea"→"aet"  "ate"→"aet" → group1\n"tan"→"ant"  "nat"→"ant" → group2\n"bat"→"abt" → group3 ✓`, time: { best: "O(n)", avg: "O(n log n)", worst: "O(n log n)" }, space: "O(n)", stable: undefined, when: "Top 6 must-know problems. Practice until each takes <8 min.", pros: ["All O(n) or O(n log n)","Each demonstrates a distinct reusable pattern"], cons: ["Min window 'formed' counter logic is subtle","Decode string edge cases: nested brackets"], cpp: `string longestPal(string s){\n  int n=s.size(),st=0,mx=1;\n  auto exp=[&](int l,int r){\n    while(l>=0&&r<n&&s[l]==s[r])l--,r++;\n    if(r-l-1>mx){mx=r-l-1;st=l+1;}};\n  for(int i=0;i<n;i++){exp(i,i);exp(i,i+1);}\n  return s.substr(st,mx);}`, python: `def longest_palindrome(s):\n    n=len(s);res=""\n    def exp(l,r):\n        while l>=0 and r<n and s[l]==s[r]: l-=1;r+=1\n        return s[l+1:r]\n    for i in range(n):\n        for p in [exp(i,i),exp(i,i+1)]:\n            if len(p)>len(res): res=p\n    return res`, practice: [{ name: "Longest Palindromic Substring", diff: "medium" },{ name: "Minimum Window Substring", diff: "hard" },{ name: "Group Anagrams", diff: "medium" },{ name: "Decode String", diff: "medium" }] }
+    }
+  },
+  "Linked List": {
+    icon: "🔗", diff: "easy",
+    desc: "Dynamic node-based structure. O(1) head insert/delete. Reversal, cycle detection, slow-fast pointer — core interview topics.",
+    subtopics: {
+      "Basics & Node Structure": {
         diff: "easy",
-        explanation: "An array is a linear data structure that stores elements of the same data type in contiguous memory locations. Each element is identified using an index, which typically starts from 0. Because memory is contiguous, the CPU can calculate any element's address in O(1) using a simple formula: Address(arr[i]) = Base_Address + (i × size_of_element). This is what gives arrays their signature O(1) random access.",
-        intuition: "Think of an array as a row of numbered lockers in a corridor. You know locker #0 is at position 1000. Locker #3 is 3 lockers down — you don't need to walk past 0, 1, 2 to find it; you jump straight there. That's O(1) access. The trade-off: you must book a fixed number of lockers upfront, and inserting a new locker in the middle requires shifting everything.",
+        explanation: "A linked list is a linear data structure where elements (nodes) are stored non-contiguously in memory. Each node contains two fields: (1) data — the value stored, and (2) next — a pointer to the next node. The list is accessed via a head pointer. The last node's next pointer is NULL, marking the end. The LinkedList object holds only a reference to the first node (head). From the tutorialspoint PDF: 'Each Link carries a data field and a Link Field called next. Last Link carries a Link as null to mark the end of the list.'",
+        intuition: "Imagine a treasure hunt where each clue tells you where the next clue is. You can't jump to clue 5 directly — you must follow the chain from head. No address formula exists like arrays. The key trade-off: no O(1) random access, but inserting or deleting at the head is O(1) — just update one pointer with no shifting.",
         steps: [
-          "Declare the array with a fixed size (static) or use a dynamic type like vector/list.",
-          "Elements are stored at consecutive memory addresses.",
-          "Access any element in O(1) using its index: arr[i].",
-          "Address formula: Base + (i × size_of_element). No traversal needed.",
-          "Index range: 0 to n−1. Accessing arr[n] or beyond → Index Out of Bounds error."
+          "Create a Node: allocate memory, set node.data = value, node.next = NULL.",
+          "Create LinkedList: maintain a head pointer pointing to the first node.",
+          "Traverse: start at head, follow .next pointers until NULL. Each step visits one node. O(n).",
+          "Access node at index k: start at head, advance k times. O(k) — no shortcut.",
+          "End of list: when node.next == NULL, you are at the last node.",
+          "Empty list: head == NULL."
         ],
-        dryRun: `arr = [10, 20, 30, 40]
-Index:   0    1    2    3
+        dryRun: `Node structure:
+  [ data | next→ ] → [ data | next→ ] → [ data | next→ ] → NULL
 
-Base address = 1000, element size = 4 bytes
+Example: head → [10|→] → [20|→] → [30|→] → NULL
 
-arr[0] → 1000 + (0 × 4) = 1000  → value: 10
-arr[1] → 1000 + (1 × 4) = 1004  → value: 20
-arr[2] → 1000 + (2 × 4) = 1008  → value: 30
-arr[3] → 1000 + (3 × 4) = 1012  → value: 40
+Traverse:
+  temp = head        → data=10
+  temp = temp.next   → data=20
+  temp = temp.next   → data=30
+  temp = temp.next   → NULL → STOP ✓
 
-arr[5] → 1000 + (5 × 4) = 1020  → ⚠ Index Out of Bounds! ✗`,
-        time: { best: "O(1)", avg: "O(1)", worst: "O(1)" },
+Access index 2:
+  head(0) → node(1) → node(2) ← found in 2 steps
+  O(n) — no O(1) shortcut like arrays ✗
+
+Insert at beginning — O(1):
+  Before: head → [10] → [20] → NULL
+  newNode(5).next = head
+  head = newNode(5)
+  After:  head → [5] → [10] → [20] → NULL ✓`,
+        time: { best: "O(1) head", avg: "O(n) traverse", worst: "O(n) access" },
         space: "O(n)",
         stable: undefined,
-        when: "Always — arrays are the default data structure. Use when you need fast random access and your data size is known or bounded.",
+        when: "Use when frequent insertion/deletion at head or middle is needed and random access is NOT required. Prefer arrays for O(1) access by index.",
         pros: [
-          "O(1) random access — the fastest possible",
-          "Cache-friendly: contiguous memory means fewer cache misses",
-          "Simple and low overhead — no pointers or extra metadata",
-          "Foundation for all other data structures (stacks, queues, heaps)"
+          "O(1) insert/delete at head — no shifting needed",
+          "Dynamic size — no pre-allocation required",
+          "Efficient memory use — allocate only what's needed",
+          "Foundation for stacks, queues, adjacency lists"
         ],
         cons: [
-          "Fixed size in static arrays — must declare size upfront",
-          "Expensive insert/delete: O(n) due to shifting",
-          "Memory wastage if array is over-allocated",
-          "Cannot store mixed data types (in typed languages)"
+          "O(n) access — no random access by index",
+          "Extra memory per node for pointer field",
+          "Cache-unfriendly — nodes scattered in memory",
+          "No backward traversal in singly linked list"
         ],
-        cpp: `// 1D Array — C++
-#include <vector>
+        cpp: `// Linked List Node and basic operations — C++
+struct Node {
+    int data;
+    Node* next;
+    Node(int val) : data(val), next(nullptr) {}
+};
 
-int main() {
-    // Static array (fixed size)
-    int arr[4] = {10, 20, 30, 40};
+// Insert at beginning — O(1) (from tutorialspoint PDF)
+void insertFirst(Node*& head, int val) {
+    Node* link = new Node(val);
+    link->next = head;   // point to old first node
+    head = link;         // point head to new first node
+}
 
-    // Dynamic array (resizable)
-    vector<int> v = {10, 20, 30, 40};
+// Delete at beginning — O(1)
+Node* deleteFirst(Node*& head) {
+    Node* tempLink = head;   // save reference to first link
+    head = head->next;       // mark next as first
+    return tempLink;         // return the deleted link
+}
 
-    // Access in O(1)
-    cout << arr[2];   // 30
-    cout << v[2];     // 30
-
-    // Address formula (conceptual)
-    // addr(arr[i]) = base + i * sizeof(int)
-    // arr[2] = 1000 + 2*4 = 1008
-
-    // 2D array
-    int mat[2][3] = {{1,2,3},{4,5,6}};
-    cout << mat[1][2]; // 6
+// Traversal — O(n)
+void printList(Node* head) {
+    Node* ptr = head;
+    while (ptr != nullptr) {
+        cout << ptr->data << " → ";
+        ptr = ptr->next;
+    }
+    cout << "NULL" << endl;
 }`,
-        python: `# 1D Array (list) — Python
-arr = [10, 20, 30, 40]
+        python: `# Linked List Node and basic operations — Python
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None   # pointer to next node
 
-# Access in O(1)
-print(arr[2])   # 30
-print(arr[-1])  # 40 (last element)
+class LinkedList:
+    def __init__(self):
+        self.head = None   # start of list (First link)
 
-# 2D array (list of lists)
-mat = [[1,2,3],[4,5,6]]
-print(mat[1][2])  # 6
+    # Insert at beginning — O(1)
+    def insert_first(self, val):
+        link = Node(val)
+        link.next = self.head   # point to old first node
+        self.head = link        # point head to new first node
 
-# Dynamic — Python lists resize automatically
-arr.append(50)   # [10,20,30,40,50]
-arr.pop()        # removes last → [10,20,30,40]
+    # Delete at beginning — O(1)
+    def delete_first(self):
+        if not self.head: return None
+        temp = self.head         # save reference to first link
+        self.head = self.head.next  # mark next as first
+        return temp
 
-# Useful builtins
-print(len(arr))  # 4
-print(arr[1:3])  # [20, 30] — slicing O(k)`,
+    # Traversal — O(n)
+    def print_list(self):
+        ptr = self.head
+        while ptr:
+            print(ptr.data, end=" → ")
+            ptr = ptr.next
+        print("NULL")`,
         practice: [
-          { name: "Find Maximum and Minimum in Array", diff: "easy" },
-          { name: "Reverse an Array", diff: "easy" },
-          { name: "Check if Array is Sorted", diff: "easy" }
+          { name: "Design Linked List", diff: "medium" },
+          { name: "Middle of the Linked List", diff: "easy" },
+          { name: "Convert Binary Number in LL to Integer", diff: "easy" }
         ]
       },
-      "Types of Arrays": {
+      "Types of Linked Lists": {
         diff: "easy",
-        explanation: "Arrays come in several forms: (1) 1D arrays — a flat sequence. (2) 2D arrays — a matrix with rows and columns. (3) Multi-dimensional — 3D and beyond. (4) Static arrays — fixed size, declared at compile time. (5) Dynamic arrays — resizable at runtime. Dynamic arrays (vector in C++, list in Python, ArrayList in Java) are the most commonly used in practice and in interviews.",
-        intuition: "A 1D array is a line of boxes. A 2D array is a grid (like a spreadsheet). A static array is a fixed-size parking lot — once full, no more cars. A dynamic array is a lot that doubles its size when full, amortising the cost of resizing to O(1) amortised per insertion.",
+        explanation: "Four types: (1) Singly Linked List — each node has one next pointer; navigation forward only. (2) Doubly Linked List — each node has next AND prev; bidirectional traversal; O(1) delete of any node if you have its pointer. (3) Circular Linked List — last node's next points back to head instead of NULL; used in round-robin scheduling. (4) Circular Doubly Linked List — both next and prev are circular. From tutorialspoint: 'Simple Linked List: forward only. Doubly: forward and backward. Circular: last item links to first, first links to last.'",
+        intuition: "Singly: one-way street. Doubly: two-way street — go back. Circular: roundabout — loops back. Doubly costs extra memory (prev pointer) but enables O(1) delete of any node without finding its predecessor. Circular eliminates NULL sentinel for naturally cyclic applications.",
         steps: [
-          "1D: arr[i] — single index accesses any element.",
-          "2D: arr[i][j] — row i, column j. Stored row-major in memory.",
-          "Static: int arr[10] — size fixed at declaration.",
-          "Dynamic (vector/list): grows automatically. When capacity is hit, a new larger array is allocated and elements are copied — this is why push_back is O(1) amortised.",
-          "Multi-dim: generalise with more indices. Memory is still contiguous (row-major order)."
+          "SINGLY: Node={data,next}. head→A→B→C→NULL. Forward only. O(n) traversal.",
+          "DOUBLY: Node={prev,data,next}. NULL←A⇄B⇄C→NULL. Bidirectional. O(1) delete with node pointer.",
+          "CIRCULAR: tail.next=head (not NULL). Must check temp!=head to stop traversal.",
+          "CIRCULAR DOUBLY: tail.next=head AND head.prev=tail. No NULLs anywhere.",
+          "DOUBLY INSERT at head: new.next=head; head.prev=new; head=new. O(1).",
+          "DOUBLY DELETE node: node.prev.next=node.next; node.next.prev=node.prev. O(1)."
         ],
-        dryRun: `1D:  arr = [1, 2, 3, 4]
-             idx:  0  1  2  3
+        dryRun: `SINGLY:
+  head → [A|→] → [B|→] → [C|→] → NULL
+  Forward only. No prev pointer.
 
-2D:  mat = [[1,2,3],   → row 0: addresses 1000,1004,1008
-             [4,5,6]]  → row 1: addresses 1012,1016,1020
-     mat[1][2] = 6  (row 1, col 2)
-     addr = base + (1*3 + 2) * 4 = base + 20
+DOUBLY:
+  NULL ← [←A→] ⇄ [←B→] ⇄ [←C→] → NULL
+  Delete B in O(1): A.next=C, C.prev=A ✓
 
-Dynamic vector growth (C++ vector):
-  capacity=1 → [10]
-  push_back(20): capacity=2 → [10,20]
-  push_back(30): capacity=4 → [10,20,30,_]
-  push_back(40): no resize  → [10,20,30,40]
-  push_back(50): capacity=8 → [10,20,30,40,50,_,_,_] ✓`,
-        time: { best: "O(1) access", avg: "O(1) access", worst: "O(n) resize" },
-        space: "O(n·m) for 2D",
+CIRCULAR:
+  [A|→] → [B|→] → [C|→]
+    ↑________________________|
+  tail.next = head (not NULL) ↺
+  Traversal: start at head, stop when temp==head again
+
+CIRCULAR DOUBLY:
+  head.prev = tail  AND  tail.next = head
+  No NULL pointers anywhere ↺`,
+        time: { best: "O(1) insert head", avg: "O(n) search", worst: "O(n) access" },
+        space: "O(n) singly, O(2n) doubly",
         stable: undefined,
-        when: "Use 2D arrays for grids, matrices, DP tables. Use dynamic arrays (vector/list) almost always in interviews.",
-        pros: ["2D arrays model real-world grids naturally", "Dynamic arrays have amortised O(1) append", "Row-major storage keeps row access cache-friendly"],
-        cons: ["2D array traversal is O(n×m)", "Dynamic resize has occasional O(n) spike", "Column-major access in row-major arrays causes cache misses"],
-        cpp: `// Types of Arrays — C++
-// Static 1D
-int arr[5] = {1, 2, 3, 4, 5};
+        when: "Singly: default, minimal memory. Doubly: backward traversal needed, or O(1) delete. Circular: queues, round-robin, LRU cache. Doubly Circular: most flexible.",
+        pros: [
+          "Doubly: O(1) delete with node pointer — no need to find predecessor",
+          "Doubly: bidirectional traversal",
+          "Circular: natural fit for cyclic applications (playlists, scheduling)"
+        ],
+        cons: [
+          "Doubly: 2× pointer memory per node",
+          "Circular: traversal must check for loop — no NULL sentinel",
+          "More complex to implement than singly"
+        ],
+        cpp: `// Doubly Linked List — C++
+struct DNode {
+    int data;
+    DNode *prev, *next;
+    DNode(int val): data(val), prev(nullptr), next(nullptr) {}
+};
 
-// Dynamic 1D
-vector<int> v = {1, 2, 3, 4, 5};
-v.push_back(6);       // O(1) amortised
-v.pop_back();         // O(1)
-cout << v.size();     // 5
+// Insert at beginning — O(1)
+void insertFirst(DNode*& head, int val) {
+    DNode* node = new DNode(val);
+    node->next = head;
+    if (head) head->prev = node;
+    head = node;
+}
 
-// Static 2D
-int mat[2][3] = {{1,2,3},{4,5,6}};
+// Delete node given pointer — O(1) ← KEY ADVANTAGE
+void deleteNode(DNode*& head, DNode* target) {
+    if (target->prev) target->prev->next = target->next;
+    else head = target->next;     // deleting head
+    if (target->next) target->next->prev = target->prev;
+    delete target;
+}
 
-// Dynamic 2D
-vector<vector<int>> grid(3, vector<int>(4, 0));
-// 3 rows, 4 cols, all zeros
-grid[1][2] = 7;
+// Circular traversal
+void printCircular(Node* head) {
+    if (!head) return;
+    Node* temp = head;
+    do {
+        cout << temp->data << " → ";
+        temp = temp->next;
+    } while (temp != head);
+    cout << "(head)" << endl;
+}`,
+        python: `# Doubly Linked List — Python
+class DNode:
+    def __init__(self, data):
+        self.data = data
+        self.prev = None
+        self.next = None
 
-// 2D traversal
-for (int i = 0; i < grid.size(); i++)
-    for (int j = 0; j < grid[0].size(); j++)
-        cout << grid[i][j] << " ";`,
-        python: `# Types of Arrays — Python
+class DoublyLinkedList:
+    def __init__(self): self.head = None
 
-# 1D list
-arr = [1, 2, 3, 4, 5]
+    # Insert at beginning — O(1)
+    def insert_first(self, val):
+        node = DNode(val)
+        node.next = self.head
+        if self.head: self.head.prev = node
+        self.head = node
 
-# 2D list (matrix)
-mat = [[1,2,3],[4,5,6]]
+    # Delete node given pointer — O(1)
+    def delete_node(self, target):
+        if target.prev: target.prev.next = target.next
+        else: self.head = target.next   # deleting head
+        if target.next: target.next.prev = target.prev
 
-# Create 3×4 matrix of zeros
-grid = [[0]*4 for _ in range(3)]
-grid[1][2] = 7
-
-# 2D traversal
-for i in range(len(mat)):
-    for j in range(len(mat[0])):
-        print(mat[i][j], end=" ")
-
-# Python list append is O(1) amortised
-arr.append(6)    # [1,2,3,4,5,6]
-arr.insert(2, 9) # O(n) — shifts elements
-arr.pop()        # O(1) — removes last`,
+# Circular traversal
+def print_circular(head):
+    if not head: return
+    temp = head
+    while True:
+        print(temp.data, end=" → ")
+        temp = temp.next
+        if temp == head: break
+    print("(head)")`,
         practice: [
-          { name: "Spiral Matrix", diff: "medium" },
-          { name: "Rotate Image (90°)", diff: "medium" },
-          { name: "Transpose Matrix", diff: "easy" }
+          { name: "Design Circular Queue", diff: "medium" },
+          { name: "LRU Cache (Doubly LL + HashMap)", diff: "medium" },
+          { name: "Flatten Multilevel Doubly Linked List", diff: "medium" }
         ]
       },
       "Core Operations": {
         diff: "easy",
-        explanation: "The five fundamental array operations are: (1) Access — O(1) by index. (2) Search — O(n) linear, O(log n) binary (sorted only). (3) Insertion — O(n) because elements must be shifted right to make space. (4) Deletion — O(n) because elements must be shifted left to fill the gap. (5) Update — O(1), just overwrite the index. Insertion and deletion are O(1) only at the end of a dynamic array.",
-        intuition: "Access is free — just compute the address. Search in an unsorted array forces you to check every element. Insertion/deletion mid-array is expensive because the 'locker row' is contiguous — inserting means physically moving everything down or up. Update just replaces a value in-place — trivial.",
+        explanation: "Five core operations from both your notes and the tutorialspoint PDF. Insertion: at beginning O(1), at end O(n), at position k O(n). Deletion: of head O(1), of last O(n), by value O(n). Traversal/Navigation O(n). Search O(n). The PDF describes insertion as a 3-step process: create new link, point it to old first, point head to new link. Deletion: save head reference, advance head to next.",
+        intuition: "All operations except head insert/delete require traversal first — O(n). There is no address formula. The 'stop one before target' pattern is key: to delete node with value V, stop at the node BEFORE it and rewire. To insert at position k, stop at node k-1 and rewire two pointers.",
         steps: [
-          "ACCESS: arr[i] → compute address, return value. O(1).",
-          "SEARCH (linear): scan left to right until target found. O(n) worst case.",
-          "SEARCH (binary): requires sorted array. Compare mid, eliminate half. O(log n).",
-          "INSERT at index k: shift arr[k..n-1] one position right, place new value at arr[k]. O(n).",
-          "DELETE at index k: shift arr[k+1..n-1] one position left, decrement size. O(n).",
-          "UPDATE: arr[k] = new_value. No shifting. O(1)."
+          "INSERT AT HEAD: newNode.next=head; head=newNode. O(1). Two pointer updates.",
+          "INSERT AT END: traverse until temp.next==NULL, then temp.next=newNode. O(n).",
+          "INSERT AT POSITION k: traverse to node k-1. newNode.next=temp.next; temp.next=newNode. O(k).",
+          "DELETE HEAD: head=head.next. O(1). Free old head.",
+          "DELETE LAST: traverse until temp.next.next==NULL, then temp.next=NULL. O(n).",
+          "DELETE BY VALUE: traverse until temp.next.data==val, then temp.next=temp.next.next. O(n).",
+          "SEARCH: traverse and compare each node's data with target. O(n)."
         ],
-        dryRun: `── INSERT 25 at index 2 ──────────────────────────────
-Before:  [10, 20, 30, 40]
-Shift:   index 3←4: [10,20,30,30,40] (conceptual)
-         index 2←3: [10,20,30,30,40]
-         Actually:  [10,20,_,30,40]
-Insert:  arr[2]=25  → [10,20,25,30,40] ✓  O(n)
+        dryRun: `INSERT 25 at position 2 in [10→20→30→40]:
+  traverse to index 1 (k-1=1): temp = node(20)
+  newNode(25).next = node(30)
+  node(20).next = newNode(25)
+  Result: [10→20→25→30→40] ✓  O(n)
 
-── DELETE index 1 ────────────────────────────────────
-Before:  [10, 20, 30]
-Shift:   arr[1]←arr[2]: [10,30,30]
-         size--        → [10, 30] ✓  O(n)
+DELETE value 30 from [10→20→30→40]:
+  traverse until temp.next.data==30: temp=node(20)
+  node(20).next = node(30).next = node(40)
+  Result: [10→20→40] ✓  O(n)
 
-── BINARY SEARCH for 30 in [10,20,30,40,50] ─────────
-lo=0, hi=4, mid=2 → arr[2]=30 == target ✓  O(log n)`,
-        time: { best: "O(1) access/update", avg: "O(n) insert/delete", worst: "O(n) insert/delete" },
+NAVIGATION (tutorialspoint PDF):
+  current = First (head)
+  while current != NULL:
+      display current.data
+      current = current.next  ← advance to Next Link`,
+        time: { best: "O(1) head ops", avg: "O(n)", worst: "O(n)" },
         space: "O(1) extra",
         stable: undefined,
-        when: "Access and update are always O(1) — perfect. Avoid frequent mid-array insertions/deletions; prefer linked list or deque instead.",
-        pros: ["Access & update are O(1)", "Binary search gives O(log n) on sorted arrays", "In-place operations — no extra memory needed"],
-        cons: ["Insert/delete at arbitrary position is O(n)", "Array must be sorted for binary search", "No O(1) insert at beginning (unlike linked list)"],
+        when: "O(1) insert/delete at head is the signature advantage. For arbitrary position: O(n) — use arrays if index-based access dominates.",
+        pros: [
+          "O(1) insert/delete at head — no shifting",
+          "Insert at middle only rewires pointers (not shift)",
+          "Doubly LL: O(1) delete with node pointer"
+        ],
+        cons: [
+          "O(n) for all operations except head insert/delete",
+          "Must traverse to find position before operating",
+          "No O(1) random access"
+        ],
         cpp: `// Core Operations — C++
-vector<int> arr = {10, 20, 30, 40};
+// Insert at beginning — O(1) (from tutorialspoint)
+void insertFirst(Node*& head, int val) {
+    Node* link = new Node(val);
+    link->next = head;   // point to old first
+    head = link;         // update head
+}
 
-// Access — O(1)
-int x = arr[2];  // 30
+// Delete at beginning — O(1)
+Node* deleteFirst(Node*& head) {
+    Node* temp = head;
+    head = head->next;
+    return temp;
+}
 
-// Update — O(1)
-arr[2] = 99;     // arr = {10,20,99,40}
+// Insert at position k — O(k)
+void insertAt(Node*& head, int val, int k) {
+    if (k == 0) { insertFirst(head, val); return; }
+    Node* temp = head;
+    for (int i = 0; i < k-1 && temp; i++)
+        temp = temp->next;
+    if (!temp) return;
+    Node* node = new Node(val);
+    node->next = temp->next;
+    temp->next = node;
+}
 
-// Insert at index k — O(n)
-arr.insert(arr.begin() + 2, 25);
-
-// Delete at index k — O(n)
-arr.erase(arr.begin() + 1);
-
-// Linear Search — O(n)
-for (int i = 0; i < arr.size(); i++)
-    if (arr[i] == 30) return i;
-
-// Binary Search (sorted) — O(log n)
-// Using STL (array must be sorted first)
-sort(arr.begin(), arr.end());
-bool found = binary_search(arr.begin(), arr.end(), 30);`,
+// Delete by value — O(n)
+void deleteByVal(Node*& head, int val) {
+    if (!head) return;
+    if (head->data == val) { deleteFirst(head); return; }
+    Node* temp = head;
+    while (temp->next && temp->next->data != val)
+        temp = temp->next;
+    if (temp->next)
+        temp->next = temp->next->next;
+}`,
         python: `# Core Operations — Python
-arr = [10, 20, 30, 40]
+class LinkedList:
+    def __init__(self): self.head = None
 
-# Access — O(1)
-x = arr[2]       # 30
+    # Insert at beginning — O(1)
+    def insert_first(self, val):
+        node = Node(val)
+        node.next = self.head
+        self.head = node
 
-# Update — O(1)
-arr[2] = 99      # [10, 20, 99, 40]
+    # Insert at end — O(n)
+    def insert_end(self, val):
+        node = Node(val)
+        if not self.head: self.head = node; return
+        temp = self.head
+        while temp.next: temp = temp.next
+        temp.next = node
 
-# Insert at index k — O(n)
-arr.insert(2, 25)  # [10, 20, 25, 30, 40]
+    # Insert at position k — O(k)
+    def insert_at(self, val, k):
+        if k == 0: self.insert_first(val); return
+        temp = self.head
+        for _ in range(k-1):
+            if not temp: return
+            temp = temp.next
+        node = Node(val)
+        node.next = temp.next
+        temp.next = node
 
-# Delete at index k — O(n)
-arr.pop(1)         # removes index 1 → O(n)
-del arr[1]         # same effect
-
-# Linear Search — O(n)
-if 30 in arr:
-    print(arr.index(30))
-
-# Binary Search (sorted) — O(log n)
-import bisect
-arr.sort()
-idx = bisect.bisect_left(arr, 30)`,
+    # Delete by value — O(n)
+    def delete_by_val(self, val):
+        if not self.head: return
+        if self.head.data == val:
+            self.head = self.head.next; return
+        temp = self.head
+        while temp.next and temp.next.data != val:
+            temp = temp.next
+        if temp.next:
+            temp.next = temp.next.next`,
         practice: [
-          { name: "Search in Rotated Sorted Array", diff: "medium" },
-          { name: "First and Last Position in Sorted Array", diff: "medium" },
-          { name: "Remove Element In-place", diff: "easy" }
+          { name: "Remove Linked List Elements", diff: "easy" },
+          { name: "Delete Node in a Linked List", diff: "medium" },
+          { name: "Remove Duplicates from Sorted List", diff: "easy" }
         ]
       },
-      "Key Patterns": {
+      "Slow-Fast Pointer": {
         diff: "medium",
-        explanation: "Most array interview problems reduce to one of five patterns: (1) Prefix Sum — precompute cumulative sums for O(1) range queries. (2) Sliding Window — maintain a window of fixed or variable size over the array. (3) Two Pointers — use left and right pointers moving toward each other or in the same direction. (4) Kadane's Algorithm — find the maximum subarray sum in O(n). (5) Dutch National Flag (3-way partition) — partition array into three groups in O(n). Recognising which pattern applies is the key interview skill.",
-        intuition: "Prefix sum trades O(n) precomputation for O(1) queries — worth it when you have many queries. Sliding window avoids recomputing overlapping sub-arrays by sliding incrementally. Two pointers eliminates nested loops when the array is sorted. Kadane's is DP with the recurrence: maxEndingHere = max(arr[i], maxEndingHere + arr[i]).",
+        explanation: "The slow-fast (tortoise and hare) technique uses two pointers moving at different speeds. Slow advances 1 step; fast advances 2 steps. Three applications: (1) Find Middle — when fast reaches end, slow is at middle. (2) Detect Cycle (Floyd's Algorithm) — if slow==fast at any point, a cycle exists. (3) Find Cycle Start — after detection, move slow to head and advance both 1 step until they meet again at the cycle entry point.",
+        intuition: "Two runners on a circular track — the faster one always laps the slower one if there's a loop. For finding middle: fast covers 2× the distance, so when fast finishes, slow is halfway. For cycle start: the mathematical proof shows the distance from head to cycle start equals the distance from meeting point to cycle start.",
         steps: [
-          "PREFIX SUM: prefix[0]=arr[0]; prefix[i]=prefix[i-1]+arr[i]. Range sum [l,r] = prefix[r]-prefix[l-1]. O(n) build, O(1) query.",
-          "SLIDING WINDOW: maintain window [left,right]. Expand right to include, shrink left to satisfy constraints. O(n) total.",
-          "TWO POINTERS: left=0, right=n-1. Move based on comparison. Works best on sorted arrays. O(n).",
-          "KADANE'S: track maxEndingHere and maxSoFar. At each element: maxEndingHere=max(arr[i], maxEndingHere+arr[i]). O(n).",
-          "DUTCH FLAG: 3 pointers (lo, mid, hi). Elements < pivot go to [0,lo), = pivot stay in [lo,mid), > pivot go to (hi,n). O(n)."
+          "FIND MIDDLE: slow=head, fast=head. While fast&&fast.next: slow=slow.next, fast=fast.next.next. Return slow.",
+          "DETECT CYCLE: same movement. If slow==fast → cycle exists. Return true.",
+          "FIND CYCLE START: Phase 1: detect (find meeting point). Phase 2: move slow=head, keep fast at meeting point. Advance both 1 step until slow==fast. Return slow.",
+          "Even-length list: slow lands at second middle node. Use fast!=NULL&&fast.next!=NULL as condition.",
+          "Odd-length list: slow lands exactly at middle."
         ],
-        dryRun: `── PREFIX SUM ─────────────────────────────────────────
-arr    = [3,  1,  4,  1,  5]
-prefix = [3,  4,  8,  9, 14]
-Range sum [1,3] = prefix[3] - prefix[0] = 9 - 3 = 6 ✓
+        dryRun: `FIND MIDDLE [1→2→3→4→5]:
+  slow=1,fast=1
+  step1: slow=2, fast=3
+  step2: slow=3, fast=5
+  fast.next=NULL → STOP → middle=slow=node(3) ✓
 
-── KADANE'S ALGORITHM ────────────────────────────────
-arr = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
-                       ↑__________↑  max subarray
+DETECT CYCLE [1→2→3→4→2 (loop)]:
+  step1: slow=2, fast=3
+  step2: slow=3, fast=2 (looped)
+  step3: slow=4, fast=4 → slow==fast → CYCLE ✓
 
-i=0: cur=-2, max=-2
-i=1: cur=max(1,-2+1)=1,  max=1
-i=2: cur=max(-3,1-3)=-2, max=1
-i=3: cur=max(4,-2+4)=4,  max=4
-i=4: cur=max(-1,4-1)=3,  max=4
-i=5: cur=max(2,3+2)=5,   max=5
-i=6: cur=max(1,5+1)=6,   max=6  ← answer: 6 ✓
-
-── TWO POINTERS (Two Sum in sorted) ─────────────────
-arr=[2,7,11,15], target=9
-l=0,r=3: 2+15=17>9 → r--
-l=0,r=2: 2+11=13>9 → r--
-l=0,r=1: 2+7=9 ✓  → return [0,1]`,
+FIND CYCLE START (meeting at node 4):
+  Move slow=head=1, keep fast=4
+  step1: slow=2, fast=2 (loop entry)
+  slow==fast → Cycle starts at node(2) ✓`,
         time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
-        space: "O(n) prefix, O(1) others",
+        space: "O(1)",
         stable: undefined,
-        when: "Range queries → Prefix Sum. Fixed/variable window subarray → Sliding Window. Sorted array pair/triplet problems → Two Pointers. Max subarray → Kadane's. Sorting 0s/1s/2s → Dutch Flag.",
-        pros: ["All patterns run in O(n) — optimal for array problems", "Eliminate nested loops (O(n²) → O(n))", "Widely applicable — cover ~80% of array interview problems"],
-        cons: ["Prefix sum uses O(n) extra space", "Sliding window logic can be tricky with variable windows", "Two pointers requires sorted array for many problems"],
-        cpp: `// Key Patterns — C++
+        when: "Finding middle → slow-fast. Cycle detection → Floyd's. Nth from end → two pointers gap of n. Palindrome LL → find middle + reverse second half.",
+        pros: [
+          "O(1) space — no extra data structure",
+          "O(n) single pass",
+          "Works without modifying the list"
+        ],
+        cons: [
+          "Finding cycle START requires a second pass",
+          "Off-by-one with even-length lists — check loop condition carefully"
+        ],
+        cpp: `// Slow-Fast Pointer — C++
 
-// 1. Prefix Sum
-vector<int> prefix(n);
-prefix[0] = arr[0];
-for (int i = 1; i < n; i++)
-    prefix[i] = prefix[i-1] + arr[i];
-// Range query [l,r]:
-int rangeSum = prefix[r] - (l > 0 ? prefix[l-1] : 0);
-
-// 2. Kadane's Algorithm
-int maxSum = arr[0], cur = arr[0];
-for (int i = 1; i < n; i++) {
-    cur = max(arr[i], cur + arr[i]);
-    maxSum = max(maxSum, cur);
+// Find Middle — O(n), O(1)
+Node* findMiddle(Node* head) {
+    Node* slow = head, *fast = head;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    return slow;
 }
 
-// 3. Two Pointers (Two Sum in sorted array)
-int l = 0, r = n - 1;
-while (l < r) {
-    int s = arr[l] + arr[r];
-    if (s == target) return {l, r};
-    else if (s < target) l++;
-    else r--;
+// Detect Cycle — Floyd's, O(n), O(1)
+bool hasCycle(Node* head) {
+    Node* slow = head, *fast = head;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+        if (slow == fast) return true;
+    }
+    return false;
 }
 
-// 4. Sliding Window (max sum of k elements)
-int windowSum = 0, maxWin = 0;
-for (int i = 0; i < k; i++) windowSum += arr[i];
-maxWin = windowSum;
-for (int i = k; i < n; i++) {
-    windowSum += arr[i] - arr[i-k];
-    maxWin = max(maxWin, windowSum);
+// Find Cycle Start — O(n), O(1)
+Node* cycleStart(Node* head) {
+    Node* slow = head, *fast = head;
+    while (fast && fast->next) {
+        slow = slow->next; fast = fast->next->next;
+        if (slow == fast) break;
+    }
+    if (!fast || !fast->next) return nullptr;
+    slow = head;
+    while (slow != fast) { slow = slow->next; fast = fast->next; }
+    return slow;
 }`,
-        python: `# Key Patterns — Python
+        python: `# Slow-Fast Pointer — Python
 
-# 1. Prefix Sum
-prefix = [0] * n
-prefix[0] = arr[0]
-for i in range(1, n):
-    prefix[i] = prefix[i-1] + arr[i]
-# Range sum [l, r]:
-range_sum = prefix[r] - (prefix[l-1] if l > 0 else 0)
+# Find Middle — O(n), O(1)
+def find_middle(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    return slow
 
-# 2. Kadane's Algorithm — O(n)
-def max_subarray(arr):
-    max_sum = cur = arr[0]
-    for x in arr[1:]:
-        cur = max(x, cur + x)
-        max_sum = max(max_sum, cur)
-    return max_sum
+# Detect Cycle — Floyd's, O(n), O(1)
+def has_cycle(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow is fast: return True
+    return False
 
-# 3. Two Pointers (Two Sum sorted)
-def two_sum(arr, target):
-    l, r = 0, len(arr) - 1
-    while l < r:
-        s = arr[l] + arr[r]
-        if s == target: return [l, r]
-        elif s < target: l += 1
-        else: r -= 1
-
-# 4. Sliding Window (fixed size k)
-def max_window_sum(arr, k):
-    win = sum(arr[:k])
-    max_win = win
-    for i in range(k, len(arr)):
-        win += arr[i] - arr[i-k]
-        max_win = max(max_win, win)
-    return max_win`,
+# Find Cycle Start — O(n), O(1)
+def cycle_start(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next; fast = fast.next.next
+        if slow is fast: break
+    else: return None
+    slow = head
+    while slow is not fast:
+        slow = slow.next; fast = fast.next
+    return slow`,
         practice: [
-          { name: "Maximum Subarray (Kadane's)", diff: "medium" },
-          { name: "Range Sum Query — Immutable", diff: "easy" },
-          { name: "Two Sum", diff: "easy" },
-          { name: "Longest Subarray with Sum K", diff: "medium" },
-          { name: "Container With Most Water", diff: "medium" }
+          { name: "Linked List Cycle", diff: "easy" },
+          { name: "Linked List Cycle II (find start)", diff: "medium" },
+          { name: "Middle of the Linked List", diff: "easy" },
+          { name: "Happy Number (cycle in sequence)", diff: "easy" }
         ]
       },
-      "Important Problems": {
+      "Reverse & Classic Algorithms": {
         diff: "medium",
-        explanation: "These are the canonical array problems that appear most frequently in interviews. Every CS student should be able to code these from scratch: Reverse array, Move zeros, Remove duplicates, Rotate array, Merge sorted arrays, Find majority element, and Dutch National Flag (sort 0s,1s,2s). Each one tests a specific concept and serves as a building block for harder problems.",
-        intuition: "Rotating an array by k can be done optimally with three reversals — no extra O(n) space needed. Removing duplicates in-place uses a slow/fast pointer technique. Move zeros uses a write pointer. These tricks transform naive O(n²) solutions into O(n) solutions with O(1) space.",
+        explanation: "Reverse Linked List is the #1 most asked LL interview question. Iterative approach: three pointers (prev, curr, next) — O(n) time, O(1) space. The tutorialspoint PDF gives this exact implementation. Two other classics: Merge Two Sorted Lists (dummy head + two pointers, O(n+m), O(1)) and Remove Nth Node from End (two-pointer gap technique, O(n), O(1)).",
+        intuition: "Reversal: at each step make curr.next point backward (to prev). Save next before destroying it. Three-pointer dance: save→flip→advance. Dummy node in merge avoids special-casing the head. Nth from end: advance fast pointer n steps ahead, then both pointers until fast reaches end — slow is at the node before target.",
         steps: [
-          "REVERSE: swap arr[left] and arr[right], move inward. O(n), O(1).",
-          "MOVE ZEROS: writePtr=0, scan right, if arr[i]≠0 write and advance writePtr, then fill rest with 0s. O(n), O(1).",
-          "REMOVE DUPLICATES (sorted): writePtr=1, if arr[i]≠arr[i-1] write. O(n), O(1).",
-          "ROTATE RIGHT by k: reverse all, reverse first k, reverse last n-k. O(n), O(1).",
-          "MERGE SORTED: use extra array + two pointers from the end. O(n+m), O(1) if merged into larger array.",
-          "MAJORITY ELEMENT (Boyer-Moore): candidate + count. O(n), O(1)."
+          "REVERSE: prev=NULL, curr=head. Loop: next=curr.next; curr.next=prev; prev=curr; curr=next. head=prev.",
+          "MERGE SORTED: dummy node as sentinel. tail=dummy. Compare l1.data vs l2.data, attach smaller, advance. Append remaining. Return dummy.next.",
+          "REMOVE NTH FROM END: advance fast n steps. If fast==NULL, delete head. Move both until fast.next==NULL. slow.next=slow.next.next.",
+          "PALINDROME: find middle → reverse second half → compare halves → (restore).",
+          "REVERSE K-GROUPS: reverse first k nodes, recursively solve rest, connect."
         ],
-        dryRun: `── ROTATE [1,2,3,4,5] RIGHT by 2 ──────────────────────
-k=2
-Step 1: reverse all       → [5,4,3,2,1]
-Step 2: reverse first 2   → [4,5,3,2,1]
-Step 3: reverse last 3    → [4,5,1,2,3] ✓
+        dryRun: `REVERSE [1→2→3→4→5]:
+  prev=NULL, curr=1
+  step1: next=2, 1.next=NULL, prev=1, curr=2
+  step2: next=3, 2.next=1,    prev=2, curr=3
+  step3: next=4, 3.next=2,    prev=3, curr=4
+  step4: next=5, 4.next=3,    prev=4, curr=5
+  step5: next=NULL, 5.next=4, prev=5, curr=NULL
+  head=prev=5
+  Result: 5→4→3→2→1→NULL ✓
 
-── MOVE ZEROS [0,1,0,3,12] ─────────────────────────────
-writePtr=0
-i=0: 0 → skip
-i=1: 1 → arr[0]=1, writePtr=1  → [1,1,0,3,12]
-i=2: 0 → skip
-i=3: 3 → arr[1]=3, writePtr=2  → [1,3,0,3,12]
-i=4: 12→ arr[2]=12,writePtr=3  → [1,3,12,3,12]
-Fill [3..4] with 0s             → [1,3,12,0,0] ✓
-
-── MAJORITY ELEMENT [3,2,3] (Boyer-Moore) ─────────────
-i=0: candidate=3, count=1
-i=1: 2≠3,         count=0
-i=2: count=0 → candidate=3, count=1
-Answer: 3 ✓`,
+MERGE [1→3→5] and [2→4→6]:
+  dummy→tail
+  1<2→take1  2<3→take2  3<4→take3
+  4<5→take4  5<6→take5  append6
+  Result: 1→2→3→4→5→6 ✓`,
         time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
-        space: "O(1) most",
+        space: "O(1) iterative, O(n) recursive",
         stable: undefined,
-        when: "These are the building blocks. Solve each from scratch until you can do them in < 5 minutes. They appear as sub-problems inside harder questions.",
-        pros: ["All solvable in O(n) time and O(1) space", "Cover the most common interview patterns", "Each generalises to many harder problems"],
-        cons: ["Off-by-one errors are common in rotate and remove duplicates", "Majority element only works when majority exists (>n/2 frequency)"],
-        cpp: `// Important Problems — C++
+        when: "Reverse: always iterative in interviews (O(1) space). Merge: subroutine in Merge Sort on LL. Palindrome: reverse-second-half is optimal O(n)/O(1).",
+        pros: [
+          "Iterative reverse is O(1) space",
+          "Three-pointer pattern is universally applicable",
+          "Dummy node eliminates head edge cases in merge"
+        ],
+        cons: [
+          "Recursive reverse uses O(n) stack — avoid for large lists",
+          "Palindrome check modifies list — restore if needed",
+          "K-group reverse is significantly more complex"
+        ],
+        cpp: `// Reverse & Classics — C++
 
-// 1. Reverse Array — O(n), O(1)
-void reverse(vector<int>& a) {
-    int l = 0, r = a.size()-1;
-    while (l < r) swap(a[l++], a[r--]);
+// Reverse Linked List — O(n), O(1) ← from tutorialspoint PDF
+void reverse(Node** head) {
+    Node* prev = nullptr;
+    Node* current = *head;
+    Node* next = nullptr;
+    while (current != nullptr) {
+        next = current->next;    // save next
+        current->next = prev;    // reverse pointer
+        prev = current;          // advance prev
+        current = next;          // advance current
+    }
+    *head = prev;
 }
 
-// 2. Move Zeros to End — O(n), O(1)
-void moveZeros(vector<int>& a) {
-    int w = 0;
-    for (int x : a) if (x) a[w++] = x;
-    while (w < a.size()) a[w++] = 0;
+// Merge Two Sorted Lists — O(n+m), O(1)
+Node* mergeSorted(Node* l1, Node* l2) {
+    Node dummy(-1);
+    Node* tail = &dummy;
+    while (l1 && l2) {
+        if (l1->data <= l2->data) { tail->next=l1; l1=l1->next; }
+        else { tail->next=l2; l2=l2->next; }
+        tail = tail->next;
+    }
+    tail->next = l1 ? l1 : l2;
+    return dummy.next;
 }
 
-// 3. Remove Duplicates (sorted) — O(n), O(1)
-int removeDups(vector<int>& a) {
-    int w = 1;
-    for (int i = 1; i < a.size(); i++)
-        if (a[i] != a[i-1]) a[w++] = a[i];
-    return w; // new length
-}
-
-// 4. Rotate Right by k — O(n), O(1)
-void rotate(vector<int>& a, int k) {
-    int n = a.size(); k %= n;
-    reverse(a.begin(), a.end());
-    reverse(a.begin(), a.begin()+k);
-    reverse(a.begin()+k, a.end());
-}
-
-// 5. Majority Element — Boyer-Moore, O(n), O(1)
-int majority(vector<int>& a) {
-    int cand = a[0], cnt = 1;
-    for (int i = 1; i < a.size(); i++)
-        cnt += (a[i] == cand) ? 1 : -1,
-        cnt == 0 && (cand = a[i], cnt = 1);
-    return cand;
+// Remove Nth from End — O(n), O(1)
+Node* removeNth(Node* head, int n) {
+    Node dummy(0); dummy.next = head;
+    Node* fast = &dummy, *slow = &dummy;
+    for (int i = 0; i <= n; i++) fast = fast->next;
+    while (fast) { fast=fast->next; slow=slow->next; }
+    slow->next = slow->next->next;
+    return dummy.next;
 }`,
-        python: `# Important Problems — Python
+        python: `# Reverse & Classics — Python
 
-# 1. Reverse Array — O(n), O(1)
-def reverse_arr(a):
-    l, r = 0, len(a)-1
-    while l < r:
-        a[l], a[r] = a[r], a[l]
-        l += 1; r -= 1
+# Reverse Linked List — O(n), O(1)
+def reverse_list(head):
+    prev = None
+    curr = head
+    while curr:
+        nxt = curr.next    # save next
+        curr.next = prev   # reverse pointer
+        prev = curr        # advance prev
+        curr = nxt         # advance curr
+    return prev            # new head
 
-# 2. Move Zeros — O(n), O(1)
-def move_zeros(a):
-    w = 0
-    for x in a:
-        if x: a[w] = x; w += 1
-    while w < len(a): a[w] = 0; w += 1
+# Merge Two Sorted Lists — O(n+m), O(1)
+def merge_sorted(l1, l2):
+    dummy = Node(-1)
+    tail = dummy
+    while l1 and l2:
+        if l1.data <= l2.data: tail.next=l1; l1=l1.next
+        else: tail.next=l2; l2=l2.next
+        tail = tail.next
+    tail.next = l1 or l2
+    return dummy.next
 
-# 3. Remove Duplicates (sorted) — O(n), O(1)
-def remove_dups(a):
-    w = 1
-    for i in range(1, len(a)):
-        if a[i] != a[i-1]:
-            a[w] = a[i]; w += 1
-    return w  # new length
-
-# 4. Rotate Right by k — O(n), O(1)
-def rotate(a, k):
-    n = len(a); k %= n
-    a.reverse()
-    a[:k] = reversed(a[:k])
-    a[k:] = reversed(a[k:])
-
-# 5. Majority Element — Boyer-Moore, O(n), O(1)
-def majority(a):
-    cand, cnt = a[0], 1
-    for x in a[1:]:
-        cnt += 1 if x == cand else -1
-        if cnt == 0: cand = x; cnt = 1
-    return cand`,
+# Remove Nth from End — O(n), O(1)
+def remove_nth(head, n):
+    dummy = Node(0); dummy.next = head
+    fast = slow = dummy
+    for _ in range(n+1): fast = fast.next
+    while fast: fast=fast.next; slow=slow.next
+    slow.next = slow.next.next
+    return dummy.next`,
         practice: [
-          { name: "Rotate Array", diff: "medium" },
-          { name: "Move Zeroes", diff: "easy" },
-          { name: "Remove Duplicates from Sorted Array", diff: "easy" },
-          { name: "Majority Element", diff: "easy" },
-          { name: "Merge Sorted Array", diff: "easy" },
-          { name: "Sort Colors (Dutch National Flag)", diff: "medium" }
+          { name: "Reverse Linked List", diff: "easy" },
+          { name: "Reverse Linked List II (sublist)", diff: "medium" },
+          { name: "Merge Two Sorted Lists", diff: "easy" },
+          { name: "Remove Nth Node From End", diff: "medium" },
+          { name: "Palindrome Linked List", diff: "easy" },
+          { name: "Reverse Nodes in K-Group", diff: "hard" }
         ]
       },
-      "Complexity & Edge Cases": {
+      "Complexity & Interview Guide": {
         diff: "easy",
-        explanation: "A complete reference for array operation complexities and the edge cases that trip up even experienced programmers. In interviews, always ask about edge cases before coding — it shows problem-solving maturity. The complexity table and edge case checklist below are your exam and interview quick-reference.",
-        intuition: "The complexity table is non-negotiable exam knowledge. Edge cases are where most solutions break: an empty array, a single element, all duplicates, all zeros, or a fully sorted/reversed array. Test each one mentally before submitting.",
+        explanation: "Complete complexity reference for all linked list operations and a curated must-know problem list. Linked lists appear in nearly every technical interview. Master these 7 problems: Reverse LL, Detect Cycle, Find Cycle Start, Find Middle, Palindrome LL, Merge Two Sorted, Remove Nth from End. Three core interview patterns: dummy node, two-pointer gap, slow-fast.",
+        intuition: "Linked list interviews test pointer manipulation, not algorithmic complexity. The difficulty is getting pointer updates right without losing nodes. Always draw the list on paper first. Use dummy nodes for cleaner code. Always check NULL before dereferencing.",
         steps: [
-          "Access arr[i]: O(1) — just arithmetic on base address.",
-          "Search (linear): O(n) — must scan all elements in worst case.",
-          "Insert at index k: O(n) — shift n−k elements right.",
-          "Delete at index k: O(n) — shift n−k−1 elements left.",
-          "Append (dynamic, amortised): O(1) — O(n) only when resize happens.",
-          "Binary search (sorted): O(log n) — eliminates half at each step."
+          "Access: O(n) — traverse from head. No formula.",
+          "Search: O(n) — scan all nodes.",
+          "Insert at head: O(1) — two pointer updates.",
+          "Insert at end/position: O(n) — traverse first.",
+          "Delete head: O(1). Delete other: O(n).",
+          "INTERVIEW PATTERN 1: dummy node → avoids edge cases for head operations.",
+          "INTERVIEW PATTERN 2: two pointers with gap of n → find nth from end.",
+          "INTERVIEW PATTERN 3: slow-fast → middle, cycle detection, cycle start."
         ],
-        dryRun: `Operation     | Best   | Average | Worst  | Space
-──────────────┼────────┼─────────┼────────┼───────
-Access arr[i] | O(1)   | O(1)    | O(1)   | O(1)
-Search        | O(1)   | O(n)    | O(n)   | O(1)
-Insert (mid)  | O(n)   | O(n)    | O(n)   | O(1)
-Delete (mid)  | O(n)   | O(n)    | O(n)   | O(1)
-Append (dyn)  | O(1)   | O(1)*   | O(n)   | O(1)
-Binary Search | O(1)   | O(log n)| O(log n)| O(1)
+        dryRun: `Operation      | Time  | Space | Notes
+───────────────┼───────┼───────┼───────────────────────
+Access (index) | O(n)  | O(1)  | Traverse from head
+Search         | O(n)  | O(1)  | Scan each node
+Insert (head)  | O(1)  | O(1)  | Signature advantage
+Insert (end)   | O(n)  | O(1)  | Traverse to tail first
+Insert (mid)   | O(n)  | O(1)  | Traverse to position
+Delete (head)  | O(1)  | O(1)  | Just update head
+Delete (end)   | O(n)  | O(1)  | Traverse to 2nd last
+Delete (mid)   | O(n)  | O(1)  | Traverse to prev node
+Reverse        | O(n)  | O(1)  | 3-pointer iterative
+Detect cycle   | O(n)  | O(1)  | Floyd's algorithm
+Find middle    | O(n)  | O(1)  | Slow-fast pointer
 
-Edge Cases to always check:
-  ✓ Empty array → handle before any indexing
-  ✓ Single element → many loop-based solutions break
-  ✓ All duplicates → remove-duplicates and search edge cases
-  ✓ Negative numbers → max subarray, sorting, Two Sum
-  ✓ Already sorted → check if algorithm still works
-  ✓ Reverse sorted → often triggers O(n²) worst case
-  ✓ Array of size 1 → off-by-one in two-pointer / binary search`,
-        time: { best: "O(1) access", avg: "O(n) general", worst: "O(n) insert/del" },
-        space: "O(n) storage",
+Edge Cases — always check:
+  ✓ head = NULL (empty list) → return early
+  ✓ Single node → loop-based solutions may fail
+  ✓ Two nodes → many off-by-one errors here
+  ✓ k > length (remove nth) → edge case for dummy
+  ✓ All same values → delete by value issues`,
+        time: { best: "O(1) head ops", avg: "O(n)", worst: "O(n)" },
+        space: "O(1) most ops",
         stable: undefined,
-        when: "Memorise this table. In any exam question about arrays, state the complexity and at least 3 relevant edge cases before writing code.",
-        pros: ["Clean O(1) access — unmatched by any other structure", "Binary search on sorted arrays is extremely powerful"],
-        cons: ["O(n) insert/delete makes arrays unsuitable for frequent modifications", "Static arrays have no safety net against overflow"],
-        cpp: `// Edge Case Handling — C++
-void safeProcess(vector<int>& arr, int target) {
-    // Always check empty array first
-    if (arr.empty()) return;
+        when: "Use this as your interview quick-reference. Draw the list before coding. Use dummy nodes. Always check NULL before ->next.",
+        pros: [
+          "O(1) head insert/delete — no shifting like arrays",
+          "Dynamic size — grows/shrinks freely",
+          "Efficient for stacks, queues, graph adjacency lists"
+        ],
+        cons: [
+          "No O(1) random access — must traverse",
+          "Cache unfriendly — scattered memory",
+          "Extra pointer field per node"
+        ],
+        cpp: `// Interview Patterns — C++
 
-    // Single element
-    if (arr.size() == 1) {
-        // Handle separately if needed
-    }
+// PATTERN 1: Dummy head (avoids head edge cases)
+Node dummy(0);
+dummy.next = head;
+Node* tail = &dummy;
+// ... build result list ...
+return dummy.next;
 
-    // Safe binary search (avoid overflow in mid)
-    int lo = 0, hi = arr.size() - 1;
-    while (lo <= hi) {
-        int mid = lo + (hi - lo) / 2; // NOT (lo+hi)/2 — overflow!
-        if (arr[mid] == target) return;
-        else if (arr[mid] < target) lo = mid + 1;
-        else hi = mid - 1;
-    }
+// PATTERN 2: Two pointers with gap of n
+Node* fast = head, *slow = head;
+for (int i = 0; i < n; i++) fast = fast->next;
+while (fast->next) { fast=fast->next; slow=slow->next; }
+// slow.next is the nth node from end
+
+// PATTERN 3: Intersection of two lists
+Node* a = headA, *b = headB;
+while (a != b) {
+    a = a ? a->next : headB;
+    b = b ? b->next : headA;
+}
+return a; // intersection or NULL
+
+// Always: safe NULL check
+while (temp && temp->next) { // NOT while(temp->next)
+    // safe to use temp->next->next here
 }`,
-        python: `# Edge Case Handling — Python
-def safe_process(arr, target):
-    # Always check empty array first
-    if not arr:
-        return -1
+        python: `# Interview Patterns — Python
 
-    # Single element
-    if len(arr) == 1:
-        return 0 if arr[0] == target else -1
+# PATTERN 1: Dummy head
+dummy = Node(0); dummy.next = head
+tail = dummy
+# build result... return dummy.next
 
-    # Safe binary search
-    lo, hi = 0, len(arr) - 1
-    while lo <= hi:
-        mid = (lo + hi) // 2   # Python ints don't overflow
-        if arr[mid] == target:
-            return mid
-        elif arr[mid] < target:
-            lo = mid + 1
-        else:
-            hi = mid - 1
-    return -1
+# PATTERN 2: Two pointers gap of n
+fast = slow = head
+for _ in range(n): fast = fast.next
+while fast.next:
+    fast = fast.next; slow = slow.next
+# slow.next is nth from end
 
-# Useful edge-case inputs to always test:
-# [], [x], [x,x,x], [-1,-2,0,1], sorted, reverse-sorted`,
+# PATTERN 3: List intersection
+a, b = head_a, head_b
+while a is not b:
+    a = a.next if a else head_b
+    b = b.next if b else head_a
+# a is intersection or None
+
+# Edge case template
+def solve(head):
+    if not head: return None          # empty
+    if not head.next: return head     # single node
+    # your logic here...`,
         practice: [
-          { name: "Find Pivot Index", diff: "easy" },
-          { name: "Binary Search", diff: "easy" },
-          { name: "Missing Number", diff: "easy" },
-          { name: "Product of Array Except Self", diff: "medium" }
+          { name: "Reverse Linked List", diff: "easy" },
+          { name: "Linked List Cycle II", diff: "medium" },
+          { name: "Intersection of Two Linked Lists", diff: "easy" },
+          { name: "Sort List (Merge Sort on LL)", diff: "medium" },
+          { name: "Reorder List", diff: "medium" },
+          { name: "Copy List with Random Pointer", diff: "medium" }
         ]
       }
     }
   },
-  Strings: {
-    icon: "\u{1F524}", diff: "medium",
-    desc: "Sequences of characters with powerful algorithmic techniques. From Two Pointers to KMP, Tries to Suffix Arrays.",
-    subtopics: {
-      "Basics & Representations": {
-        diff: "easy",
-        explanation: "A string is a sequence of characters over some alphabet. Strings use 0-based indexing. There are two fundamental representations: (1) Null-terminated — an array ending with '$'. Used in C/C++. Length takes O(n) to compute. (2) Pointer/Length — a (pointer, length) pair. Length is O(1). Any substring extracted in O(1) as new (pointer+i, m) pair — no copying. The pointer/length trick powers Tries, Patricia Trees, and Suffix Trees. In Python/Java strings are immutable — use list or StringBuilder for mutations.",
-        intuition: "Null-terminated strings are simple but scanning for length is wasteful. Pointer/length strings store the length explicitly — substring extraction is just pointer arithmetic. This O(1) substring trick is what makes advanced string data structures like Patricia Trees and Suffix Trees efficient without copying data.",
-        steps: [
-          "Null-terminated: array ends with '$'. Access char at i in O(1). Length requires O(n) scan.",
-          "Pointer/length: stored as (p, l). Length is O(1). Substring s[i..i+m-1] = (p+i, m) — O(1), no copy.",
-          "String indexing is 0-based. Last character is at index n-1.",
-          "Comparison of s1 and s2 costs O(min(|s1|,|s2|)) — not O(1) like integers.",
-          "In Python/Java, strings are immutable. Repeated += is O(n^2). Use ''.join() or StringBuilder.",
-          "In C++, std::string is mutable and stores length internally — length() is O(1)."
-        ],
-        dryRun: `String: "grain-fed organic"  (length = 17)
-
--- Null-terminated -----------------------------------
-[g][r][a][i][n][-][f][e][d][ ][o][r][g][a][n][i][c][$]
- 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
-length: scan until '$' -> O(n)
-
--- Pointer/Length ------------------------------------
-p -> points to 'g' (base address), l = 17
-
-Extract "organ" (index 10, length 5):
-  new pair (p+10, 5) -> O(1), no copy! ✓
-
-String comparison:
-  "apple" vs "apply"
-  a==a, p==p, p==p, l==l, e!=y -> not equal  O(4) ✓`,
-        time: { best: "O(1) access", avg: "O(n) compare", worst: "O(n) length null-term" },
-        space: "O(n)",
-        stable: undefined,
-        when: "Use pointer/length whenever extracting many substrings. Use null-terminated only for C API compatibility.",
-        pros: [
-          "O(1) character access by index",
-          "Pointer/length gives O(1) substring without copying",
-          "Characters are integers — directly usable as array indices (freq[c-'a'])",
-          "Cache-friendly if stored contiguously"
-        ],
-        cons: [
-          "String comparison is O(min(|s1|,|s2|)) — not constant",
-          "Null-terminated length is O(n) to compute",
-          "Immutable strings (Python/Java) make repeated edits O(n^2)",
-          "Variable length makes string data structures more complex than integer ones"
-        ],
-        cpp: `// String basics -- C++
-#include <string>
-string s = "hello world";
-
-// Access -- O(1)
-char c = s[4];          // 'o'
-int n = s.size();       // O(1) in C++ std::string
-
-// Substring -- O(k) copy
-string sub = s.substr(6, 5);  // "world"
-
-// Comparison -- O(n)
-bool eq = (s == "hello world");
-
-// Build string efficiently
-string result = "";
-result.reserve(100);    // pre-allocate
-for (char ch : s) result += ch;  // O(n) total
-
-// Iterate
-for (int i = 0; i < (int)s.size(); i++)
-    cout << s[i];`,
-        python: `# String basics -- Python
-s = "hello world"
-
-# Access -- O(1)
-c  = s[4]           # 'o'
-c2 = s[-1]          # 'd' last char
-
-# Length -- O(1)
-n = len(s)          # 11
-
-# Substring (slice) -- O(k) copy
-sub = s[6:11]       # "world"
-
-# Strings are IMMUTABLE in Python
-# s[0] = 'H'  -> TypeError!
-
-# Build efficiently
-chars = ['h','e','l','l','o']
-result = ''.join(chars)  # O(n) correct
-# DON'T: result = "" + "h" + "e" ...  O(n^2)
-
-# Useful methods
-s.upper()           # "HELLO WORLD"
-s.split(' ')        # ['hello', 'world']
-s.find("world")     # 6`,
-        practice: [
-          { name: "Reverse a String", diff: "easy" },
-          { name: "Valid Palindrome", diff: "easy" },
-          { name: "String Compression", diff: "medium" }
-        ]
-      },
-      "Core Techniques": {
-        diff: "medium",
-        explanation: "Most string problems use one of six techniques: (1) Two Pointers — left from start, right from end; used in palindromes and reversals. (2) Sliding Window — maintain a variable or fixed window over the string. (3) Frequency Count — int freq[26] counts chars in O(n); comparing two freq arrays is O(26)=O(1). (4) String Hashing — polynomial rolling hash for O(1) substring comparison. (5) Sorting — sort both strings to check anagrams. (6) Character as Index — since chars are integers, use c-'a' as array index directly.",
-        intuition: "Frequency counting converts character comparison into integer array comparison — clever and fast. Sliding window avoids recomputing from scratch: add the new right char, remove the old left char. Two pointers eliminate the need to generate all O(n^2) substrings. Hashing turns O(n) string comparison into O(1) hash comparison.",
-        steps: [
-          "TWO POINTERS: left=0, right=n-1. Compare s[left] and s[right], move inward. O(n).",
-          "SLIDING WINDOW: [left,right] window. Expand right to grow. Shrink left when constraint violated. O(n).",
-          "FREQUENCY COUNT: freq[26]=0. For each char: freq[c-'a']++. Compare two freq arrays in O(26)=O(1).",
-          "STRING HASHING: hash = sum(s[i]*p^i) mod M. Rolling: remove left char, add right char in O(1) per step.",
-          "CHARACTER AS INDEX: s[i]-'a' gives 0-25. s[i]-'0' gives digit 0-9. No HashMap needed for fixed alphabets.",
-          "SORTING: sort(s) gives canonical form. Two strings are anagrams iff sorted forms equal."
-        ],
-        dryRun: `-- TWO POINTERS: is "racecar" palindrome? -----------
-l=0,r=6: r==r -> l++,r--
-l=1,r=5: a==a -> l++,r--
-l=2,r=4: c==c -> l++,r--
-l=3,r=3: l>=r -> PALINDROME ✓
-
--- FREQUENCY COUNT: "listen" vs "silent" anagram? ---
-freq "listen": l=1,i=1,s=1,t=1,e=1,n=1
-freq "silent": s=1,i=1,l=1,e=1,n=1,t=1
-Arrays equal -> ANAGRAM ✓  O(n) time, O(1) space
-
--- SLIDING WINDOW: longest no-repeat "abcabcbb" -----
-window={}, l=0
-r=0:a->{a},max=1   r=1:b->{a,b},max=2
-r=2:c->{a,b,c},max=3
-r=3:a duplicate! remove a, l=1, window={b,c,a}, max=3
-...final max=3 "abc" ✓`,
-        time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
-        space: "O(1) freq / O(n) window",
-        stable: undefined,
-        when: "Anagram/frequency problems: Frequency Count. Substring problems: Sliding Window. Palindrome/reverse: Two Pointers. Duplicate substring detection: Hashing.",
-        pros: ["All run in O(n) -- optimal", "Frequency count is O(1) space for fixed alphabets", "Two pointers avoids generating all O(n^2) substrings"],
-        cons: ["Hashing has collision risk -- use double hashing for safety", "Variable sliding window conditions can be subtle", "Char-as-index only works for known fixed alphabets"],
-        cpp: `// Core Techniques -- C++
-
-// 1. Two Pointers (palindrome)
-bool isPalindrome(string s) {
-    int l = 0, r = s.size() - 1;
-    while (l < r)
-        if (s[l++] != s[r--]) return false;
-    return true;
-}
-
-// 2. Frequency Count (anagram)
-bool isAnagram(string s, string t) {
-    if (s.size() != t.size()) return false;
-    int freq[26] = {};
-    for (char c : s) freq[c-'a']++;
-    for (char c : t) freq[c-'a']--;
-    for (int f : freq) if (f) return false;
-    return true;
-}
-
-// 3. Sliding Window (longest no-repeat)
-int longestNR(string s) {
-    unordered_map<char,int> last;
-    int l = 0, res = 0;
-    for (int r = 0; r < (int)s.size(); r++) {
-        if (last.count(s[r]) && last[s[r]] >= l)
-            l = last[s[r]] + 1;
-        last[s[r]] = r;
-        res = max(res, r - l + 1);
-    }
-    return res;
-}`,
-        python: `# Core Techniques -- Python
-
-# 1. Two Pointers (palindrome)
-def is_palindrome(s):
-    l, r = 0, len(s) - 1
-    while l < r:
-        if s[l] != s[r]: return False
-        l += 1; r -= 1
-    return True
-
-# 2. Frequency Count (anagram) O(n), O(1)
-def is_anagram(s, t):
-    if len(s) != len(t): return False
-    freq = [0] * 26
-    for c in s: freq[ord(c)-ord('a')] += 1
-    for c in t: freq[ord(c)-ord('a')] -= 1
-    return all(f == 0 for f in freq)
-
-# 3. Sliding Window (longest no-repeat)
-def longest_no_repeat(s):
-    last = {}
-    l = res = 0
-    for r, c in enumerate(s):
-        if c in last and last[c] >= l:
-            l = last[c] + 1
-        last[c] = r
-        res = max(res, r - l + 1)
-    return res`,
-        practice: [
-          { name: "Valid Anagram", diff: "easy" },
-          { name: "Longest Substring Without Repeating Characters", diff: "medium" },
-          { name: "Minimum Window Substring", diff: "hard" },
-          { name: "Group Anagrams", diff: "medium" }
-        ]
-      },
-      "Pattern Matching": {
-        diff: "medium",
-        explanation: "Pattern matching asks: does pattern P appear in text T? Naive: O(n*m). Three efficient algorithms: (1) KMP -- builds LPS (Longest Proper Prefix that is also Suffix) array for P in O(m). Searches in O(n). Never backtracks in T. (2) Z-Algorithm -- builds Z[i] = length of longest substring starting at i that is also a prefix. O(n+m). (3) Rabin-Karp -- rolling polynomial hash for O(1) window comparison. Average O(n+m), worst O(nm) on collisions.",
-        intuition: "KMP insight: on mismatch at j in P, don't restart from 0. LPS[j-1] tells the longest proper prefix of P[0..j-1] that is also a suffix -- jump there instead. This is why KMP never moves i backward in T. Z-algorithm encodes the same information differently. Rabin-Karp trades exact comparison for hash comparison -- fast when hashes don't collide.",
-        steps: [
-          "KMP STEP 1 -- Build LPS: lps[0]=0. i=1, len=0. If p[i]==p[len]: lps[i++]=++len. Else if len>0: len=lps[len-1]. Else: lps[i++]=0.",
-          "KMP STEP 2 -- Search: i scans T, j scans P. On match: i++,j++. If j==m: found at i-j, set j=lps[j-1]. On mismatch: if j>0 set j=lps[j-1] else i++.",
-          "Z-ALGORITHM: maintain window [l,r]. For each i: Z[i]=min(r-i,Z[i-l]) if i<r, then extend. Update l,r.",
-          "RABIN-KARP: hash(P) and hash of each T window. Slide: remove leftmost, add rightmost. On hash match, verify string.",
-          "LPS ALSO USED FOR: finding shortest period of a string (period = n - lps[n-1])."
-        ],
-        dryRun: `-- KMP: find "aba" in "ababcababa" ------------------
-Build LPS for "aba": [0, 0, 1]
-
-Search T="ababcababa":
-i=0,j=0: a==a -> i=1,j=1
-i=1,j=1: b==b -> i=2,j=2
-i=2,j=2: a==a -> j=3=m -> MATCH at idx 0 ✓, j=lps[2]=1
-i=3,j=1: b==b -> i=4,j=2
-i=4,j=2: c!=a -> j=lps[1]=0
-i=4,j=0: c!=a -> i=5
-i=5,j=0: a==a -> i=6,j=1
-i=6,j=1: b==b -> i=7,j=2
-i=7,j=2: a==a -> j=3=m -> MATCH at idx 5 ✓, j=lps[2]=1
-i=8,j=1: b==b -> i=9,j=2
-i=9,j=2: a==a -> j=3=m -> MATCH at idx 7 ✓
-
-Matches at: [0, 5, 7] ✓`,
-        time: { best: "O(n+m)", avg: "O(n+m)", worst: "O(n+m) KMP/Z" },
-        space: "O(m) LPS array",
-        stable: undefined,
-        when: "KMP/Z for single-pattern O(n+m). Rabin-Karp for multiple patterns. n<=10^5: any works. n>=10^6: only linear algorithms.",
-        pros: ["KMP/Z: guaranteed O(n+m) -- no bad inputs", "Never backtracks in T -- single left-to-right scan", "LPS array also useful for string period and border problems"],
-        cons: ["LPS/Z construction adds code complexity", "Rabin-Karp worst case O(nm) on collisions", "Aho-Corasick needed for many patterns -- complex implementation"],
-        cpp: `// KMP -- C++
-vector<int> buildLPS(string& p) {
-    int m = p.size();
-    vector<int> lps(m, 0);
-    int len = 0, i = 1;
-    while (i < m) {
-        if (p[i] == p[len])
-            lps[i++] = ++len;
-        else if (len > 0)
-            len = lps[len-1]; // don't increment i
-        else
-            lps[i++] = 0;
-    }
-    return lps;
-}
-
-vector<int> kmpSearch(string& T, string& P) {
-    auto lps = buildLPS(P);
-    vector<int> res;
-    int n = T.size(), m = P.size(), i = 0, j = 0;
-    while (i < n) {
-        if (T[i] == P[j]) { i++; j++; }
-        if (j == m) {
-            res.push_back(i - j);
-            j = lps[j-1];
-        } else if (i < n && T[i] != P[j])
-            j > 0 ? j = lps[j-1] : i++;
-    }
-    return res;
-}`,
-        python: `# KMP -- Python
-def build_lps(p):
-    m = len(p)
-    lps = [0] * m
-    length, i = 0, 1
-    while i < m:
-        if p[i] == p[length]:
-            length += 1
-            lps[i] = length
-            i += 1
-        elif length > 0:
-            length = lps[length-1]  # don't inc i
-        else:
-            lps[i] = 0
-            i += 1
-    return lps
-
-def kmp_search(T, P):
-    n, m = len(T), len(P)
-    lps = build_lps(P)
-    matches = []
-    i = j = 0
-    while i < n:
-        if T[i] == P[j]: i += 1; j += 1
-        if j == m:
-            matches.append(i - j)
-            j = lps[j-1]
-        elif i < n and T[i] != P[j]:
-            if j > 0: j = lps[j-1]
-            else: i += 1
-    return matches`,
-        practice: [
-          { name: "Find the Index of First Occurrence (strStr)", diff: "easy" },
-          { name: "Repeated Substring Pattern", diff: "easy" },
-          { name: "Shortest Palindrome", diff: "hard" }
-        ]
-      },
-      "Trie & Patricia Tree": {
-        diff: "hard",
-        explanation: "A Trie (prefix tree) stores strings as root-to-leaf paths. Each node has up to |Sigma| children (stored as array of pointers). Strings must be null-terminated so no string is a prefix of another. Insert/Search/Delete: O(|s|*|Sigma|) for insert/delete, O(|s|) for search. Storage: O(N*|Sigma|) where N is total chars. A Patricia Tree (compressed trie) collapses single-child paths into one edge labelled by a string in pointer/length form. Every internal node has >=2 children -- at most n-1 internal nodes for n strings. Storage drops to O(n*|Sigma| + N). Patricia trees also support prefix match in O(|s|+k).",
-        intuition: "A trie wastes a node per character even on long, unforked paths. Patricia compresses these into single edge labels stored as (pointer, length) -- O(1) per label since it points into the original string. Because every internal node has >=2 children, the number of internal nodes can't exceed the number of leaves. This gives Patricia trees a huge space advantage for sparse tries.",
-        steps: [
-          "TRIE INSERT: follow char pointers from root. On nil pointer, create new node. O(|s|*|Sigma|).",
-          "TRIE SEARCH: follow char pointers. If nil -> not found. Reach leaf -> found. O(|s|).",
-          "TRIE DELETE: find leaf. Delete nodes back toward root until node with >1 child. O(|s|*|Sigma|).",
-          "PATRICIA INSERT: search until stuck. Split edge at mismatch or add leaf at node. O(|s|+|Sigma|).",
-          "PATRICIA PREFIX MATCH: search for s (no null terminator). Every leaf in subtree at end has s as prefix. O(|s|+k).",
-          "PATRICIA BOUND: <=n-1 internal nodes for n strings. Total storage O(n*|Sigma| + N)."
-        ],
-        dryRun: `Trie for: "ape", "apple", "organ", "organism"
-
-Root
-+-- 'a' -> p -> e -> '$' leaf("ape")
-|              p -> l -> e -> '$' leaf("apple")
-+-- 'o' -> r -> g -> a -> n -> '$' leaf("organ")
-                              i -> s -> m -> '$' leaf("organism")
-Trie nodes: ~13
-
-Patricia Tree (compressed):
-Root
-+-- "ap"    -> e$   leaf("ape")
-|           -> ple$ leaf("apple")
-+-- "organ" -> $    leaf("organ")
-            -> ism$ leaf("organism")
-Patricia nodes: 2 internal + 4 leaves = 6 ✓
-(vs 13 for trie)`,
-        time: { best: "O(|s|) search", avg: "O(|s|) search", worst: "O(|s|*|Sigma|) insert" },
-        space: "O(N*|Sigma|) trie / O(n*|Sigma|+N) patricia",
-        stable: undefined,
-        when: "Trie/Patricia: autocomplete, spell-check, IP routing, dictionary lookups, prefix queries. Use Patricia over Trie when memory matters and strings share long common prefixes.",
-        pros: [
-          "Search O(|s|) -- independent of number of strings stored",
-          "Prefix queries are natural: just stop early during search",
-          "Patricia: major space savings vs plain trie",
-          "Patricia prefix match returns all k matching strings in O(|s|+k)"
-        ],
-        cons: [
-          "Each node is array of |Sigma| pointers -- memory intensive for large alphabets",
-          "Poor cache performance from sparse pointer arrays",
-          "Patricia insert/delete more complex to implement correctly",
-          "Not suitable for non-integer alphabets without hashing"
-        ],
-        cpp: `// Trie -- C++
-struct TrieNode {
-    TrieNode* ch[26] = {};
-    bool end = false;
-};
-
-struct Trie {
-    TrieNode* root = new TrieNode();
-
-    void insert(string s) {
-        auto* node = root;
-        for (char c : s) {
-            int i = c - 'a';
-            if (!node->ch[i]) node->ch[i] = new TrieNode();
-            node = node->ch[i];
-        }
-        node->end = true;
-    }
-
-    bool search(string s) {
-        auto* node = root;
-        for (char c : s) {
-            int i = c - 'a';
-            if (!node->ch[i]) return false;
-            node = node->ch[i];
-        }
-        return node->end;
-    }
-
-    bool startsWith(string pre) {
-        auto* node = root;
-        for (char c : pre) {
-            int i = c - 'a';
-            if (!node->ch[i]) return false;
-            node = node->ch[i];
-        }
-        return true;
-    }
-};`,
-        python: `# Trie -- Python
-class TrieNode:
-    def __init__(self):
-        self.children = {}
-        self.is_end = False
-
-class Trie:
-    def __init__(self):
-        self.root = TrieNode()
-
-    def insert(self, s: str):
-        node = self.root
-        for c in s:
-            if c not in node.children:
-                node.children[c] = TrieNode()
-            node = node.children[c]
-        node.is_end = True
-
-    def search(self, s: str) -> bool:
-        node = self.root
-        for c in s:
-            if c not in node.children: return False
-            node = node.children[c]
-        return node.is_end
-
-    def starts_with(self, prefix: str) -> bool:
-        node = self.root
-        for c in prefix:
-            if c not in node.children: return False
-            node = node.children[c]
-        return True`,
-        practice: [
-          { name: "Implement Trie (Prefix Tree)", diff: "medium" },
-          { name: "Word Search II", diff: "hard" },
-          { name: "Design Add and Search Words Data Structure", diff: "medium" },
-          { name: "Longest Word in Dictionary", diff: "medium" }
-        ]
-      },
-      "Suffix Structures": {
-        diff: "hard",
-        explanation: "Suffix structures answer 'does P occur in text T?' in O(|P|) time regardless of |T|. (1) Suffix Array A[1..n]: A[i] is the starting index of the i-th lexicographically smallest suffix of T. Built in O(n) using the Skew Algorithm. Binary search finds P in O(|P| log n); with LCP array, O(|P| + log n). (2) LCP Array L[1..n-1]: L[i] = length of longest common prefix of the i-th and (i+1)-th sorted suffixes. Built in O(n) by Kasai's algorithm. (3) Suffix Tree: Patricia tree of all n suffixes. Edge labels are (pointer,length) into T -- O(n) label storage. Can be built in O(n*|Sigma|) from suffix array + LCP array.",
-        intuition: "Sorting all suffixes (suffix array) turns substring search into binary search -- O(log n) steps instead of O(n). The LCP array caches prefix-match info so the binary search avoids re-comparing already-matched characters, dropping from O(|s| log n) to O(|s| + log n). The entire structure needs only 3n words of storage -- very compact.",
-        steps: [
-          "SUFFIX ARRAY: A[i] = start index of i-th smallest suffix. Size n, holds integers.",
-          "BINARY SEARCH: O(|s| log n). Each of O(log n) comparisons does O(|s|) character work.",
-          "LCP ARRAY: L[i] = lcp(s_i, s_{i+1}). Kasai's algorithm builds it in O(n) using inverse of A.",
-          "WITH LCP: maintain (i,j,a,b) -- search bounds and prefix-match lengths. Skip already-matched chars. O(|s|+log n).",
-          "SUFFIX TREE: Patricia tree of suffixes. All labels as (pointer,length) into T. O(n) total label storage. Find all k occurrences in O(|s|+k).",
-          "TOTAL STORAGE: suffix array A (n words) + auxiliary L' (2n words) = 3n words for O(|s|+log n) search."
-        ],
-        dryRun: `t = "counterrevolutionary$" (n=21)
-
-Suffix Array A = [18, 1, 6, 9, 15, 12, 17, 4, ...]
-
-i   A[i]  Suffix starts at A[i]
-1    18   "ary$"
-2     1   "counterrevolutionary$"
-3     6   "errevolutionary$"
-4     9   "evolutionary$"
-...
-
-LCP Array L:
-L[1] = lcp("ary$","counterrev...") = 0
-L[2] = lcp("counterrev...","errev...") = 0
-...
-
-Search for "tion":
-  Binary search: O(|"tion"| * log 21) = O(4*5) = O(20)
-  With LCP array: O(|"tion"| + log 21) = O(4+5) = O(9) ✓
-
-Kasai's LCP construction:
-  Uses inverse array R (R[A[i]]=i, rank of suffix i)
-  Processes suffixes in TEXT order (not sorted order)
-  Key lemma: if lcp(s_Ri, s_{Ri-1}) = h,
-  then lcp(s_{Ri+1}, s_{Ri+1-1}) >= h-1 ✓`,
-        time: { best: "O(|s|)", avg: "O(|s|+log n)", worst: "O(|s| log n)" },
-        space: "O(n*|Sigma|) suffix tree / O(n) suffix array",
-        stable: undefined,
-        when: "Competitive programming, DNA analysis, plagiarism detection, text indexing. Suffix array: when compact storage matters. Suffix tree: when O(|s|) pattern search or all k occurrences needed.",
-        pros: [
-          "Suffix tree: O(|s|) substring search independent of text length",
-          "Suffix array: compact 3n-word structure with O(|s|+log n) search",
-          "Handles all k occurrences in O(|s|+k)",
-          "LCP construction O(n) -- Kasai's elegant algorithm"
-        ],
-        cons: [
-          "Suffix tree: O(n*|Sigma|) storage -- |Sigma| factor expensive",
-          "Skew/linear construction very complex to implement",
-          "Rarely required in standard coding interviews",
-          "LCP matrix is O(n^2) -- use sparse structure (only O(n) values needed)"
-        ],
-        cpp: `// Kasai LCP Array -- C++ O(n)
-vector<int> buildLCP(string& s, vector<int>& sa) {
-    int n = s.size();
-    vector<int> rank_(n), lcp(n-1, 0);
-    for (int i = 0; i < n; i++) rank_[sa[i]] = i;
-    int h = 0;
-    for (int i = 0; i < n; i++) {
-        if (rank_[i] > 0) {
-            int j = sa[rank_[i] - 1];
-            while (i+h < n && j+h < n && s[i+h] == s[j+h])
-                h++;
-            lcp[rank_[i] - 1] = h;
-            if (h > 0) h--;   // key lemma: h decrements at most n times total
-        }
-    }
-    return lcp;
-}
-
-// Suffix Array (O(n log^2 n)) -- C++
-vector<int> buildSA(string s) {
-    int n = s.size();
-    vector<int> sa(n), rank_(n), tmp(n);
-    iota(sa.begin(), sa.end(), 0);
-    for (int i = 0; i < n; i++) rank_[i] = s[i];
-    for (int gap = 1; gap < n; gap <<= 1) {
-        auto cmp = [&](int a, int b) {
-            if (rank_[a] != rank_[b]) return rank_[a] < rank_[b];
-            int ra = a+gap<n ? rank_[a+gap] : -1;
-            int rb = b+gap<n ? rank_[b+gap] : -1;
-            return ra < rb;
-        };
-        sort(sa.begin(), sa.end(), cmp);
-        tmp[sa[0]] = 0;
-        for (int i = 1; i < n; i++)
-            tmp[sa[i]] = tmp[sa[i-1]] + (cmp(sa[i-1],sa[i])?1:0);
-        rank_ = tmp;
-    }
-    return sa;
-}`,
-        python: `# Suffix Array + Kasai LCP -- Python
-def build_sa(s):
-    # O(n log^2 n) -- simple version
-    n = len(s)
-    return sorted(range(n), key=lambda i: s[i:])
-
-def build_lcp(s, sa):
-    n = len(s)
-    rank = [0] * n
-    for i, x in enumerate(sa): rank[x] = i
-    lcp = [0] * (n - 1)
-    h = 0
-    for i in range(n):
-        if rank[i] > 0:
-            j = sa[rank[i] - 1]
-            while i+h < n and j+h < n and s[i+h] == s[j+h]:
-                h += 1
-            lcp[rank[i] - 1] = h
-            if h > 0: h -= 1
-    return lcp`,
-        practice: [
-          { name: "Longest Duplicate Substring", diff: "hard" },
-          { name: "Number of Distinct Substrings", diff: "hard" },
-          { name: "Implement Trie (Prefix Tree)", diff: "medium" }
-        ]
-      },
-      "DP on Strings": {
-        diff: "hard",
-        explanation: "DP on strings solves: (1) Edit Distance -- min insert/delete/replace to convert s1 to s2. (2) LCS -- Longest Common Subsequence (not necessarily contiguous). (3) Longest Common Substring -- must be contiguous. (4) Longest Palindromic Subsequence. All are O(n*m) DP on a 2D table of prefix subproblems. The recurrences are clean and follow from whether the last characters match.",
-        intuition: "All string DP defines dp[i][j] over prefixes. Edit distance: dp[i][j] = min cost to convert s1[0..i-1] to s2[0..j-1]. LCS: dp[i][j] = length of LCS of those prefixes. The recurrence either 'uses' both last characters (if they match) or 'skips' one. Space can often be reduced to O(min(n,m)) with a rolling array.",
-        steps: [
-          "EDIT DISTANCE: if s1[i-1]==s2[j-1]: dp[i][j]=dp[i-1][j-1]. Else: dp[i][j]=1+min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]).",
-          "LCS: if s1[i-1]==s2[j-1]: dp[i][j]=dp[i-1][j-1]+1. Else: dp[i][j]=max(dp[i-1][j], dp[i][j-1]).",
-          "LONGEST COMMON SUBSTRING: same as LCS match case. But reset to 0 on mismatch (not max). Track global max.",
-          "PALINDROMIC SUBSEQUENCE: dp[i][j] = dp[i+1][j-1]+2 if s[i]==s[j], else max(dp[i+1][j],dp[i][j-1]).",
-          "BASE CASES: dp[0][j]=j (delete all), dp[i][0]=i (insert all).",
-          "SPACE OPTIMISE: rolling two rows -- O(min(n,m)) space for edit distance and LCS."
-        ],
-        dryRun: `-- EDIT DISTANCE: "horse" -> "ros" ----------------
-     ""  r  o  s
-""  [ 0  1  2  3 ]
-h   [ 1  1  2  3 ]
-o   [ 2  2  1  2 ]
-r   [ 3  2  2  2 ]
-s   [ 4  3  3  2 ]
-e   [ 5  4  4  3 ]
-Answer: dp[5][3] = 3 ✓
-
--- LCS: "ABCBDAB" and "BDCABA" -------------------
-(partial)
-     ""  B  D  C  A  B  A
-""  [ 0  0  0  0  0  0  0 ]
-A   [ 0  0  0  0  1  1  1 ]
-B   [ 0  1  1  1  1  2  2 ]
-C   [ 0  1  1  2  2  2  2 ]
-B   [ 0  1  1  2  2  3  3 ]
-LCS length = 4 ✓`,
-        time: { best: "O(n*m)", avg: "O(n*m)", worst: "O(n*m)" },
-        space: "O(n*m) or O(min(n,m)) rolling",
-        stable: undefined,
-        when: "Edit distance: spell-check, DNA alignment, diff tools. LCS: version control, bioinformatics. n,m<=1000: O(n^2) DP fine. n,m>10^4: need optimisation (e.g. Hunt-Szymanski for sparse LCS).",
-        pros: ["Elegant 2D DP formulation", "Space reducible to O(min(n,m))", "LCS/edit distance are foundations for many real systems"],
-        cons: ["O(n*m) -- not suitable for large n,m without optimisation", "Backtracking requires full DP table -- can't always use rolling array"],
-        cpp: `// DP on Strings -- C++
-
-// 1. Edit Distance O(nm) time, O(m) space
-int editDist(string s1, string s2) {
-    int n = s1.size(), m = s2.size();
-    vector<int> prev(m+1), cur(m+1);
-    iota(prev.begin(), prev.end(), 0);
-    for (int i = 1; i <= n; i++) {
-        cur[0] = i;
-        for (int j = 1; j <= m; j++) {
-            if (s1[i-1] == s2[j-1]) cur[j] = prev[j-1];
-            else cur[j] = 1 + min({prev[j], cur[j-1], prev[j-1]});
-        }
-        swap(prev, cur);
-    }
-    return prev[m];
-}
-
-// 2. LCS Length
-int lcs(string& s1, string& s2) {
-    int n = s1.size(), m = s2.size();
-    vector<vector<int>> dp(n+1, vector<int>(m+1, 0));
-    for (int i = 1; i <= n; i++)
-        for (int j = 1; j <= m; j++)
-            dp[i][j] = s1[i-1]==s2[j-1]
-                ? dp[i-1][j-1]+1
-                : max(dp[i-1][j], dp[i][j-1]);
-    return dp[n][m];
-}`,
-        python: `# DP on Strings -- Python
-
-# 1. Edit Distance O(nm) time, O(m) space
-def edit_distance(s1, s2):
-    n, m = len(s1), len(s2)
-    prev = list(range(m + 1))
-    for i in range(1, n + 1):
-        cur = [i] + [0] * m
-        for j in range(1, m + 1):
-            if s1[i-1] == s2[j-1]:
-                cur[j] = prev[j-1]
-            else:
-                cur[j] = 1 + min(prev[j], cur[j-1], prev[j-1])
-        prev = cur
-    return prev[m]
-
-# 2. LCS Length
-def lcs(s1, s2):
-    n, m = len(s1), len(s2)
-    dp = [[0]*(m+1) for _ in range(n+1)]
-    for i in range(1, n+1):
-        for j in range(1, m+1):
-            dp[i][j] = dp[i-1][j-1]+1 if s1[i-1]==s2[j-1] \
-                       else max(dp[i-1][j], dp[i][j-1])
-    return dp[n][m]
-
-# 3. Longest Palindromic Subsequence
-def lps(s):
-    return lcs(s, s[::-1])`,
-        practice: [
-          { name: "Edit Distance", diff: "hard" },
-          { name: "Longest Common Subsequence", diff: "medium" },
-          { name: "Longest Palindromic Subsequence", diff: "medium" },
-          { name: "Minimum ASCII Delete Sum", diff: "medium" }
-        ]
-      },
-      "Important Problems": {
-        diff: "medium",
-        explanation: "The highest-frequency string interview problems: (1) Longest Palindromic Substring -- expand around every centre O(n). (2) Minimum Window Substring -- variable sliding window with frequency tracking. (3) Group Anagrams -- sorted string as hash key. (4) Decode String -- stack-based expansion. (5) Reverse Words -- three-reversal trick. (6) Valid Palindrome II -- try deleting one character on mismatch. These 6 cover almost all patterns.",
-        intuition: "Palindrome expansion: 2n-1 centres (each character + each gap). Expand while chars match. O(1) per expansion step, O(n) total centres = O(n) overall. Minimum Window uses a 'formed' counter to know when all required chars are present without scanning the frequency array every step.",
-        steps: [
-          "PALINDROME EXPAND: for i in 0..n-1: expand(i,i) odd, expand(i,i+1) even. While s[l]==s[r]: l--,r++. Track max. O(n).",
-          "GROUP ANAGRAMS: sort each string -> use as map key. All anagrams map to same key. O(nm log m).",
-          "MINIMUM WINDOW: need dict, window dict, formed counter. Expand r. When formed==required shrink l. Track min window. O(n+m).",
-          "DECODE STRING: stack holds (currentString, repeatCount). On ']': pop, repeat, concatenate. O(n * maxRepeat).",
-          "REVERSE WORDS: strip spaces, reverse whole string, reverse each word. O(n), O(1) extra.",
-          "VALID PAL II: on mismatch try skip s[l] or skip s[r], check if rest is palindrome. O(n)."
-        ],
-        dryRun: `-- LONGEST PALINDROMIC SUBSTRING "babad" -----------
-Centers (char):
-  i=0 'b': b  len=1
-  i=1 'a': bab (b==b) len=3 -> best="bab"
-  i=2 'b': aba (a==a) len=3 -> best="bab" or "aba"
-  i=3 'a': a  len=1
-Centers (gap):
-  0-1: b!=a -> len=0
-  1-2: a!=b -> len=0
-  2-3: b!=a -> len=0
-Result: "bab" (or "aba") ✓
-
--- GROUP ANAGRAMS ["eat","tea","tan","ate","nat","bat"]
-"eat"->"aet": group1  "tea"->"aet": group1
-"tan"->"ant": group2  "ate"->"aet": group1
-"nat"->"ant": group2  "bat"->"abt": group3
-Output: [["eat","tea","ate"],["tan","nat"],["bat"]] ✓`,
-        time: { best: "O(n)", avg: "O(n log n)", worst: "O(n log n)" },
-        space: "O(n)",
-        stable: undefined,
-        when: "These are the top 6 string interview questions. Practise until you can code each one in under 8 minutes without hints.",
-        pros: ["All solvable in O(n) or O(n log n) -- no brute force", "Each demonstrates a distinct reusable pattern"],
-        cons: ["Minimum window substring has subtle 'formed' counter logic", "Decode string edge cases: nested brackets, large repeat counts"],
-        cpp: `// Key Problems -- C++
-
-// 1. Longest Palindromic Substring O(n)
-string longestPal(string s) {
-    int n = s.size(), start = 0, maxLen = 1;
-    auto expand = [&](int l, int r) {
-        while (l >= 0 && r < n && s[l] == s[r]) l--, r++;
-        if (r-l-1 > maxLen) { maxLen=r-l-1; start=l+1; }
-    };
-    for (int i = 0; i < n; i++) {
-        expand(i, i);    // odd
-        expand(i, i+1);  // even
-    }
-    return s.substr(start, maxLen);
-}
-
-// 2. Group Anagrams
-vector<vector<string>> groupAnagrams(vector<string>& strs) {
-    unordered_map<string,vector<string>> mp;
-    for (string& s : strs) {
-        string key = s;
-        sort(key.begin(), key.end());
-        mp[key].push_back(s);
-    }
-    vector<vector<string>> res;
-    for (auto& [k,v] : mp) res.push_back(v);
-    return res;
-}`,
-        python: `# Key Problems -- Python
-
-# 1. Longest Palindromic Substring O(n^2)
-def longest_palindrome(s):
-    n = len(s); res = ""
-    def expand(l, r):
-        while l >= 0 and r < n and s[l] == s[r]:
-            l -= 1; r += 1
-        return s[l+1:r]
-    for i in range(n):
-        for p in [expand(i,i), expand(i,i+1)]:
-            if len(p) > len(res): res = p
-    return res
-
-# 2. Group Anagrams
-from collections import defaultdict
-def group_anagrams(strs):
-    g = defaultdict(list)
-    for s in strs: g[tuple(sorted(s))].append(s)
-    return list(g.values())
-
-# 3. Valid Palindrome II
-def valid_pal_ii(s):
-    def is_pal(l, r):
-        while l < r:
-            if s[l] != s[r]: return False
-            l += 1; r -= 1
-        return True
-    l, r = 0, len(s) - 1
-    while l < r:
-        if s[l] != s[r]:
-            return is_pal(l+1,r) or is_pal(l,r-1)
-        l += 1; r -= 1
-    return True`,
-        practice: [
-          { name: "Longest Palindromic Substring", diff: "medium" },
-          { name: "Minimum Window Substring", diff: "hard" },
-          { name: "Group Anagrams", diff: "medium" },
-          { name: "Decode String", diff: "medium" },
-          { name: "Reverse Words in a String", diff: "medium" },
-          { name: "Valid Palindrome II", diff: "easy" }
-        ]
-      },
-      "Advanced Structures": {
-        diff: "hard",
-        explanation: "Four advanced string data structures from Chapter 7 (Morin textbook). (1) Trie — rooted tree where each node has up to |Σ| children; strings stored as root-to-leaf paths. (2) Patricia Tree (Compressed Trie) — chains of single-child nodes are compressed into string-labelled edges; every internal node has ≥ 2 children. (3) Suffix Tree — all n suffixes of text t inserted into a Patricia tree; supports O(|s|) substring search. (4) Suffix Array — sorted array of suffix starting indices; with LCP array gives O(|s|+log n) search in only 3n words. (5) Rope — prefix-tree storing very long text; insert/delete in O(log n) — used in real text editors.",
-        intuition: "A Trie shares prefixes between strings — 'apple' and 'apply' share 'appl'. Patricia trees compress wasteful single-child chains, cutting storage. The Suffix Tree effectively indexes every possible substring of t — any substring becomes a prefix of some suffix. The Suffix Array is the space-efficient alternative to Suffix Trees. Ropes solve the text editor problem: inserting in the middle of a 1GB string is O(log n) via treap-based Split+Join instead of O(n) shifting.",
-        steps: [
-          "TRIE INSERT/SEARCH: follow characters down tree, create nodes on nil. Insert O(|s|·|Σ|), Search O(|s|).",
-          "PATRICIA: compress single-child paths into string-edge. Reduces trie nodes from O(N) to O(n). Prefix match supported.",
-          "SUFFIX TREE: insert all n suffixes of t into Patricia tree. Substring search = prefix search. Build in O(n) time.",
-          "SUFFIX ARRAY A[i]: A[i] = start index of ith lex-smallest suffix. Build using skew (DC3) algorithm in O(n). Binary search for pattern in O(|s|+log n) with LCP array.",
-          "LCP ARRAY L[i]: length of longest common prefix between suffixes A[i] and A[i+1]. Built from suffix array in O(n) using Kasai's algorithm.",
-          "ROPE: treap-based prefix tree storing chunks. Split at position k in O(log n), Join two ropes in O(log n). Insert/Delete/Report all O(log n)."
-        ],
-        dryRun: `── TRIE for "ape","apple","organ","organism" ───────────
-root → a → p → e → $ (ape)
-               ↓
-               p → l → e → $ (apple)
-     → o → r → g → a → n → $ (organ)
-                           ↓
-                           i → s → m → $ (organism)
-
-── SUFFIX ARRAY for "banana$" (n=7) ──────────────────
-Suffixes sorted lexicographically:
-  A[1]=6  "a$"
-  A[2]=4  "ana$"
-  A[3]=2  "anana$"
-  A[4]=1  "banana$"
-  A[5]=5  "na$"
-  A[6]=3  "nana$"
-  A[7]=7  "$"
-
-LCP array L: [1, 3, 0, 0, 2, 0]
-  L[1]=1: "a$" vs "ana$" → lcp=1 ("a")
-  L[2]=3: "ana$" vs "anana$" → lcp=3 ("ana") ✓
-
-Search "ana": binary search on A → found at A[2],A[3] ✓`,
-        time: { best: "O(|s|) search", avg: "O(|s|+log n) suffix array", worst: "O(|s|·|Σ|) trie insert" },
-        space: "O(N·|Σ|) trie, O(n) suffix array",
-        stable: undefined,
-        when: "Autocomplete / spell-check → Trie or Patricia. Substring search in large text → Suffix Array + LCP. Text editor (large document) → Rope. Multiple pattern search → Aho-Corasick. Prefix queries → Patricia Tree.",
-        pros: [
-          "Trie: O(|s|) search independent of n (number of stored strings)",
-          "Suffix Array: 3n space — far more cache-friendly than Suffix Tree",
-          "Patricia: O(n·|Σ|+N) storage — compressed",
-          "Rope: O(log n) insert/delete on arbitrarily large strings"
-        ],
-        cons: [
-          "Trie: O(N·|Σ|) space — huge for large alphabets like Unicode",
-          "Suffix Tree: O(n·|Σ|) storage, complex to implement",
-          "Skew algorithm for suffix array is non-trivial",
-          "Rope: higher constant factors for small strings"
-        ],
-        cpp: `// Trie — C++ (standard interview implementation)
-struct TrieNode {
-    TrieNode* ch[26];
-    bool isEnd = false;
-    TrieNode() { fill(begin(ch), end(ch), nullptr); }
-};
-
-class Trie {
-    TrieNode* root = new TrieNode();
-public:
-    // Insert — O(|s|·|Σ|) worst, O(|s|) typical
-    void insert(string s) {
-        auto cur = root;
-        for (char c : s) {
-            int i = c - 'a';
-            if (!cur->ch[i]) cur->ch[i] = new TrieNode();
-            cur = cur->ch[i];
-        }
-        cur->isEnd = true;
-    }
-    // Search — O(|s|)
-    bool search(string s) {
-        auto cur = root;
-        for (char c : s) {
-            int i = c - 'a';
-            if (!cur->ch[i]) return false;
-            cur = cur->ch[i];
-        }
-        return cur->isEnd;
-    }
-    // Prefix check — O(|prefix|)
-    bool startsWith(string p) {
-        auto cur = root;
-        for (char c : p) {
-            if (!cur->ch[c-'a']) return false;
-            cur = cur->ch[c-'a'];
-        }
-        return true;
-    }
-};`,
-        python: `# Trie — Python
-class TrieNode:
-    def __init__(self):
-        self.children = {}
-        self.is_end = False
-
-class Trie:
-    def __init__(self):
-        self.root = TrieNode()
-
-    # Insert — O(|s|)
-    def insert(self, s: str):
-        cur = self.root
-        for c in s:
-            if c not in cur.children:
-                cur.children[c] = TrieNode()
-            cur = cur.children[c]
-        cur.is_end = True
-
-    # Search — O(|s|)
-    def search(self, s: str) -> bool:
-        cur = self.root
-        for c in s:
-            if c not in cur.children: return False
-            cur = cur.children[c]
-        return cur.is_end
-
-    # All words with given prefix
-    def autocomplete(self, prefix: str):
-        cur = self.root
-        for c in prefix:
-            if c not in cur.children: return []
-            cur = cur.children[c]
-        results = []
-        self._dfs(cur, prefix, results)
-        return results
-
-    def _dfs(self, node, path, res):
-        if node.is_end: res.append(path)
-        for c, child in node.children.items():
-            self._dfs(child, path+c, res)`,
-        practice: [
-          { name: "Implement Trie (Prefix Tree)", diff: "medium" },
-          { name: "Word Search II (Trie + Backtracking)", diff: "hard" },
-          { name: "Design Add and Search Words", diff: "medium" },
-          { name: "Longest Word in Dictionary", diff: "medium" },
-          { name: "Maximum XOR of Two Numbers (Trie)", diff: "medium" }
-        ]
-      },
-      "Constraints & Strategy": {
-        diff: "medium",
-        explanation: "Before writing a single line of code for any string problem, check the constraint on n and pick the right complexity class. This framework — from your notes and standard competitive programming practice — maps input sizes to algorithm families. String problems also have a standard set of edge cases that break naive solutions: always test these mentally before submitting.",
-        intuition: "A modern CPU does ~10⁸ simple operations per second. n=10⁵ with O(n²) = 10¹⁰ operations → 100 seconds → TLE. n=10⁵ with O(n) = 10⁵ operations → 0.001 seconds → AC. Recognise the pattern, not just the algorithm. Two Pointers → palindrome. Sliding Window → substring. Hashing → matching. DP → subsequences. Trie → prefix problems. KMP/Z → pattern search.",
-        steps: [
-          "n ≤ 100: Brute force OK. O(n²) or O(n³) string DP works. LCS, Edit Distance all fine.",
-          "n ≤ 10⁴: O(n²) OK. All DP on strings, sliding window, frequency count.",
-          "n ≤ 10⁵: Need O(n log n) or O(n). Sliding window, KMP, Z-algo, hashing, Trie.",
-          "n ≥ 10⁶: Only O(n). KMP, Z-algo, Suffix Array (skew). No DP tables.",
-          "Edge cases: empty string → return early. Single char → base case. All same chars (\"aaaa\") → stress test sliding window. Case sensitivity → clarify before coding. Spaces and special chars → filter or handle. Large n → confirm algorithm complexity."
-        ],
-        dryRun: `Constraint → Complexity → Technique Mapping:
-
-n ≤ 100    │ O(n²/n³)   │ Brute force, DP (LCS/Edit Dist)
-n ≤ 10⁴   │ O(n²)      │ DP tables, expand-around-center palindrome
-n ≤ 10⁵   │ O(n log n) │ Sorting + two pointers, KMP
-           │ O(n)       │ Sliding window, Z-algo, hashing
-n ≥ 10⁶   │ O(n)       │ KMP, Z-algo, suffix array only
-
-Pattern → Algorithm Quick Map:
-  Palindrome       → Two Pointers / Expand Center / Manacher's
-  Anagram/Perm     → Sliding Window + freq[26]
-  Pattern search   → KMP or Z-Algorithm  
-  Subsequences     → DP (LCS, Edit Distance)
-  Prefix queries   → Trie
-  All substrings   → Suffix Array + LCP
-  Multi-pattern    → Aho-Corasick
-
-Edge Cases to ALWAYS check:
-  s = ""          → empty → return "" or 0
-  s = "a"         → single char
-  s = "aaaa"      → all same
-  s = "Aa"        → case sensitivity
-  s with spaces   → split behaviour`,
-        time: { best: "O(n)", avg: "O(n) to O(nm)", worst: "O(nm) DP" },
-        space: "O(1) to O(nm)",
-        stable: undefined,
-        when: "Always — look at constraint first. This framework should be your first 30 seconds on any string problem.",
-        pros: [
-          "Prevents TLE from choosing O(n²) when O(n) is needed",
-          "Pattern recognition is the key interview skill",
-          "Edge case checklist catches most wrong answers"
-        ],
-        cons: [
-          "Some problems have deceptive constraints — verify with example",
-          "Constant factors matter: O(n) with large constant can TLE"
-        ],
-        cpp: `// Constraint-Based Template — C++
-string solve(string s, string p = "") {
-    int n = s.size(), m = p.size();
-
-    // Always handle edge cases first
-    if (s.empty()) return "";
-    if (n == 1) return s;  // single char
-
-    // n <= 1e2: DP OK
-    if (n <= 100) {
-        // e.g. edit distance, LCS
-        vector<vector<int>> dp(n+1, vector<int>(m+1,0));
-        // ...
-    }
-
-    // n <= 1e5: sliding window / KMP
-    if (n <= 100000) {
-        // Sliding window template
-        unordered_map<char,int> window;
-        int left = 0;
-        for (int right = 0; right < n; right++) {
-            window[s[right]]++;
-            while (/* constraint violated */) {
-                window[s[left]]--;
-                left++;
-            }
-            // update answer
-        }
-    }
-
-    // n >= 1e6: only KMP or Z-algo
-    // See Pattern Matching Algorithms subtopic
-    return "";
-}`,
-        python: `# Constraint-Based Template — Python
-
-def solve(s: str, p: str = "") -> str:
-    n, m = len(s), len(p)
-
-    # Always handle edge cases first
-    if not s: return ""
-    if n == 1: return s
-
-    # n <= 100: DP OK
-    # e.g. edit_distance(s, p) — O(nm) fine
-
-    # n <= 10^5: sliding window or KMP
-    if n <= 10**5:
-        from collections import defaultdict
-        window = defaultdict(int)
-        left = 0
-        for right in range(n):
-            window[s[right]] += 1
-            while True:  # shrink when constraint violated
-                window[s[left]] -= 1
-                if window[s[left]] == 0:
-                    del window[s[left]]
-                left += 1
-            # update answer here
-
-    # n >= 10^6: KMP only
-    # from kmp_search(s, p)
-
-    return ""
-
-# Pattern → technique quick lookup:
-PATTERNS = {
-    "palindrome":     "two_pointers or expand_center",
-    "anagram":        "sliding_window + freq26",
-    "pattern search": "KMP or Z_algorithm",
-    "subsequence":    "DP_LCS or DP_edit_distance",
-    "prefix query":   "Trie",
-}`,
-        practice: [
-          { name: "Valid Palindrome", diff: "easy" },
-          { name: "Minimum Window Substring", diff: "hard" },
-          { name: "Word Break", diff: "medium" },
-          { name: "Longest Repeating Character Replacement", diff: "medium" },
-          { name: "Implement strStr() / Find the Index of First Occurrence", diff: "easy" }
-        ]
-      }
-    }
-  },
-  "Linked List": { icon: "🔗", diff: "easy", desc: "Dynamic node-based structure. Reversal, cycle detection, merge — interview staples.", subtopics: {} },
   Stack: { icon: "📚", diff: "easy", desc: "LIFO. Powers recursion, expression parsing, monotonic stack problems.", subtopics: {} },
   Queue: { icon: "🎫", diff: "easy", desc: "FIFO. BFS, task scheduling, sliding window maximum.", subtopics: {} },
   Recursion: { icon: "🔄", diff: "medium", desc: "Self-reference. The mental model behind trees, graphs, and DP.", subtopics: {} },
@@ -2297,6 +974,28 @@ function MemViz({ arr, base = 1000, size = 4 }) {
   );
 }
 
+// ─── NODE VISUALIZER ─────────────────────────────────────────────
+function NodeViz({ nodes, showHead = true, hl = {} }) {
+  return (
+    <div className="ll-viz">
+      {nodes.map((n, i) => (
+        <div className="ll-node" key={i}>
+          <div className="ll-wrap">
+            {showHead && i === 0 ? <div className="ll-head-lbl">head</div> : <div style={{ height: 18 }} />}
+            <div className="ll-box" style={hl[i] ? { borderColor: hl[i] } : {}}>
+              <div className="ll-data" style={hl[i] ? { color: hl[i] } : {}}>{n.val}</div>
+              <div className="ll-next">{i < nodes.length - 1 ? "next →" : "next"}</div>
+            </div>
+            {n.label && <div className="ll-lbl">{n.label}</div>}
+          </div>
+          {i < nodes.length - 1 && <div className="ll-arrow">→</div>}
+          {i === nodes.length - 1 && <div className="ll-null">→ NULL</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── SUBTOPIC VIEW ───────────────────────────────────────────────
 function SubtopicView({ data, name }) {
   if (!data || Object.keys(data).length === 0)
@@ -2308,22 +1007,13 @@ function SubtopicView({ data, name }) {
       </div>
     );
 
-  const dryRunHtml = data.dryRun
+  const dryRunHtml = (data.dryRun || "")
     .replace(/✓/g, '<span class="hl">✓</span>')
     .replace(/→/g, '<span style="color:var(--accent2)">→</span>')
     .replace(/⚠/g, '<span style="color:var(--yellow)">⚠</span>');
 
-  // Arrays-specific extras
-  const isArrayIntro = name === "Introduction & Memory";
-  const isPatterns = name === "Key Patterns";
-  const isComplexity = name === "Complexity & Edge Cases";
+  const is = (n) => name === n;
 
-  // Strings-specific extras
-  const isStringBasics = name === "Basics & Representations";
-  const isCoreTech = name === "Core Techniques";
-  const isPatternMatching = name === "Pattern Matching Algorithms";
-  const isStrAdvanced = name === "Advanced Structures";
-  const isConstraints = name === "Constraints & Strategy";
   return (
     <div key={name} style={{ animation: "fadeIn .28s ease" }}>
       <div className="ctitle">{name}</div>
@@ -2339,7 +1029,7 @@ function SubtopicView({ data, name }) {
       </div>
 
       {/* Arrays: memory diagram */}
-      {isArrayIntro && (
+      {is("Introduction & Memory") && (
         <div className="sec">
           <div className="stitle">Memory Layout</div>
           <div className="prose" style={{ marginBottom: 8 }}>How <code style={{ background: "var(--bg3)", padding: "1px 6px", borderRadius: 4, fontFamily: "'Space Mono',monospace", fontSize: ".82rem" }}>arr = [10, 20, 30, 40]</code> looks in memory:</div>
@@ -2352,11 +1042,11 @@ function SubtopicView({ data, name }) {
       )}
 
       {/* Key Patterns: pill overview */}
-      {isPatterns && (
+      {is("Key Patterns") && (
         <div className="sec">
           <div className="stitle">Pattern Toolkit</div>
           <div className="pattern-pills">
-            {["Prefix Sum","Sliding Window","Two Pointers","Kadane's Algorithm","Dutch National Flag","Binary Search"].map(p => (
+            {["Prefix Sum", "Sliding Window", "Two Pointers", "Kadane's Algorithm", "Dutch National Flag", "Binary Search"].map(p => (
               <div className="ppill" key={p}>{p}</div>
             ))}
           </div>
@@ -2368,20 +1058,20 @@ function SubtopicView({ data, name }) {
       )}
 
       {/* Complexity: quick-ref table */}
-      {isComplexity && (
+      {is("Complexity & Edge Cases") && (
         <div className="sec">
           <div className="stitle">Quick Reference Table</div>
           <table className="fn-table">
             <thead><tr><th>Operation</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th></tr></thead>
             <tbody>
               {[
-                ["Access arr[i]","O(1)","O(1)","O(1)","O(1)","g","g","g","g"],
-                ["Search (linear)","O(1)","O(n)","O(n)","O(1)","g","y","y","g"],
-                ["Insert (middle)","O(n)","O(n)","O(n)","O(1)","y","y","y","g"],
-                ["Delete (middle)","O(n)","O(n)","O(n)","O(1)","y","y","y","g"],
-                ["Append (dynamic)","O(1)","O(1)*","O(n)","O(1)","g","g","y","g"],
-                ["Binary Search","O(1)","O(log n)","O(log n)","O(1)","g","g","g","g"],
-              ].map(([op,b,avg,w,sp,cb,ca,cw,cs]) => (
+                ["Access arr[i]", "O(1)", "O(1)", "O(1)", "O(1)", "g", "g", "g", "g"],
+                ["Search (linear)", "O(1)", "O(n)", "O(n)", "O(1)", "g", "y", "y", "g"],
+                ["Insert (middle)", "O(n)", "O(n)", "O(n)", "O(1)", "y", "y", "y", "g"],
+                ["Delete (middle)", "O(n)", "O(n)", "O(n)", "O(1)", "y", "y", "y", "g"],
+                ["Append (dynamic)", "O(1)", "O(1)*", "O(n)", "O(1)", "g", "g", "y", "g"],
+                ["Binary Search", "O(1)", "O(log n)", "O(log n)", "O(1)", "g", "g", "g", "g"],
+              ].map(([op, b, avg, w, sp, cb, ca, cw, cs]) => (
                 <tr key={op}>
                   <td className="op">{op}</td>
                   <td className={`cx-${cb}`}>{b}</td>
@@ -2392,59 +1082,57 @@ function SubtopicView({ data, name }) {
               ))}
             </tbody>
           </table>
-          <div style={{fontSize:".68rem",color:"var(--text3)",marginTop:6,fontFamily:"'Space Mono',monospace"}}>* amortised — occasional O(n) resize</div>
+          <div style={{ fontSize: ".68rem", color: "var(--text3)", marginTop: 6, fontFamily: "'Space Mono',monospace" }}>* amortised — occasional O(n) resize</div>
         </div>
       )}
 
-
       {/* Strings: representation comparison */}
-      {isStringBasics && (
+      {is("Basics & Representations") && (
         <div className="sec">
           <div className="stitle">Representation Comparison</div>
           <table className="fn-table">
             <thead><tr><th>Operation</th><th>Null-Terminated</th><th>Pointer / Length</th></tr></thead>
             <tbody>
               {[
-                ["Get length","O(n) scan to $","O(1) already stored"],
-                ["Get char at i","O(1)","O(1)"],
-                ["Extract substring","O(k) copy","O(1) new (p+i, m) pair"],
-                ["Used in","C, C++ char*","Tries, Patricia, Suffix Trees"],
-              ].map(([op,nt,pl],idx) => (
+                ["Get length", "O(n) scan to $", "O(1) already stored"],
+                ["Get char at i", "O(1)", "O(1)"],
+                ["Extract substring", "O(k) copy", "O(1) new (p+i, m) pair"],
+                ["Used in", "C, C++ char*", "Tries, Patricia, Suffix Trees"],
+              ].map(([op, nt, pl], idx) => (
                 <tr key={idx}>
                   <td className="op">{op}</td>
-                  <td style={{color:"var(--yellow)",fontFamily:"Space Mono,monospace",fontSize:".76rem"}}>{nt}</td>
-                  <td style={{color:"var(--green)",fontFamily:"Space Mono,monospace",fontSize:".76rem"}}>{pl}</td>
+                  <td style={{ color: "var(--yellow)", fontFamily: "Space Mono,monospace", fontSize: ".76rem" }}>{nt}</td>
+                  <td style={{ color: "var(--green)", fontFamily: "Space Mono,monospace", fontSize: ".76rem" }}>{pl}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="callout callout-tip" style={{marginTop:12}}>
-            <span className="callout-icon">&#128161;</span>
-            <div className="callout-text"><strong>Key insight:</strong> Pointer/length substring is pure arithmetic -- no copying. Patricia Trees and Suffix Trees store all substrings in O(n) total space using this trick.</div>
+          <div className="callout callout-tip" style={{ marginTop: 12 }}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Key insight:</strong> Pointer/length substring is pure arithmetic — no copying. Patricia Trees and Suffix Trees store all substrings in O(n) total space using this trick.</div>
           </div>
         </div>
       )}
 
       {/* Strings: pattern quick map */}
-      {isCoreTech && (
+      {is("Core Techniques") && (
         <div className="sec">
           <div className="stitle">Pattern Quick Map</div>
           <table className="fn-table">
             <thead><tr><th>Problem Type</th><th>Pattern</th><th>Time</th></tr></thead>
             <tbody>
               {[
-                ["Palindrome check","Two Pointers","O(n)","g"],
-                ["Anagram / frequency","Freq Count[26]","O(n)","g"],
-                ["Longest no-repeat substr","Sliding Window + Map","O(n)","g"],
-                ["Pattern in text","KMP / Z-algo","O(n+m)","g"],
-                ["Multiple patterns","Rabin-Karp","O(n+m) avg","g"],
-                ["Prefix / autocomplete","Trie","O(|s|)","g"],
-                ["Subsequences / edit ops","DP 2D table","O(n*m)","y"],
-              ].map(([prob,pat,t,c],idx) => (
+                ["Palindrome check", "Two Pointers", "O(n)"],
+                ["Anagram / frequency", "Freq Count[26]", "O(n)"],
+                ["Longest no-repeat substr", "Sliding Window + Map", "O(n)"],
+                ["Pattern in text", "KMP / Z-algo", "O(n+m)"],
+                ["Prefix / autocomplete", "Trie", "O(|s|)"],
+                ["Subsequences / edit ops", "DP 2D table", "O(n*m)"],
+              ].map(([prob, pat, t], idx) => (
                 <tr key={idx}>
-                  <td style={{color:"var(--text)"}}>{prob}</td>
+                  <td style={{ color: "var(--text)" }}>{prob}</td>
                   <td className="op">{pat}</td>
-                  <td className={`cx-${c}`}>{t}</td>
+                  <td style={{ color: "var(--green)", fontFamily: "Space Mono,monospace", fontSize: ".74rem" }}>{t}</td>
                 </tr>
               ))}
             </tbody>
@@ -2453,25 +1141,25 @@ function SubtopicView({ data, name }) {
       )}
 
       {/* Strings: algorithm comparison */}
-      {isPatternMatching && (
+      {is("Pattern Matching") && (
         <div className="sec">
           <div className="stitle">Algorithm Comparison</div>
           <table className="fn-table">
             <thead><tr><th>Algorithm</th><th>Preprocess</th><th>Search</th><th>Worst</th><th>Best for</th></tr></thead>
             <tbody>
               {[
-                ["Naive","O(1)","O(n)","O(nm)","r","tiny n,m"],
-                ["KMP","O(m)","O(n)","O(n+m)","g","single pattern"],
-                ["Z-Algorithm","O(n+m)","O(n+m)","O(n+m)","g","single pattern"],
-                ["Rabin-Karp","O(m)","O(n)","O(nm) collision","y","multiple patterns"],
-                ["Aho-Corasick","O(sum|p|)","O(n+k)","O(n+k)","g","many patterns"],
-              ].map(([algo,pre,srch,worst,c,use],idx) => (
+                ["Naive", "O(1)", "O(n)", "O(nm)", "r", "tiny n,m"],
+                ["KMP", "O(m)", "O(n)", "O(n+m)", "g", "single pattern"],
+                ["Z-Algorithm", "O(n+m)", "O(n+m)", "O(n+m)", "g", "single pattern"],
+                ["Rabin-Karp", "O(m)", "O(n)", "O(nm) collision", "y", "multiple patterns"],
+                ["Aho-Corasick", "O(sum|p|)", "O(n+k)", "O(n+k)", "g", "many patterns"],
+              ].map(([algo, pre, srch, worst, c, use], idx) => (
                 <tr key={idx}>
                   <td className="op">{algo}</td>
-                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{pre}</td>
-                  <td style={{color:"var(--green)",fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{srch}</td>
-                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".74rem"}}>{worst}</td>
-                  <td style={{color:"var(--text3)",fontSize:".74rem"}}>{use}</td>
+                  <td style={{ color: "var(--accent3)", fontFamily: "Space Mono,monospace", fontSize: ".74rem" }}>{pre}</td>
+                  <td style={{ color: "var(--green)", fontFamily: "Space Mono,monospace", fontSize: ".74rem" }}>{srch}</td>
+                  <td className={`cx-${c}`} style={{ fontFamily: "Space Mono,monospace", fontSize: ".74rem" }}>{worst}</td>
+                  <td style={{ color: "var(--text3)", fontSize: ".74rem" }}>{use}</td>
                 </tr>
               ))}
             </tbody>
@@ -2479,60 +1167,105 @@ function SubtopicView({ data, name }) {
         </div>
       )}
 
-      {/* Strings: advanced structures theorem boxes */}
-      {isStrAdvanced && (
+      {/* Linked List: node visualizer */}
+      {is("Basics & Node Structure") && (
         <div className="sec">
-          <div className="stitle">Formal Complexities (Chapter 7 — Morin)</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[
-              ["Trie (Theorem 19)","Insert/Delete: O(|s|·|Σ|) | Search: O(|s|) | Space: O(N·|Σ|)"],
-              ["Patricia Tree (Theorem 20)","Insert/Delete: O(|s|+|Σ|) | Search: O(|s|) | Space: O(n·|Σ|+N)"],
-              ["Suffix Tree (Theorem 22)","Build: O(n·|Σ|+n²) naïve, O(n) optimal | Substring check: O(|s|) | All k occurrences: O(|s|+k)"],
-              ["Suffix Array (Theorem 23)","Build: O(n) skew algorithm | Search: O(|s|+log n) with LCP | Space: 3n words"],
-              ["Rope (Theorem 18)","Insert/Delete: O(log n) | Report l chars: O(l+log n)"],
-            ].map(([nm, info]) => (
-              <div className="theorem-box" key={nm} style={{ padding: "10px 16px" }}>
-                <div className="theorem-label">{nm}</div>
-                <div className="theorem-text" style={{ fontFamily: "'Space Mono',monospace", fontSize: ".76rem" }}>{info}</div>
-              </div>
-            ))}
+          <div className="stitle">What a Linked List Looks Like</div>
+          <div className="prose" style={{ marginBottom: 8 }}>Each node: <code style={{ background: "var(--bg3)", padding: "1px 6px", borderRadius: 4, fontFamily: "'Space Mono',monospace", fontSize: ".82rem" }}>[ data | next→ ]</code> pointing to the next node.</div>
+          <NodeViz nodes={[{ val: 10 }, { val: 20 }, { val: 30 }, { val: 40 }]} />
+          <div className="callout callout-tip" style={{ marginTop: 12 }}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>vs Array:</strong> Nodes are NOT contiguous in memory. No address formula. Access = O(n). Insert at head = O(1) — just update two pointers.</div>
           </div>
         </div>
       )}
 
-      {/* Strings: constraint-based strategy */}
-      {isConstraints && (
+      {/* Linked List: types visual */}
+      {is("Types of Linked Lists") && (
         <div className="sec">
-          <div className="stitle">Constraint → Algorithm Map</div>
-          <div className="constraint-row">
-            {[
-              ["n ≤ 100","Brute force OK. O(n²/n³) DP: LCS, Edit Distance, palindromic subsequence."],
-              ["n ≤ 10⁵","O(n log n) or O(n). Sliding window, KMP, Z-algo, Trie, rolling hash."],
-              ["n ≥ 10⁶","Only O(n). KMP, Z-algo, Suffix Array. No DP tables — too slow."],
-            ].map(([n, algo]) => (
-              <div className="cr-card" key={n}>
-                <div className="cr-n">{n}</div>
-                <div className="cr-algo">{algo}</div>
+          <div className="stitle">Visual Comparison</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <div>
+              <div style={{ fontSize: ".72rem", color: "var(--accent3)", fontFamily: "'Space Mono',monospace", marginBottom: 6 }}>SINGLY — forward only</div>
+              <NodeViz nodes={[{ val: "A" }, { val: "B" }, { val: "C" }, { val: "D" }]} />
+            </div>
+            <div>
+              <div style={{ fontSize: ".72rem", color: "var(--accent2)", fontFamily: "'Space Mono',monospace", marginBottom: 4 }}>DOUBLY — bidirectional, O(1) delete with node pointer</div>
+              <div style={{ fontFamily: "'Space Mono',monospace", fontSize: ".78rem", color: "var(--text2)", background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 16px" }}>
+                NULL ← <span style={{ color: "var(--accent2)" }}>A</span> ⇄ <span style={{ color: "var(--accent2)" }}>B</span> ⇄ <span style={{ color: "var(--accent2)" }}>C</span> ⇄ <span style={{ color: "var(--accent2)" }}>D</span> → NULL
               </div>
-            ))}
+            </div>
+            <div>
+              <div style={{ fontSize: ".72rem", color: "var(--yellow)", fontFamily: "'Space Mono',monospace", marginBottom: 4 }}>CIRCULAR — last node points back to head ↺</div>
+              <div style={{ fontFamily: "'Space Mono',monospace", fontSize: ".78rem", color: "var(--text2)", background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 16px" }}>
+                <span style={{ color: "var(--yellow)" }}>A</span> → <span style={{ color: "var(--yellow)" }}>B</span> → <span style={{ color: "var(--yellow)" }}>C</span> → <span style={{ color: "var(--yellow)" }}>D</span> → (back to A)
+              </div>
+            </div>
           </div>
-          <div className="stitle" style={{ marginTop: 20 }}>Pattern → Technique Map</div>
-          <table className="fn-table" style={{ marginTop: 8 }}>
-            <thead><tr><th>Problem Type</th><th>Technique</th><th>Complexity</th></tr></thead>
+        </div>
+      )}
+
+      {/* Linked List: core ops badges */}
+      {is("Core Operations") && (
+        <div className="sec">
+          <div className="stitle">Operation Complexities</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            <span className="op-badge ob-o1">Insert Head — O(1)</span>
+            <span className="op-badge ob-on">Insert End — O(n)</span>
+            <span className="op-badge ob-on">Insert at k — O(n)</span>
+            <span className="op-badge ob-o1">Delete Head — O(1)</span>
+            <span className="op-badge ob-on">Delete End — O(n)</span>
+            <span className="op-badge ob-on">Search — O(n)</span>
+            <span className="op-badge ob-on">Access — O(n)</span>
+          </div>
+          <div className="callout callout-warn">
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>vs Array:</strong> Array = O(1) access, O(n) insert (shifting). Linked List = O(1) head insert/delete, O(n) access. Choose based on your dominant operation.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Linked List: slow-fast visualizer */}
+      {is("Slow-Fast Pointer") && (
+        <div className="sec">
+          <div className="stitle">Finding Middle — After 2 Steps</div>
+          <NodeViz
+            nodes={[{ val: 1, label: "slow/fast" }, { val: 2 }, { val: 3, label: "slow" }, { val: 4 }, { val: 5, label: "fast" }]}
+            hl={{ 0: "var(--green)", 2: "var(--green)", 4: "var(--accent2)" }}
+          />
+          <div style={{ fontSize: ".7rem", color: "var(--text3)", fontFamily: "'Space Mono',monospace", marginTop: 4 }}>
+            🟢 slow = node[2] (middle) &nbsp;&nbsp; 🟣 fast = node[4] (end) ✓
+          </div>
+          <div className="callout callout-tip" style={{ marginTop: 10 }}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Cycle detection (Floyd's):</strong> If slow == fast → cycle. Then move slow to head, advance both 1-step → meeting point = cycle start node.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Linked List: reverse & classics must-know table */}
+      {is("Reverse & Classic Algorithms") && (
+        <div className="sec">
+          <div className="stitle">Must-Know Problems Cheatsheet</div>
+          <table className="fn-table">
+            <thead><tr><th>Problem</th><th>Key Technique</th><th>Time</th><th>Space</th></tr></thead>
             <tbody>
               {[
-                ["Palindrome check/longest","Two Pointers / Expand Center","O(n)"],
-                ["Anagram / permutation","Sliding Window + freq[26]","O(n)"],
-                ["Pattern in text","KMP or Z-Algorithm","O(n+m)"],
-                ["Multiple patterns in text","Aho-Corasick","O(n+Σ|p|)"],
-                ["Subsequences / edit ops","DP (LCS, Edit Distance)","O(nm)"],
-                ["Prefix queries / autocomplete","Trie","O(|s|)"],
-                ["All substring occurrences","Suffix Array + LCP","O(n)"],
-              ].map(([prob,tech,cx]) => (
-                <tr key={prob}>
-                  <td style={{color:"var(--text2)",fontSize:".78rem"}}>{prob}</td>
-                  <td className="op" style={{fontSize:".76rem"}}>{tech}</td>
-                  <td style={{color:"var(--accent3)",fontFamily:"'Space Mono',monospace",fontSize:".74rem"}}>{cx}</td>
+                ["Reverse LL", "3-pointer (prev,curr,next)", "O(n)", "O(1)"],
+                ["Detect Cycle", "Floyd's slow-fast", "O(n)", "O(1)"],
+                ["Find Cycle Start", "Move ptr to head + 1-step", "O(n)", "O(1)"],
+                ["Find Middle", "Slow-fast pointer", "O(n)", "O(1)"],
+                ["Palindrome LL", "Find mid + reverse 2nd half", "O(n)", "O(1)"],
+                ["Merge Two Sorted", "Dummy node + two ptrs", "O(n+m)", "O(1)"],
+                ["Remove Nth from End", "Two ptrs gap of n", "O(n)", "O(1)"],
+                ["Intersection of Two", "Switch lists on null", "O(n+m)", "O(1)"],
+                ["Reverse K-Groups", "Recurse + reverse chunk", "O(n)", "O(k)"],
+              ].map(([p, t, ti, sp]) => (
+                <tr key={p}>
+                  <td style={{ color: "var(--text2)", fontSize: ".78rem" }}>{p}</td>
+                  <td className="op" style={{ fontSize: ".74rem" }}>{t}</td>
+                  <td style={{ color: "var(--green)", fontFamily: "'Space Mono',monospace", fontSize: ".72rem" }}>{ti}</td>
+                  <td style={{ color: "var(--accent3)", fontFamily: "'Space Mono',monospace", fontSize: ".72rem" }}>{sp}</td>
                 </tr>
               ))}
             </tbody>
@@ -2540,7 +1273,36 @@ function SubtopicView({ data, name }) {
         </div>
       )}
 
+      {/* Linked List: complexity guide */}
+      {is("Complexity & Interview Guide") && (
+        <div className="sec">
+          <div className="stitle">Full Operation Reference</div>
+          <table className="fn-table">
+            <thead><tr><th>Operation</th><th>Time</th><th>Space</th><th>Notes</th></tr></thead>
+            <tbody>
+              {[
+                ["Access (index)", "O(n)", "O(1)", "Traverse from head"],
+                ["Search", "O(n)", "O(1)", "Scan each node"],
+                ["Insert (head)", "O(1)", "O(1)", "Signature advantage over array"],
+                ["Insert (end/mid)", "O(n)", "O(1)", "Traverse to position first"],
+                ["Delete (head)", "O(1)", "O(1)", "Just update head pointer"],
+                ["Delete (end/mid)", "O(n)", "O(1)", "Traverse to prev node"],
+                ["Reverse", "O(n)", "O(1)", "3-pointer iterative"],
+                ["Detect cycle", "O(n)", "O(1)", "Floyd's algorithm"],
+              ].map(([op, t, sp, note]) => (
+                <tr key={op}>
+                  <td className="op">{op}</td>
+                  <td style={{ color: t === "O(1)" ? "var(--green)" : "var(--yellow)", fontFamily: "'Space Mono',monospace", fontSize: ".74rem" }}>{t}</td>
+                  <td style={{ color: "var(--accent3)", fontFamily: "'Space Mono',monospace", fontSize: ".74rem" }}>{sp}</td>
+                  <td style={{ color: "var(--text3)", fontSize: ".74rem" }}>{note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
+      {/* ── STANDARD SECTIONS (renders for ALL subtopics) ── */}
       <div className="sec">
         <div className="stitle">Concept Explanation</div>
         <div className="prose">{data.explanation}</div>
@@ -2554,7 +1316,7 @@ function SubtopicView({ data, name }) {
       <div className="sec">
         <div className="stitle">Step-by-Step Breakdown</div>
         <div className="steps">
-          {data.steps.map((s, i) => (
+          {(data.steps || []).map((s, i) => (
             <div className="step" key={i}>
               <div className="snum">{i + 1}</div>
               <div className="stext">{s}</div>
@@ -2563,44 +1325,54 @@ function SubtopicView({ data, name }) {
         </div>
       </div>
 
-      <div className="sec">
-        <div className="stitle">Dry Run Example</div>
-        <div className="dry-run" dangerouslySetInnerHTML={{ __html: dryRunHtml }} />
-      </div>
-
-      <div className="sec">
-        <div className="stitle">Time & Space Complexity</div>
-        <div className="cxgrid">
-          <div className="cxcard"><div className="cxl">Best Case</div><div className="cxv" style={{ color: "var(--green)" }}>{data.time.best}</div></div>
-          <div className="cxcard"><div className="cxl">Average Case</div><div className="cxv">{data.time.avg}</div></div>
-          <div className="cxcard"><div className="cxl">Worst Case</div><div className="cxv" style={{ color: "var(--red)" }}>{data.time.worst}</div></div>
-          <div className="cxcard"><div className="cxl">Space</div><div className="cxv" style={{ color: "var(--accent3)" }}>{data.space}</div></div>
+      {data.dryRun && (
+        <div className="sec">
+          <div className="stitle">Dry Run Example</div>
+          <div className="dry-run" dangerouslySetInnerHTML={{ __html: dryRunHtml }} />
         </div>
-      </div>
+      )}
 
-      <div className="sec">
-        <div className="stitle">Code Implementation</div>
-        <CodeBlock cpp={data.cpp} python={data.python} />
-      </div>
-
-      <div className="sec">
-        <div className="stitle">When to Use</div>
-        <div className="when-box">{data.when}</div>
-      </div>
-
-      <div className="sec">
-        <div className="stitle">Pros & Cons</div>
-        <div className="pcgrid">
-          <div className="pcbox">
-            <div className="pct" style={{ color: "var(--green)" }}>✓ Pros</div>
-            <ul className="pcl">{data.pros.map((p, i) => <li key={i}><span style={{ color: "var(--green)", flexShrink: 0 }}>+</span>{p}</li>)}</ul>
-          </div>
-          <div className="pcbox">
-            <div className="pct" style={{ color: "var(--red)" }}>✗ Cons</div>
-            <ul className="pcl">{data.cons.map((c, i) => <li key={i}><span style={{ color: "var(--red)", flexShrink: 0 }}>−</span>{c}</li>)}</ul>
+      {data.time && (
+        <div className="sec">
+          <div className="stitle">Time & Space Complexity</div>
+          <div className="cxgrid">
+            <div className="cxcard"><div className="cxl">Best Case</div><div className="cxv" style={{ color: "var(--green)" }}>{data.time.best}</div></div>
+            <div className="cxcard"><div className="cxl">Average Case</div><div className="cxv">{data.time.avg}</div></div>
+            <div className="cxcard"><div className="cxl">Worst Case</div><div className="cxv" style={{ color: "var(--red)" }}>{data.time.worst}</div></div>
+            <div className="cxcard"><div className="cxl">Space</div><div className="cxv" style={{ color: "var(--accent3)" }}>{data.space}</div></div>
           </div>
         </div>
-      </div>
+      )}
+
+      {data.cpp && data.python && (
+        <div className="sec">
+          <div className="stitle">Code Implementation</div>
+          <CodeBlock cpp={data.cpp} python={data.python} />
+        </div>
+      )}
+
+      {data.when && (
+        <div className="sec">
+          <div className="stitle">When to Use</div>
+          <div className="when-box">{data.when}</div>
+        </div>
+      )}
+
+      {(data.pros || data.cons) && (
+        <div className="sec">
+          <div className="stitle">Pros & Cons</div>
+          <div className="pcgrid">
+            <div className="pcbox">
+              <div className="pct" style={{ color: "var(--green)" }}>✓ Pros</div>
+              <ul className="pcl">{(data.pros || []).map((p, i) => <li key={i}><span style={{ color: "var(--green)", flexShrink: 0 }}>+</span>{p}</li>)}</ul>
+            </div>
+            <div className="pcbox">
+              <div className="pct" style={{ color: "var(--red)" }}>✗ Cons</div>
+              <ul className="pcl">{(data.cons || []).map((c, i) => <li key={i}><span style={{ color: "var(--red)", flexShrink: 0 }}>−</span>{c}</li>)}</ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {data.practice?.length > 0 && (
         <div className="sec">
@@ -2616,7 +1388,7 @@ function SubtopicView({ data, name }) {
         </div>
       )}
 
-      {/* Arrays: language functions quick ref */}
+      {/* Arrays: language functions cheatsheet */}
       {(name === "Core Operations" || name === "Types of Arrays") && (
         <div className="sec">
           <div className="stitle">Language Functions Cheatsheet</div>
@@ -2624,20 +1396,20 @@ function SubtopicView({ data, name }) {
             <thead><tr><th>Operation</th><th><span className="lang-badge lb-cpp">C++</span></th><th><span className="lang-badge lb-py">Python</span></th><th>Time</th></tr></thead>
             <tbody>
               {[
-                ["Append","v.push_back(x)","a.append(x)","O(1)*"],
-                ["Remove last","v.pop_back()","a.pop()","O(1)"],
-                ["Insert at i","v.insert(it,x)","a.insert(i,x)","O(n)"],
-                ["Delete at i","v.erase(it)","a.pop(i) / del a[i]","O(n)"],
-                ["Length","v.size()","len(a)","O(1)"],
-                ["Sort","sort(v.begin(),v.end())","a.sort()","O(n log n)"],
-                ["Reverse","reverse(v.begin(),v.end())","a.reverse()","O(n)"],
-                ["Find","find(v.begin(),v.end(),x)","a.index(x) / x in a","O(n)"],
-              ].map(([op,cpp,py,t]) => (
+                ["Append", "v.push_back(x)", "a.append(x)", "O(1)*"],
+                ["Remove last", "v.pop_back()", "a.pop()", "O(1)"],
+                ["Insert at i", "v.insert(it,x)", "a.insert(i,x)", "O(n)"],
+                ["Delete at i", "v.erase(it)", "a.pop(i) / del a[i]", "O(n)"],
+                ["Length", "v.size()", "len(a)", "O(1)"],
+                ["Sort", "sort(v.begin(),v.end())", "a.sort()", "O(n log n)"],
+                ["Reverse", "reverse(v.begin(),v.end())", "a.reverse()", "O(n)"],
+                ["Find", "find(v.begin(),v.end(),x)", "a.index(x) / x in a", "O(n)"],
+              ].map(([op, cpp, py, t]) => (
                 <tr key={op}>
                   <td className="op">{op}</td>
-                  <td style={{color:"var(--accent2)",fontFamily:"'Space Mono',monospace",fontSize:".72rem"}}>{cpp}</td>
-                  <td style={{color:"var(--accent3)",fontFamily:"'Space Mono',monospace",fontSize:".72rem"}}>{py}</td>
-                  <td style={{color:"var(--text3)"}}>{t}</td>
+                  <td style={{ color: "var(--accent2)", fontFamily: "'Space Mono',monospace", fontSize: ".72rem" }}>{cpp}</td>
+                  <td style={{ color: "var(--accent3)", fontFamily: "'Space Mono',monospace", fontSize: ".72rem" }}>{py}</td>
+                  <td style={{ color: "var(--text3)" }}>{t}</td>
                 </tr>
               ))}
             </tbody>
@@ -2717,7 +1489,7 @@ export default function App() {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
     return searchIndex.filter(i => i.label.toLowerCase().includes(q) || i.sub.toLowerCase().includes(q)).slice(0, 8);
-  }, [query]);
+  }, [query, searchIndex]);
 
   function goTo(topic) { setPage(topic); setQuery(""); setShowResults(false); }
 
