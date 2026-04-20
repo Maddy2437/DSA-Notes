@@ -1556,8 +1556,1277 @@ def factorial_stack(n):
       }
     }
   },
-  Queue: { icon: "🎫", diff: "easy", desc: "FIFO. BFS, task scheduling, sliding window maximum.", subtopics: {} },
-  Recursion: { icon: "🔄", diff: "medium", desc: "Self-reference. The mental model behind trees, graphs, and DP.", subtopics: {} },
+  Queue: {
+    icon: "🎫", diff: "easy",
+    desc: "FIFO structure. Insert at rear, remove from front. Powers BFS, scheduling, buffering, and sliding window maximum.",
+    subtopics: {
+      "Basics & FIFO": {
+        diff: "easy",
+        explanation: "A Queue is a linear data structure that follows the FIFO principle — First In, First Out. The element inserted first will be removed first. Core terms: Front — the position from where elements are removed. Rear — the position where elements are inserted. Enqueue — add an element at the rear. Dequeue — remove an element from the front. Peek/Front — return the front element without removing it. isEmpty — check if queue is empty. isFull — check if queue is full (array implementation only). Think of it like a line at a ticket counter: the person who comes first gets served first. Order matters. No jumping in between.",
+        intuition: "Imagine standing in a queue for food: you join at the end (enqueue) and the first person gets served and leaves (dequeue). Unlike a stack where the last person in gets served first (LIFO), a queue is fair — first come, first served. This makes queues essential wherever the order of processing must be preserved: CPU scheduling, print jobs, network buffers, BFS.",
+        steps: [
+          "Initialize: front=0, rear=-1 (array) OR front=NULL, rear=NULL (linked list).",
+          "ENQUEUE(x): Check if full. rear++. arr[rear]=x. O(1).",
+          "DEQUEUE: Check if empty (front>rear). Save arr[front]. front++. Return saved value. O(1).",
+          "PEEK: Return arr[front] without changing front or rear. O(1).",
+          "isEmpty: return front > rear (array) OR front == NULL (linked list).",
+          "isFull (array): return rear == size-1."
+        ],
+        dryRun: `Start: queue=[], front=0, rear=-1
+
+Enqueue(10): rear=0, arr[0]=10  → [10]  front=0,rear=0
+Enqueue(20): rear=1, arr[1]=20  → [10,20] front=0,rear=1
+Enqueue(30): rear=2, arr[2]=30  → [10,20,30] front=0,rear=2
+Enqueue(40): rear=3, arr[3]=40  → [10,20,30,40]
+
+Dequeue(): return arr[0]=10, front=1 → [20,30,40]
+Dequeue(): return arr[1]=20, front=2 → [30,40]
+
+Peek(): return arr[front]=arr[2]=30 (no change) ✓
+
+isEmpty? front(2) > rear(3)? NO → not empty
+isEmpty after all dequeues: front > rear → YES ✓`,
+        time: { best: "O(1)", avg: "O(1)", worst: "O(1)" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Use a queue whenever FIFO order matters: BFS, level-order tree traversal, task scheduling, print spooling, network buffers, sliding window problems.",
+        pros: [
+          "All core operations O(1) — enqueue, dequeue, peek",
+          "Natural model for scheduling and buffering",
+          "BFS and level-order traversal require a queue",
+          "Python deque gives O(1) for both ends"
+        ],
+        cons: [
+          "Array-based: wasted space after dequeues (front pointer advances but space not reused) — solved by circular queue",
+          "Python list pop(0) is O(n) — use collections.deque instead",
+          "No random access — only front element accessible"
+        ],
+        cpp: `// Queue — Array-based (Simple)
+class Queue {
+    int front, rear, size;
+    int* arr;
+public:
+    Queue(int s) {
+        size = s; arr = new int[size];
+        front = 0; rear = -1;
+    }
+    void enqueue(int x) {
+        if (rear == size - 1) { cout << "Queue Full\n"; return; }
+        arr[++rear] = x;
+    }
+    void dequeue() {
+        if (front > rear) { cout << "Queue Empty\n"; return; }
+        front++;  // just advance front pointer
+    }
+    int peek() {
+        if (front > rear) return -1;
+        return arr[front];
+    }
+    bool isEmpty() { return front > rear; }
+};
+
+// STL queue (preferred in interviews)
+#include <queue>
+queue<int> q;
+q.push(10);        // enqueue
+q.push(20);
+int f = q.front(); // peek — 10
+q.pop();           // dequeue — removes 10
+bool empty = q.empty();
+int sz = q.size();`,
+        python: `# Queue — Python list (simple but pop(0) is O(n))
+class Queue:
+    def __init__(self): self.queue = []
+
+    def enqueue(self, x): self.queue.append(x)  # O(1)
+
+    def dequeue(self):
+        if not self.queue: return None
+        return self.queue.pop(0)  # O(n) — SLOW for large n
+
+    def peek(self):
+        return self.queue[0] if self.queue else None
+
+# ✓ PREFERRED: collections.deque — O(1) both ends
+from collections import deque
+q = deque()
+q.append(10)     # enqueue at rear  — O(1)
+q.append(20)
+q.append(30)
+x = q.popleft()  # dequeue from front — O(1) ✓
+print(q[0])      # peek front — O(1)
+print(len(q))    # size`,
+        practice: [
+          { name: "Implement Queue using Array", diff: "easy" },
+          { name: "Number of Recent Calls", diff: "easy" },
+          { name: "Design Circular Queue", diff: "medium" }
+        ]
+      },
+      "Types of Queues": {
+        diff: "medium",
+        explanation: "Four main types: (1) Simple Queue — basic FIFO. Insert at rear, remove from front. Problem: after many dequeues, front advances and rear hits array end even if space exists at the front — wasted space. (2) Circular Queue — last position connects back to first using modulo arithmetic. rear=(rear+1)%size. Fixes wasted space problem. (3) Priority Queue — elements processed by priority, not insertion order. Implemented with a heap. O(log n) enqueue/dequeue. (4) Deque (Double Ended Queue) — insertion and deletion allowed at BOTH ends. Input-restricted deque: insert only at rear. Output-restricted deque: delete only from front. Python's collections.deque is a deque.",
+        intuition: "Simple queue wastes array space — imagine 100 dequeues moving front to index 100, but rear is also at 100, so the queue appears full while indices 0–99 are empty. Circular queue solves this by treating the array as a ring. Priority queue is a heap in disguise. Deque is the most flexible — you can use it as both a stack AND a queue.",
+        steps: [
+          "SIMPLE QUEUE: enqueue at rear++, dequeue from front++. Full when rear==size-1 (even if space at front).",
+          "CIRCULAR QUEUE: enqueue: rear=(rear+1)%size. Dequeue: front=(front+1)%size. Full: (rear+1)%size==front. Empty: front==rear.",
+          "PRIORITY QUEUE: backed by a max-heap (or min-heap). Enqueue: insert and bubble up O(log n). Dequeue: remove root and heapify down O(log n).",
+          "DEQUE: supports appendleft()/appendright() and popleft()/popright(). All O(1) with doubly linked list.",
+          "CIRCULAR QUEUE advantage: utilises all n slots. No wasted space after front advances.",
+          "Python collections.deque is implemented as a doubly-linked list of fixed-size blocks — O(1) for both ends."
+        ],
+        dryRun: `── CIRCULAR QUEUE (size=4) ────────────────────────────
+front=0, rear=0 (empty when front==rear)
+
+Enqueue(10): rear=(0+1)%4=1 → arr[1]=10
+Enqueue(20): rear=(1+1)%4=2 → arr[2]=20
+Enqueue(30): rear=(2+1)%4=3 → arr[3]=30
+Full? (rear+1)%4==front? (3+1)%4=0==0 YES → FULL ✓
+
+Dequeue(): val=arr[front=0]? No, front=0 is sentinel.
+  (Implementation: val=arr[front+1], front=(front+1)%size)
+  Return 10. front=1
+
+Enqueue(40): rear=(3+1)%4=0 → arr[0]=40 (wraps around!) ✓
+Circular saves slot that was freed by dequeue ✓
+
+── PRIORITY QUEUE [5,3,8,1] (min-heap) ──────────────
+Insert 5: [5]
+Insert 3: [3,5]    (3<5, bubble up)
+Insert 8: [3,5,8]
+Insert 1: [1,5,8,3] (bubble up to root) → min always at front
+Dequeue → returns 1 ✓  (highest priority = smallest)`,
+        time: { best: "O(1) simple/circular", avg: "O(log n) priority", worst: "O(log n) priority" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Simple queue: default. Circular: when array-based and space efficiency matters. Priority queue: task scheduling by priority, Dijkstra's, Prim's. Deque: sliding window maximum, palindrome check, implementing both stack and queue.",
+        pros: [
+          "Circular queue: no wasted space — reuses freed slots",
+          "Priority queue: O(log n) access to max/min element always",
+          "Deque: O(1) both ends — most flexible queue variant"
+        ],
+        cons: [
+          "Circular queue: full/empty condition check is tricky (off-by-one)",
+          "Priority queue: O(log n) vs O(1) for simple queue",
+          "Deque: more complex implementation than simple queue"
+        ],
+        cpp: `// Circular Queue — C++
+class CircularQueue {
+    int* arr; int front, rear, size, count;
+public:
+    CircularQueue(int s): size(s), front(0), rear(0), count(0) {
+        arr = new int[size];
+    }
+    bool isFull()  { return count == size; }
+    bool isEmpty() { return count == 0; }
+
+    void enqueue(int x) {
+        if (isFull()) { cout << "Full\n"; return; }
+        arr[rear] = x;
+        rear = (rear + 1) % size;  // wrap around!
+        count++;
+    }
+    int dequeue() {
+        if (isEmpty()) { cout << "Empty\n"; return -1; }
+        int val = arr[front];
+        front = (front + 1) % size; // wrap around!
+        count--;
+        return val;
+    }
+};
+
+// Priority Queue — C++ STL (max-heap by default)
+#include <queue>
+priority_queue<int> pq;     // max-heap
+pq.push(5); pq.push(3); pq.push(8);
+cout << pq.top(); // 8 (maximum)
+pq.pop();
+
+// Min-heap
+priority_queue<int,vector<int>,greater<int>> minPQ;
+
+// Deque
+#include <deque>
+deque<int> dq;
+dq.push_front(1); dq.push_back(2);
+dq.pop_front();   dq.pop_back();`,
+        python: `# Circular Queue — Python
+class CircularQueue:
+    def __init__(self, size):
+        self.arr = [0] * size
+        self.front = self.rear = 0
+        self.size = size
+        self.count = 0
+
+    def is_full(self): return self.count == self.size
+    def is_empty(self): return self.count == 0
+
+    def enqueue(self, x):
+        if self.is_full(): return False
+        self.arr[self.rear] = x
+        self.rear = (self.rear + 1) % self.size  # wrap!
+        self.count += 1; return True
+
+    def dequeue(self):
+        if self.is_empty(): return -1
+        val = self.arr[self.front]
+        self.front = (self.front + 1) % self.size  # wrap!
+        self.count -= 1; return val
+
+# Priority Queue — Python (min-heap by default)
+import heapq
+pq = []
+heapq.heappush(pq, 5)
+heapq.heappush(pq, 3)
+heapq.heappush(pq, 8)
+print(heapq.heappop(pq))  # 3 (minimum first)
+
+# Max-heap trick: negate values
+heapq.heappush(pq, -8)
+print(-heapq.heappop(pq)) # 8
+
+# Deque — Python collections.deque (doubly-linked)
+from collections import deque
+dq = deque()
+dq.appendleft(1); dq.append(2)  # both O(1)
+dq.popleft();     dq.pop()       # both O(1)`,
+        practice: [
+          { name: "Design Circular Queue", diff: "medium" },
+          { name: "Design Circular Deque", diff: "medium" },
+          { name: "Kth Largest Element (Priority Queue)", diff: "medium" }
+        ]
+      },
+      "Queue using Two Stacks": {
+        diff: "medium",
+        explanation: "A classic interview problem: implement a Queue using only two Stacks (FIFO using LIFO). Idea: Use Stack1 for enqueue and Stack2 for dequeue. When dequeue is called and Stack2 is empty, pour all elements from Stack1 into Stack2 (reversing the order). Now Stack2's top is the oldest element — pop it for dequeue. Key insight: pouring once for a batch of dequeues means each element is moved at most twice (push to S1, move to S2) → O(1) amortised dequeue.",
+        intuition: "Stack1 reverses insertion order. Stack2 reverses it again, restoring FIFO. Two reversals = original order. The expensive pour (O(n)) only happens when Stack2 is empty, and each element is poured at most once → amortised O(1) per operation.",
+        steps: [
+          "ENQUEUE(x): Always push x onto Stack1. O(1).",
+          "DEQUEUE: If Stack2 is empty: pop all elements from Stack1 and push them onto Stack2. Pop from Stack2. If Stack2 was not empty: just pop from Stack2.",
+          "PEEK: Same as dequeue but peek Stack2.top() instead of popping.",
+          "isEmpty: Both Stack1 and Stack2 must be empty.",
+          "AMORTISED ANALYSIS: Each element enters S1 once (O(1)), moves to S2 once (O(1)), leaves S2 once (O(1)). Total O(3n) = O(n) for n operations → O(1) amortised each.",
+          "VARIATION — Queue using 1 Stack + Recursion: On dequeue, recursively pop all, save bottom, push all back. O(n) per dequeue — much worse."
+        ],
+        dryRun: `Enqueue(1): S1=[1],  S2=[]
+Enqueue(2): S1=[1,2], S2=[]
+Enqueue(3): S1=[1,2,3], S2=[]
+
+Dequeue():
+  S2 is empty → pour S1 into S2:
+    pop 3 → push to S2: S2=[3]
+    pop 2 → push to S2: S2=[3,2]
+    pop 1 → push to S2: S2=[3,2,1]  S1=[]
+  pop S2 → return 1 ✓ (FIFO order preserved!)
+  S1=[], S2=[3,2]
+
+Dequeue():
+  S2 not empty → pop S2 → return 2 ✓
+  S2=[3]
+
+Enqueue(4): S1=[4], S2=[3]
+
+Dequeue():
+  S2 not empty → pop S2 → return 3 ✓
+  S2=[], S1=[4]
+
+Dequeue():
+  S2 empty → pour S1: S2=[4], S1=[]
+  pop S2 → return 4 ✓`,
+        time: { best: "O(1) enqueue", avg: "O(1) amortised", worst: "O(n) dequeue (pour)" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Asked directly in interviews. Also tests understanding of amortised analysis. Reverse: implement Stack using two Queues (O(n) push or O(n) pop).",
+        pros: [
+          "O(1) amortised dequeue — not O(n) each time",
+          "Elegant use of two LIFO structures to achieve FIFO",
+          "Classic demonstration of amortised analysis"
+        ],
+        cons: [
+          "Worst-case single dequeue is O(n) — bad for real-time systems",
+          "More complex than a direct queue implementation"
+        ],
+        cpp: `// Queue using Two Stacks — C++
+#include <stack>
+class MyQueue {
+    stack<int> s1, s2; // s1=enqueue, s2=dequeue
+public:
+    // Enqueue — always push to s1, O(1)
+    void push(int x) { s1.push(x); }
+
+    // Pour s1 into s2 when s2 is empty
+    void pour() {
+        if (s2.empty())
+            while (!s1.empty()) {
+                s2.push(s1.top()); s1.pop();
+            }
+    }
+
+    // Dequeue — O(1) amortised
+    int pop() {
+        pour();
+        int val = s2.top(); s2.pop();
+        return val;
+    }
+
+    // Peek front — O(1) amortised
+    int peek() { pour(); return s2.top(); }
+
+    bool empty() { return s1.empty() && s2.empty(); }
+};`,
+        python: `# Queue using Two Stacks — Python
+class MyQueue:
+    def __init__(self):
+        self.s1 = []  # enqueue stack
+        self.s2 = []  # dequeue stack
+
+    # Enqueue — always push to s1, O(1)
+    def push(self, x): self.s1.append(x)
+
+    def _pour(self):
+        # Pour s1 into s2 only when s2 is empty
+        if not self.s2:
+            while self.s1:
+                self.s2.append(self.s1.pop())
+
+    # Dequeue — O(1) amortised
+    def pop(self):
+        self._pour()
+        return self.s2.pop()
+
+    # Peek — O(1) amortised
+    def peek(self):
+        self._pour()
+        return self.s2[-1]
+
+    def empty(self):
+        return not self.s1 and not self.s2
+
+# Test
+q = MyQueue()
+q.push(1); q.push(2); q.push(3)
+print(q.pop())  # 1 ✓ FIFO
+print(q.peek()) # 2 ✓`,
+        practice: [
+          { name: "Implement Queue using Stacks (LeetCode 232)", diff: "easy" },
+          { name: "Implement Stack using Queues (LeetCode 225)", diff: "easy" }
+        ]
+      },
+      "Important Patterns": {
+        diff: "medium",
+        explanation: "Four critical queue patterns: (1) BFS (Breadth First Search) — use a queue to explore level by level. All nodes at distance k are processed before nodes at distance k+1. (2) Level Order Traversal — BFS on trees. Process each level by enqueueing children. (3) Sliding Window Maximum (Monotonic Deque) — use a deque maintaining a decreasing sequence of indices. For each new element, remove smaller elements from rear; remove out-of-window elements from front. O(n). (4) First Non-Repeating Character in Stream — use queue to track candidates; character becomes repeating when its frequency > 1.",
+        intuition: "BFS explores by layers — a queue naturally enforces this because the first nodes enqueued (neighbours at distance 1) are dequeued first. Monotonic deque for sliding window: the deque always stores indices of potential maximums in decreasing order, so the front is always the current window's maximum. When window slides, pop front if it's out of range.",
+        steps: [
+          "BFS: enqueue start. While queue not empty: dequeue u, process u, enqueue all unvisited neighbours of u.",
+          "LEVEL ORDER: enqueue root. While queue not empty: process all nodes at current level (queue size = level size). Enqueue their children.",
+          "SLIDING WINDOW MAX (k window): for each i: remove from rear while arr[deque.rear] <= arr[i]. Remove front if out of window (deque.front <= i-k). Enqueue i. Max = arr[deque.front].",
+          "GENERATE BINARY NUMBERS 1..n: enqueue '1'. Loop: dequeue s, print s, enqueue s+'0' and s+'1'.",
+          "ROTTEN ORANGES: multi-source BFS. Enqueue all initially rotten oranges. BFS spreads rot level by level. Count minutes = levels.",
+          "FIRST NON-REPEATING: maintain a queue. On new char: update freq. While queue front's freq > 1: dequeue. Answer = queue front (or -1 if empty)."
+        ],
+        dryRun: `── BFS on graph 0→1,0→2,1→3,2→3 ──────────────────
+Start: enqueue 0 → queue=[0], visited={0}
+Dequeue 0: neighbours 1,2 → enqueue → queue=[1,2], visited={0,1,2}
+Dequeue 1: neighbour 3 → enqueue → queue=[2,3], visited={0,1,2,3}
+Dequeue 2: neighbour 3 → already visited, skip → queue=[3]
+Dequeue 3: no unvisited neighbours → queue=[]
+BFS order: 0,1,2,3 ✓
+
+── SLIDING WINDOW MAX [1,3,-1,-3,5,3,6,7], k=3 ──────
+i=0: deq=[0]  (arr[0]=1)
+i=1: 3>1 → remove 0, deq=[1]  (arr[1]=3)
+i=2: -1<3 → deq=[1,2]   window[0..2]: max=arr[1]=3 ✓
+i=3: -3<-1 → deq=[1,2,3] window[1..3]: max=arr[1]=3 ✓
+i=4: 5>-3,5>-1,5>3 → remove all, deq=[4] max=arr[4]=5 ✓
+i=5: 3<5 → deq=[4,5]  max=arr[4]=5 ✓
+i=6: 6>3,6>5 → deq=[6]  max=arr[6]=6 ✓
+i=7: 7>6 → deq=[7]  max=arr[7]=7 ✓
+Result: [3,3,5,5,6,7] ✓`,
+        time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
+        space: "O(n) BFS / O(k) sliding window",
+        stable: undefined,
+        when: "BFS/level-order → always use queue. Sliding window max → monotonic deque. Rotten oranges/shortest path in grid → multi-source BFS. First non-repeating → queue + freq map.",
+        pros: [
+          "BFS guarantees shortest path in unweighted graphs",
+          "Monotonic deque gives O(n) sliding window max vs O(nk) brute force",
+          "Level order traversal is the natural tree BFS"
+        ],
+        cons: [
+          "BFS uses O(V) space for the queue",
+          "Monotonic deque logic requires careful boundary checks",
+          "Multi-source BFS initialization (all sources at once) is non-obvious"
+        ],
+        cpp: `// Queue Patterns — C++
+
+// 1. BFS — O(V+E)
+void bfs(vector<vector<int>>& adj, int start) {
+    queue<int> q;
+    vector<bool> vis(adj.size(), false);
+    q.push(start); vis[start] = true;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        cout << u << " ";
+        for (int v : adj[u])
+            if (!vis[v]) { vis[v]=true; q.push(v); }
+    }
+}
+
+// 2. Level Order Traversal
+vector<vector<int>> levelOrder(TreeNode* root) {
+    if (!root) return {};
+    queue<TreeNode*> q; q.push(root);
+    vector<vector<int>> res;
+    while (!q.empty()) {
+        int sz = q.size(); // current level size
+        vector<int> level;
+        for (int i = 0; i < sz; i++) {
+            auto node = q.front(); q.pop();
+            level.push_back(node->val);
+            if (node->left)  q.push(node->left);
+            if (node->right) q.push(node->right);
+        }
+        res.push_back(level);
+    }
+    return res;
+}
+
+// 3. Sliding Window Maximum — O(n)
+vector<int> maxSlidingWindow(vector<int>& arr, int k) {
+    deque<int> dq; // stores indices, decreasing values
+    vector<int> res;
+    for (int i = 0; i < arr.size(); i++) {
+        // remove out-of-window indices from front
+        while (!dq.empty() && dq.front() <= i-k) dq.pop_front();
+        // remove smaller elements from rear
+        while (!dq.empty() && arr[dq.back()] <= arr[i]) dq.pop_back();
+        dq.push_back(i);
+        if (i >= k-1) res.push_back(arr[dq.front()]);
+    }
+    return res;
+}`,
+        python: `# Queue Patterns — Python
+
+# 1. BFS — O(V+E)
+from collections import deque
+def bfs(adj, start):
+    visited = {start}
+    q = deque([start])
+    order = []
+    while q:
+        u = q.popleft()
+        order.append(u)
+        for v in adj[u]:
+            if v not in visited:
+                visited.add(v); q.append(v)
+    return order
+
+# 2. Level Order Traversal
+def level_order(root):
+    if not root: return []
+    q = deque([root]); result = []
+    while q:
+        level_size = len(q)
+        level = []
+        for _ in range(level_size):
+            node = q.popleft()
+            level.append(node.val)
+            if node.left:  q.append(node.left)
+            if node.right: q.append(node.right)
+        result.append(level)
+    return result
+
+# 3. Sliding Window Maximum — O(n)
+def max_sliding_window(arr, k):
+    dq = deque()  # stores indices, decreasing values
+    result = []
+    for i, x in enumerate(arr):
+        # remove out-of-window from front
+        while dq and dq[0] <= i - k: dq.popleft()
+        # remove smaller from rear
+        while dq and arr[dq[-1]] <= x: dq.pop()
+        dq.append(i)
+        if i >= k - 1: result.append(arr[dq[0]])
+    return result`,
+        practice: [
+          { name: "Binary Tree Level Order Traversal", diff: "medium" },
+          { name: "Sliding Window Maximum (LeetCode 239)", diff: "hard" },
+          { name: "Rotten Oranges (Multi-source BFS)", diff: "medium" },
+          { name: "01 Matrix — BFS", diff: "medium" },
+          { name: "Generate Binary Numbers 1 to N", diff: "easy" }
+        ]
+      },
+      "Complexity & Applications": {
+        diff: "easy",
+        explanation: "All queue operations are O(1): enqueue, dequeue, peek, isEmpty. Space complexity is O(n). Important caveat: Python list.pop(0) is O(n) — always use collections.deque for O(1) dequeue in Python. Real-world applications: CPU scheduling (process queue), printer queue (jobs printed in order), network buffering (packets), call center systems, multiplayer gaming event queues, data streaming. BFS is the algorithmic backbone of shortest path in unweighted graphs, social network distance, web crawlers.",
+        intuition: "A queue is the data structure of fairness. Whoever arrives first leaves first. This property makes it essential for any system where order must be preserved — OS scheduling, network packet queues, BFS. The monotonic deque is the advanced version that adds an ordering constraint to enable O(n) sliding window queries.",
+        steps: [
+          "Enqueue: O(1) — insert at rear.",
+          "Dequeue: O(1) — remove from front. Exception: Python list.pop(0) is O(n).",
+          "Peek: O(1) — read front element.",
+          "isEmpty/isFull: O(1).",
+          "Space: O(n) for n elements in queue.",
+          "Note: Python list dequeue is O(n), deque.popleft() is O(1). C++ queue.pop() is O(1)."
+        ],
+        dryRun: `Operation Complexity:
+Operation | Array/LL Queue | Python list | Python deque
+──────────┼────────────────┼─────────────┼─────────────
+Enqueue   | O(1)           | O(1) append | O(1) append
+Dequeue   | O(1)           | O(n) pop(0) | O(1) popleft
+Peek      | O(1)           | O(1)        | O(1)
+isEmpty   | O(1)           | O(1)        | O(1)
+Space     | O(n)           | O(n)        | O(n)
+
+Queue vs Stack:
+Feature    | Queue      | Stack
+───────────┼────────────┼──────────
+Principle  | FIFO       | LIFO
+Insert     | At rear    | At top
+Remove     | From front | From top
+Algorithm  | BFS        | DFS
+
+Real-world uses:
+  ✓ CPU scheduling (Round Robin)
+  ✓ Printer spooler (jobs in order)
+  ✓ Network buffers (packets)
+  ✓ BFS / shortest path
+  ✓ Level-order tree traversal
+  ✓ Call center (first caller served first)
+  ✓ Sliding window maximum (monotonic deque)`,
+        time: { best: "O(1) all ops", avg: "O(1) all ops", worst: "O(1) all ops" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Use queue for FIFO processing. Use deque for sliding window. Use priority queue for greedy algorithms (Dijkstra, Prim). Use two-stack queue to demonstrate amortised O(1).",
+        pros: [
+          "O(1) all operations — enqueue, dequeue, peek",
+          "Natural model for scheduling, BFS, and buffering",
+          "Circular queue eliminates wasted space in array implementation"
+        ],
+        cons: [
+          "Only front element accessible — no random access",
+          "Python list pop(0) is O(n) — must use deque",
+          "Array simple queue wastes space (use circular queue)"
+        ],
+        cpp: `// Queue Applications — C++
+
+// Generate binary numbers 1 to n using queue
+vector<string> generateBinary(int n) {
+    queue<string> q; q.push("1");
+    vector<string> res;
+    while (n--) {
+        string s = q.front(); q.pop();
+        res.push_back(s);
+        q.push(s + "0");  // enqueue s0
+        q.push(s + "1");  // enqueue s1
+    }
+    return res; // 1,10,11,100,101,110,111...
+}
+
+// Reverse a queue
+queue<int> reverseQueue(queue<int> q) {
+    stack<int> st;
+    while (!q.empty()) { st.push(q.front()); q.pop(); }
+    while (!st.empty()) { q.push(st.top()); st.pop(); }
+    return q;
+}
+
+// First non-repeating char in stream
+string firstNonRepeating(string stream) {
+    unordered_map<char,int> freq;
+    queue<char> q;
+    string result = "";
+    for (char c : stream) {
+        freq[c]++;
+        q.push(c);
+        while (!q.empty() && freq[q.front()] > 1) q.pop();
+        result += q.empty() ? '#' : q.front();
+    }
+    return result;
+}`,
+        python: `# Queue Applications — Python
+from collections import deque
+
+# Generate binary numbers 1 to n
+def generate_binary(n):
+    q = deque(["1"])
+    result = []
+    while n:
+        s = q.popleft()
+        result.append(s)
+        q.append(s + "0")
+        q.append(s + "1")
+        n -= 1
+    return result  # ["1","10","11","100",...]
+
+# Reverse a queue using stack
+def reverse_queue(q):
+    stack = []
+    while q: stack.append(q.popleft())
+    while stack: q.append(stack.pop())
+    return q
+
+# First non-repeating char in stream
+def first_non_repeating(stream):
+    from collections import Counter
+    freq = Counter()
+    q = deque()
+    result = []
+    for c in stream:
+        freq[c] += 1
+        q.append(c)
+        while q and freq[q[0]] > 1: q.popleft()
+        result.append(q[0] if q else '#')
+    return ''.join(result)`,
+        practice: [
+          { name: "Implement Queue using Linked List", diff: "easy" },
+          { name: "Reverse a Queue", diff: "easy" },
+          { name: "First Non-Repeating Character in Stream", diff: "medium" },
+          { name: "Sliding Window Maximum", diff: "hard" },
+          { name: "Rotten Oranges", diff: "medium" },
+          { name: "Find Maximum of All Subarrays of Size K", diff: "medium" }
+        ]
+      }
+    }
+  },
+  Recursion: {
+    icon: "🔄", diff: "medium",
+    desc: "Function calling itself. Base case + recursive case. Powers trees, backtracking, divide-and-conquer, and DP.",
+    subtopics: {
+      "Basics & Call Stack": {
+        diff: "easy",
+        explanation: "Recursion is a programming technique where a function calls itself to solve smaller instances of the same problem. Instead of solving a problem in one big step, recursion breaks it down into smaller subproblems until a simple base case is reached. Every recursive function has two components: (1) Base Case — the condition where recursion stops, preventing infinite calls. (2) Recursive Case — the function calls itself with a smaller/simpler input. The Call Stack stores each active function call as a frame. Each recursive call pushes a new frame; each return pops it. Stack Overflow happens when recursion depth exceeds the stack limit (infinite recursion or very deep calls).",
+        intuition: "Golden Rule: 'Do not try to solve the entire problem. Just solve one step and let recursion handle the rest.' Think of climbing stairs — to reach step n, first reach step n-1, then take one step: f(n) = f(n-1) + 1. Trust the function to correctly solve the smaller problem. This is called the leap of faith — assume the recursive call works correctly, then build on it.",
+        steps: [
+          "IDENTIFY BASE CASE: the simplest input where the answer is known directly (no recursion needed). e.g. factorial(0)=1, fib(0)=0, fib(1)=1.",
+          "IDENTIFY RECURSIVE CASE: express the problem in terms of a smaller version of itself. e.g. factorial(n) = n × factorial(n-1).",
+          "ENSURE PROGRESS: each recursive call must move toward the base case. If n decrements each call, it will reach 0.",
+          "CALL STACK: each call pushes a frame (local variables + return address). Frames pop in reverse order as functions return.",
+          "DRY RUN with small input: trace the call stack manually for n=3 or n=4 before coding.",
+          "STACK OVERFLOW guard: for very deep recursion, use iterative + explicit stack, or increase stack size."
+        ],
+        dryRun: `factorial(3):
+
+PUSH phase (calls going down):
+  factorial(3) → needs 3 × factorial(2)
+    factorial(2) → needs 2 × factorial(1)
+      factorial(1) → needs 1 × factorial(0)
+        factorial(0) → BASE CASE: return 1
+
+POP phase (returns going up):
+        return 1
+      return 1 × 1 = 1
+    return 2 × 1 = 2
+  return 3 × 2 = 6
+
+Answer: 6 ✓
+
+Call Stack at deepest point:
+  ┌─────────────┐ ← top
+  │ factorial(0)│
+  ├─────────────┤
+  │ factorial(1)│
+  ├─────────────┤
+  │ factorial(2)│
+  ├─────────────┤
+  │ factorial(3)│
+  └─────────────┘ ← bottom`,
+        time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
+        space: "O(n) call stack",
+        stable: undefined,
+        when: "Use recursion when the problem has natural substructure (trees, graphs, divide-and-conquer, backtracking). Prefer iteration when recursion depth is large (> 10⁴) to avoid stack overflow.",
+        pros: [
+          "Code is shorter and more elegant than iterative equivalents",
+          "Natural fit for tree/graph traversal and backtracking",
+          "Divide-and-conquer (Merge Sort, Quick Sort) are naturally recursive",
+          "Makes mathematical definitions directly translatable to code"
+        ],
+        cons: [
+          "O(n) extra space for call stack — iteration uses O(1)",
+          "Stack overflow on very deep recursion",
+          "Can be slower than iteration due to function call overhead",
+          "Naive recursion recomputes subproblems (fix with memoization)"
+        ],
+        cpp: `// Recursion Basics — C++
+
+// Factorial — O(n) time, O(n) space
+int factorial(int n) {
+    if (n == 0) return 1;        // base case
+    return n * factorial(n - 1); // recursive case
+}
+
+// Fibonacci (naive) — O(2^n) time
+int fib(int n) {
+    if (n <= 1) return n;        // base cases: fib(0)=0, fib(1)=1
+    return fib(n-1) + fib(n-2); // tree recursion
+}
+
+// Print 1 to n using recursion
+void print1ToN(int n) {
+    if (n == 0) return;   // base case
+    print1ToN(n - 1);     // recurse first (to print in order)
+    cout << n << " ";     // print after return
+}
+
+// Reverse a string recursively
+void reverseStr(string& s, int l, int r) {
+    if (l >= r) return;           // base case
+    swap(s[l], s[r]);             // solve one step
+    reverseStr(s, l+1, r-1);     // recurse on smaller problem
+}`,
+        python: `# Recursion Basics — Python
+
+# Factorial — O(n) time, O(n) space
+def factorial(n):
+    if n == 0: return 1          # base case
+    return n * factorial(n - 1)  # recursive case
+
+print(factorial(5))  # 120
+
+# Fibonacci (naive) — O(2^n) time
+def fib(n):
+    if n <= 1: return n          # base cases
+    return fib(n-1) + fib(n-2)  # tree recursion
+
+# Print 1 to n recursively
+def print_1_to_n(n):
+    if n == 0: return            # base case
+    print_1_to_n(n - 1)         # recurse first
+    print(n, end=" ")            # print on way back
+
+# Reverse string recursively
+def reverse_str(s):
+    if len(s) <= 1: return s     # base case
+    return reverse_str(s[1:]) + s[0]  # last char + recurse rest
+
+# Check palindrome recursively
+def is_palindrome(s, l=0, r=None):
+    if r is None: r = len(s) - 1
+    if l >= r: return True
+    if s[l] != s[r]: return False
+    return is_palindrome(s, l+1, r-1)`,
+        practice: [
+          { name: "Factorial of a Number", diff: "easy" },
+          { name: "Print Numbers 1 to N (Recursion)", diff: "easy" },
+          { name: "Reverse a String Recursively", diff: "easy" },
+          { name: "Check Palindrome using Recursion", diff: "easy" }
+        ]
+      },
+      "Types of Recursion": {
+        diff: "medium",
+        explanation: "Six types of recursion: (1) Direct Recursion — function calls itself directly: f(n)→f(n-1). (2) Indirect/Mutual Recursion — function A calls B which calls A. (3) Tail Recursion — the recursive call is the LAST operation. The compiler can optimise this to a loop (Tail Call Optimisation). (4) Non-Tail Recursion — work is done AFTER the recursive call returns. Cannot be optimised directly. (5) Linear Recursion — exactly one recursive call per function. (6) Tree Recursion — multiple recursive calls per function (e.g. Fibonacci: two calls). Tree recursion creates exponential call trees.",
+        intuition: "Tail recursion: the function does nothing with the returned value except return it — the compiler can reuse the current stack frame. Non-tail: must keep the frame because there's a pending operation (like multiplying by n). Tree recursion: each call spawns multiple children — the call tree grows exponentially. Fibonacci(5) spawns a tree with ~2⁵=32 calls for n=5.",
+        steps: [
+          "TAIL: f(n, acc) where acc accumulates result. Last line is just return f(n-1, acc*n). No pending work.",
+          "NON-TAIL: return n * f(n-1). The multiply happens AFTER f(n-1) returns → frame must be kept.",
+          "LINEAR: only one path of recursion. O(n) calls. Call stack grows to depth n.",
+          "TREE: two or more paths. Fibonacci: fib(n-1) AND fib(n-2). Depth=n, but nodes = O(2^n).",
+          "MUTUAL: isEven(n) calls isOdd(n-1), isOdd(n) calls isEven(n-1). Base: isEven(0)=true.",
+          "Convert non-tail to tail by adding accumulator parameter. Enables compiler stack optimisation."
+        ],
+        dryRun: `── TAIL RECURSION: factorial with accumulator ─────────
+fact_tail(3, 1):
+  fact_tail(2, 3):    // 3*1=3 passed as acc
+    fact_tail(1, 6):  // 2*3=6 passed as acc
+      fact_tail(0, 6):  // 1*6=6, base case
+        return 6 ✓
+No pending operations — stack frames can be reused!
+
+── NON-TAIL: classic factorial ────────────────────────
+fact(3) → 3 × fact(2)   [must keep frame, pending ×3]
+  fact(2) → 2 × fact(1) [must keep frame, pending ×2]
+    fact(1) → 1 × fact(0)
+      fact(0) = 1
+    return 1×1=1
+  return 2×1=2
+return 3×2=6
+All frames must be kept until base case returns!
+
+── TREE RECURSION: fib(4) ─────────────────────────────
+                  fib(4)
+              /          \
+          fib(3)          fib(2)
+         /     \         /    \
+     fib(2)  fib(1)  fib(1) fib(0)
+    /    \
+fib(1) fib(0)
+Total calls: 9 (for n=4) → O(2^n) ✗ (use memoization!)`,
+        time: { best: "O(n) linear", avg: "O(n) linear", worst: "O(2^n) tree" },
+        space: "O(n) call stack depth",
+        stable: undefined,
+        when: "Prefer tail recursion when possible (compiler can optimise). Avoid naive tree recursion for large n (use memoization). Linear recursion for simple divide-and-conquer.",
+        pros: [
+          "Tail recursion: O(1) space with compiler optimisation (TCO)",
+          "Linear recursion: simple O(n) stack space",
+          "Tree recursion: elegant for problems with natural branching"
+        ],
+        cons: [
+          "Tree recursion: O(2^n) calls without memoization — catastrophically slow",
+          "Non-tail: all frames must be kept until base case",
+          "Python does NOT optimise tail calls — always O(n) stack"
+        ],
+        cpp: `// Types of Recursion — C++
+
+// 1. Tail Recursion (accumulator pattern)
+int factTail(int n, int acc = 1) {
+    if (n == 0) return acc;         // base case
+    return factTail(n-1, n * acc);  // last op = recursive call ✓
+}
+
+// 2. Non-Tail Recursion (pending multiplication)
+int factNonTail(int n) {
+    if (n == 0) return 1;
+    return n * factNonTail(n-1);   // pending × after return ✗
+}
+
+// 3. Tree Recursion (two recursive calls)
+int fib(int n) {
+    if (n <= 1) return n;
+    return fib(n-1) + fib(n-2);   // two branches → O(2^n) ✗
+}
+
+// 4. Mutual/Indirect Recursion
+bool isEven(int n);
+bool isOdd(int n) {
+    if (n == 0) return false;
+    return isEven(n - 1);  // calls isEven
+}
+bool isEven(int n) {
+    if (n == 0) return true;
+    return isOdd(n - 1);   // calls isOdd
+}`,
+        python: `# Types of Recursion — Python
+
+# 1. Tail Recursion (accumulator)
+# Note: Python does NOT optimise tail calls
+def fact_tail(n, acc=1):
+    if n == 0: return acc
+    return fact_tail(n-1, n * acc)  # last op = recursive call
+
+# 2. Non-Tail Recursion
+def fact_non_tail(n):
+    if n == 0: return 1
+    return n * fact_non_tail(n-1)  # pending × after return
+
+# 3. Tree Recursion — O(2^n)
+def fib_tree(n):
+    if n <= 1: return n
+    return fib_tree(n-1) + fib_tree(n-2)  # two branches!
+
+# 4. Mutual Recursion
+def is_even(n):
+    if n == 0: return True
+    return is_odd(n - 1)
+
+def is_odd(n):
+    if n == 0: return False
+    return is_even(n - 1)
+
+# 5. Convert to tail recursion to save stack
+# Power(base, exp) → tail version:
+def power_tail(base, exp, acc=1):
+    if exp == 0: return acc
+    return power_tail(base, exp-1, acc*base)`,
+        practice: [
+          { name: "Fibonacci Number", diff: "easy" },
+          { name: "Power of Two (recursive)", diff: "easy" },
+          { name: "Count Vowels in String (recursion)", diff: "easy" }
+        ]
+      },
+      "Key Algorithms": {
+        diff: "medium",
+        explanation: "Four canonical recursive algorithms every CS student must know: (1) Factorial — O(n) time, O(n) space. Classic linear recursion. (2) Fibonacci — naive O(2^n), memoized O(n). Classic tree recursion. (3) Tower of Hanoi — O(2^n) moves, provably optimal. Teaches thinking recursively. (4) Binary Search — O(log n) time, O(log n) space (recursive), O(1) space (iterative). Divide and conquer. These four demonstrate all recursion types and complexities.",
+        intuition: "Tower of Hanoi: to move n disks from A to C using B, move n-1 disks from A to B (recursive), move disk n from A to C (base step), move n-1 disks from B to C (recursive). Two recursive calls with n-1 → T(n) = 2T(n-1) + 1 → T(n) = 2^n - 1. Binary search: eliminate half the array each call → T(n) = T(n/2) + 1 → O(log n).",
+        steps: [
+          "FACTORIAL: base n==0 return 1. Else return n*fact(n-1). T(n)=T(n-1)+O(1)=O(n).",
+          "FIBONACCI: base n<=1 return n. Else fib(n-1)+fib(n-2). T(n)=T(n-1)+T(n-2)+O(1)≈O(2^n). Memoize → O(n).",
+          "TOWER OF HANOI: move(n,src,dst,aux): if n==1 print src→dst. Else move(n-1,src,aux,dst) + src→dst + move(n-1,aux,dst,src). T(n)=2T(n-1)+1=2^n-1 moves.",
+          "BINARY SEARCH: base lo>hi return -1. mid=(lo+hi)/2. If arr[mid]==target return mid. If arr[mid]<target recurse right half. Else recurse left half. T(n)=T(n/2)+O(1)=O(log n).",
+          "SUM OF ARRAY: sum(arr,n) = arr[n-1]+sum(arr,n-1). Base: n==0 return 0. O(n) time, O(n) space.",
+          "MERGE SORT: divide into two halves, sort each recursively, merge. T(n)=2T(n/2)+O(n)=O(n log n) by Master Theorem."
+        ],
+        dryRun: `── TOWER OF HANOI n=3: A→C using B ──────────────────
+hanoi(3, A, C, B):
+  hanoi(2, A, B, C):     ← move top 2 disks A→B
+    hanoi(1, A, C, B): print A→C
+    print A→B
+    hanoi(1, C, B, A): print C→B
+  print A→C              ← move disk 3 directly
+  hanoi(2, B, C, A):     ← move top 2 disks B→C
+    hanoi(1, B, A, C): print B→A
+    print B→C
+    hanoi(1, A, C, B): print A→C
+
+Moves: A→C, A→B, C→B, A→C, B→A, B→C, A→C
+Total: 7 = 2³-1 ✓
+
+── BINARY SEARCH for 30 in [10,20,30,40,50] ─────────
+bSearch(0,4): mid=2 → arr[2]=30 == target → return 2 ✓
+(Only 1 call for this case)
+
+bSearch for 40: mid=2→20<40→recurse(3,4)
+  bSearch(3,4): mid=3→arr[3]=40==target → return 3 ✓`,
+        time: { best: "O(log n) binary search", avg: "O(n) factorial", worst: "O(2^n) Hanoi/naive fib" },
+        space: "O(n) most / O(log n) binary search",
+        stable: undefined,
+        when: "Factorial: simple linear recursion demo. Fibonacci: shows need for memoization. Hanoi: pure recursion thinking. Binary search: O(log n) — prefer iterative for O(1) space.",
+        pros: [
+          "Binary search: O(log n) — extremely fast on sorted arrays",
+          "Hanoi: optimal solution, no iterative equivalent is simpler",
+          "Merge Sort via recursion: guaranteed O(n log n)"
+        ],
+        cons: [
+          "Naive Fibonacci: O(2^n) — never use without memoization",
+          "Recursive binary search: O(log n) stack space vs O(1) iterative",
+          "Hanoi with n=64: 2^64-1 ≈ 10^19 moves — impractical"
+        ],
+        cpp: `// Key Recursive Algorithms — C++
+
+// 1. Factorial — O(n), O(n) stack
+long long factorial(int n) {
+    if (n <= 1) return 1;
+    return (long long)n * factorial(n - 1);
+}
+
+// 2. Fibonacci with memoization — O(n), O(n)
+unordered_map<int,long long> memo;
+long long fib(int n) {
+    if (n <= 1) return n;
+    if (memo.count(n)) return memo[n];  // cache hit
+    return memo[n] = fib(n-1) + fib(n-2);
+}
+
+// 3. Tower of Hanoi — O(2^n) moves
+void hanoi(int n, char src, char dst, char aux) {
+    if (n == 1) {
+        cout << src << " → " << dst << "\n";
+        return;
+    }
+    hanoi(n-1, src, aux, dst);  // move n-1 to aux
+    cout << src << " → " << dst << "\n"; // move largest
+    hanoi(n-1, aux, dst, src);  // move n-1 from aux to dst
+}
+
+// 4. Binary Search (recursive) — O(log n), O(log n) stack
+int bSearch(vector<int>& arr, int lo, int hi, int target) {
+    if (lo > hi) return -1;
+    int mid = lo + (hi - lo) / 2;
+    if (arr[mid] == target) return mid;
+    if (arr[mid] < target) return bSearch(arr, mid+1, hi, target);
+    return bSearch(arr, lo, mid-1, target);
+}`,
+        python: `# Key Recursive Algorithms — Python
+
+# 1. Factorial — O(n)
+def factorial(n):
+    if n <= 1: return 1
+    return n * factorial(n - 1)
+
+# 2. Fibonacci with memoization — O(n)
+from functools import lru_cache
+@lru_cache(maxsize=None)
+def fib(n):
+    if n <= 1: return n
+    return fib(n-1) + fib(n-2)
+
+# Without decorator:
+def fib_memo(n, memo={}):
+    if n <= 1: return n
+    if n in memo: return memo[n]
+    memo[n] = fib_memo(n-1, memo) + fib_memo(n-2, memo)
+    return memo[n]
+
+# 3. Tower of Hanoi — O(2^n) moves
+def hanoi(n, src='A', dst='C', aux='B'):
+    if n == 1:
+        print(f"{src} → {dst}")
+        return
+    hanoi(n-1, src, aux, dst)   # move n-1 to aux
+    print(f"{src} → {dst}")     # move largest
+    hanoi(n-1, aux, dst, src)   # move n-1 from aux to dst
+
+# 4. Binary Search (recursive) — O(log n)
+def b_search(arr, lo, hi, target):
+    if lo > hi: return -1
+    mid = (lo + hi) // 2
+    if arr[mid] == target: return mid
+    if arr[mid] < target: return b_search(arr, mid+1, hi, target)
+    return b_search(arr, lo, mid-1, target)`,
+        practice: [
+          { name: "Climbing Stairs (Fibonacci variant)", diff: "easy" },
+          { name: "Fibonacci Number (with memoization)", diff: "easy" },
+          { name: "Tower of Hanoi", diff: "medium" },
+          { name: "Binary Search (recursive)", diff: "easy" },
+          { name: "Merge Sort (recursive)", diff: "medium" }
+        ]
+      },
+      "Backtracking Pattern": {
+        diff: "hard",
+        explanation: "Backtracking is advanced recursion where you explore all possibilities and undo choices that don't lead to a valid solution. The pattern is always: Try → Recurse → Undo (Choose → Explore → Unchoose). It is essentially a DFS with pruning. Used in: N-Queens, Sudoku, permutations, subsets, combination sum, word search. Key: after a recursive call returns, undo the change (backtrack) so the state is clean for the next possibility.",
+        intuition: "Think of solving a maze: at each junction, pick a direction, walk down it, if you hit a wall, backtrack to the junction and try another direction. The 'undo' step restores state. Without undoing, choices from one branch corrupt the next branch. The pruning is what makes it efficient — we don't explore paths that are already invalid.",
+        steps: [
+          "CHOOSE: make a choice (place a queen, pick a number, add to path).",
+          "EXPLORE: recursively solve with this choice (go deeper).",
+          "UNCHOOSE: undo the choice before trying the next option (backtrack).",
+          "BASE CASE: when a complete valid solution is found, add it to results.",
+          "PRUNING: before recursing, check if current choice can possibly lead to a valid solution. Skip if not.",
+          "TEMPLATE: for each option: if valid(option): apply(option) → recurse → undo(option)."
+        ],
+        dryRun: `── PERMUTATIONS of [1,2,3] ──────────────────────────
+permute([], [1,2,3]):
+  pick 1 → permute([1], [2,3]):
+    pick 2 → permute([1,2], [3]):
+      pick 3 → permute([1,2,3], []) → ADD [1,2,3] ✓
+    undo 2 ← back to [1],[2,3]
+    pick 3 → permute([1,3], [2]):
+      pick 2 → ADD [1,3,2] ✓
+    undo 3 ←
+  undo 1 ←
+  pick 2 → ... → [2,1,3],[2,3,1]
+  pick 3 → ... → [3,1,2],[3,2,1]
+Total: 3! = 6 permutations ✓
+
+── SUBSETS of [1,2,3] ───────────────────────────────
+subset(idx=0, current=[]):
+  skip 1: subset(1, [])
+    skip 2: subset(2,[]) → add [] wait, index 0 first...
+
+idx=0: include 1 or skip
+  include → [1], idx=1:
+    include → [1,2], idx=2:
+      include → [1,2,3] ✓  exclude → [1,2] ✓
+    exclude → [1], idx=2:
+      include → [1,3] ✓    exclude → [1] ✓
+  skip → [], idx=1: → [2],[2,3],[3],[] ✓
+Total: 2³=8 subsets ✓`,
+        time: { best: "O(n!)", avg: "O(n!)", worst: "O(2^n) subsets" },
+        space: "O(n) recursion depth",
+        stable: undefined,
+        when: "Permutations, subsets, combinations, N-Queens, Sudoku, word search, path finding. Any problem where you need to explore all possibilities with pruning.",
+        pros: [
+          "Explores all valid solutions — guaranteed correct if implemented right",
+          "Pruning makes it much faster than brute force",
+          "Elegant and concise compared to iterative equivalents"
+        ],
+        cons: [
+          "Exponential worst case — O(n!) or O(2^n)",
+          "Not suitable for large n without heavy pruning",
+          "Forgetting to undo (backtrack) is the most common bug"
+        ],
+        cpp: `// Backtracking Patterns — C++
+
+// 1. Generate all subsets — O(2^n)
+void subsets(vector<int>& nums, int idx,
+             vector<int>& curr, vector<vector<int>>& res) {
+    res.push_back(curr);           // add current subset
+    for (int i = idx; i < nums.size(); i++) {
+        curr.push_back(nums[i]);   // CHOOSE
+        subsets(nums, i+1, curr, res); // EXPLORE
+        curr.pop_back();           // UNCHOOSE ← backtrack!
+    }
+}
+
+// 2. Generate all permutations — O(n!)
+void permute(vector<int>& nums, int start,
+             vector<vector<int>>& res) {
+    if (start == nums.size()) { res.push_back(nums); return; }
+    for (int i = start; i < nums.size(); i++) {
+        swap(nums[start], nums[i]);       // CHOOSE
+        permute(nums, start+1, res);      // EXPLORE
+        swap(nums[start], nums[i]);       // UNCHOOSE ← backtrack!
+    }
+}
+
+// 3. N-Queens (check if queen placement is safe)
+bool isSafe(vector<string>& board, int row, int col, int n) {
+    for (int i = 0; i < row; i++) if (board[i][col]=='Q') return false;
+    for (int i=row-1,j=col-1; i>=0&&j>=0; i--,j--) if(board[i][j]=='Q') return false;
+    for (int i=row-1,j=col+1; i>=0&&j<n; i--,j++) if(board[i][j]=='Q') return false;
+    return true;
+}`,
+        python: `# Backtracking Patterns — Python
+
+# 1. Generate all subsets — O(2^n)
+def subsets(nums):
+    result = []
+    def backtrack(idx, current):
+        result.append(current[:])   # add copy of current subset
+        for i in range(idx, len(nums)):
+            current.append(nums[i]) # CHOOSE
+            backtrack(i+1, current) # EXPLORE
+            current.pop()           # UNCHOOSE ← backtrack!
+    backtrack(0, [])
+    return result
+
+# 2. Generate all permutations — O(n!)
+def permutations(nums):
+    result = []
+    def backtrack(path, remaining):
+        if not remaining:
+            result.append(path[:])  # found complete permutation
+            return
+        for i in range(len(remaining)):
+            path.append(remaining[i])              # CHOOSE
+            backtrack(path, remaining[:i]+remaining[i+1:]) # EXPLORE
+            path.pop()                             # UNCHOOSE
+    backtrack([], nums)
+    return result
+
+# 3. Combination Sum (pick numbers that sum to target)
+def combination_sum(candidates, target):
+    result = []
+    def backtrack(start, current, remaining):
+        if remaining == 0: result.append(current[:]); return
+        if remaining < 0: return  # PRUNE ← key optimisation
+        for i in range(start, len(candidates)):
+            current.append(candidates[i])
+            backtrack(i, current, remaining-candidates[i])
+            current.pop()  # UNCHOOSE
+    backtrack(0, [], target)
+    return result`,
+        practice: [
+          { name: "Subsets", diff: "medium" },
+          { name: "Permutations", diff: "medium" },
+          { name: "Combination Sum", diff: "medium" },
+          { name: "N-Queens", diff: "hard" },
+          { name: "Sudoku Solver", diff: "hard" },
+          { name: "Word Search", diff: "medium" }
+        ]
+      },
+      "Memoization & Optimization": {
+        diff: "medium",
+        explanation: "Naive tree recursion recomputes the same subproblems repeatedly. Memoization (top-down DP) stores results in a cache (hashmap or array) so each subproblem is solved only once. This converts O(2^n) tree recursion into O(n). Tabulation (bottom-up DP) is the iterative version — fill a table from base cases up. Key insight: if your recursion tree has overlapping subproblems (same inputs appear multiple times), memoization will help. The two criteria for DP: (1) Overlapping Subproblems, (2) Optimal Substructure.",
+        intuition: "Fibonacci(5) without memoization computes Fibonacci(2) three times, Fibonacci(3) twice. With memoization, each is computed once and cached. The recursion tree collapses to a straight line — O(n) from O(2^n). Tabulation avoids the call stack entirely by filling from the bottom up: dp[0]=0, dp[1]=1, dp[i]=dp[i-1]+dp[i-2].",
+        steps: [
+          "IDENTIFY: does the recursion tree have repeated subproblems? Draw fib(5) tree and spot duplicates.",
+          "MEMOIZE: add cache dict. Before computing, check if answer is in cache. After computing, store in cache.",
+          "TABULATION: define dp array. Set base cases. Fill dp[i] using previous values. Return dp[n].",
+          "SPACE OPTIMISE: for Fibonacci, dp[i] only uses dp[i-1] and dp[i-2] → use two variables instead of array. O(1) space.",
+          "@lru_cache in Python: automatic memoization decorator — attaches cache to function.",
+          "RULE: if problem = recursion + overlapping subproblems → use memoization or tabulation."
+        ],
+        dryRun: `── FIBONACCI WITHOUT MEMO: fib(5) ──────────────────
+                fib(5)
+             /         \
+         fib(4)         fib(3) ← computed twice!
+        /     \        /    \
+    fib(3)  fib(2) fib(2) fib(1)  ← fib(2) computed 3 times!
+   ...
+Total calls: 15 for n=5, 2^n for general n ✗
+
+── FIBONACCI WITH MEMO: fib(5) ──────────────────────
+fib(5) → fib(4) → fib(3) → fib(2) → fib(1) = 1
+                                   → fib(0) = 0
+                         ← cache[2] = 1
+                  ← cache[3] = 2
+         ← cache[4] = 3
+← cache[5] = 5
+Each subproblem computed ONCE ✓ O(n) calls!
+
+── TABULATION: fib up to n=6 ────────────────────────
+dp: [0, 1, ?, ?, ?, ?, ?]
+dp[2] = dp[1]+dp[0] = 1
+dp[3] = dp[2]+dp[1] = 2
+dp[4] = dp[3]+dp[2] = 3
+dp[5] = dp[4]+dp[3] = 5
+dp[6] = dp[5]+dp[4] = 8 ✓  No recursion at all!`,
+        time: { best: "O(n) memoized", avg: "O(n) memoized", worst: "O(2^n) naive" },
+        space: "O(n) memo / O(1) space-optimised",
+        stable: undefined,
+        when: "Any time recursion has overlapping subproblems — Fibonacci, climbing stairs, coin change, longest common subsequence, edit distance. Memoization = top-down DP. Tabulation = bottom-up DP.",
+        pros: [
+          "Converts O(2^n) tree recursion to O(n) with O(n) cache",
+          "@lru_cache / functools.cache makes memoization trivial in Python",
+          "Space-optimised tabulation achieves O(1) space for many DP problems"
+        ],
+        cons: [
+          "Extra O(n) space for cache or table",
+          "Memoization has function call overhead vs pure tabulation",
+          "Identifying which recursive calls are subproblems requires practice"
+        ],
+        cpp: `// Memoization & Optimization — C++
+
+// 1. Memoized Fibonacci — O(n) time, O(n) space
+#include <unordered_map>
+unordered_map<int,long long> dp;
+long long fib(int n) {
+    if (n <= 1) return n;
+    if (dp.count(n)) return dp[n];  // cache hit!
+    return dp[n] = fib(n-1) + fib(n-2);
+}
+
+// 2. Tabulation — O(n) time, O(n) space
+long long fibTab(int n) {
+    if (n <= 1) return n;
+    vector<long long> dp(n+1);
+    dp[0]=0; dp[1]=1;
+    for (int i=2; i<=n; i++)
+        dp[i] = dp[i-1] + dp[i-2];
+    return dp[n];
+}
+
+// 3. Space-optimised Fibonacci — O(n) time, O(1) space!
+long long fibOpt(int n) {
+    if (n <= 1) return n;
+    long long prev2=0, prev1=1;
+    for (int i=2; i<=n; i++) {
+        long long curr = prev1 + prev2;
+        prev2 = prev1;
+        prev1 = curr;
+    }
+    return prev1;
+}
+
+// 4. Memoized climbing stairs (1 or 2 steps)
+unordered_map<int,int> stairMemo;
+int climbStairs(int n) {
+    if (n <= 1) return 1;
+    if (stairMemo.count(n)) return stairMemo[n];
+    return stairMemo[n] = climbStairs(n-1) + climbStairs(n-2);
+}`,
+        python: `# Memoization & Optimization — Python
+
+# 1. @lru_cache — automatic memoization
+from functools import lru_cache
+@lru_cache(maxsize=None)
+def fib(n):
+    if n <= 1: return n
+    return fib(n-1) + fib(n-2)
+
+# 2. Manual memoization with dict
+def fib_memo(n, memo={}):
+    if n <= 1: return n
+    if n in memo: return memo[n]  # cache hit!
+    memo[n] = fib_memo(n-1, memo) + fib_memo(n-2, memo)
+    return memo[n]
+
+# 3. Tabulation (bottom-up DP) — no recursion!
+def fib_tab(n):
+    if n <= 1: return n
+    dp = [0] * (n+1)
+    dp[1] = 1
+    for i in range(2, n+1):
+        dp[i] = dp[i-1] + dp[i-2]
+    return dp[n]
+
+# 4. Space-optimised — O(1) space!
+def fib_opt(n):
+    if n <= 1: return n
+    a, b = 0, 1
+    for _ in range(2, n+1):
+        a, b = b, a + b
+    return b
+
+# Memoization comparison:
+# fib(40) naive: ~330 million calls
+# fib(40) memo:  41 unique calls ✓`,
+        practice: [
+          { name: "Climbing Stairs (Memoization)", diff: "easy" },
+          { name: "House Robber (1D DP)", diff: "medium" },
+          { name: "Coin Change (Bottom-up DP)", diff: "medium" },
+          { name: "Longest Common Subsequence", diff: "medium" },
+          { name: "Word Break (Memoization)", diff: "medium" }
+        ]
+      }
+    }
+  },
   Searching: { icon: "🔍", diff: "easy", desc: "Linear O(n) to Binary O(log n). Master binary search and its variants.", subtopics: {} },
   Hashing: { icon: "#️⃣", diff: "medium", desc: "O(1) average lookups. HashMap, HashSet, collision handling, frequency counting.", subtopics: {} },
   Trees: { icon: "🌳", diff: "medium", desc: "Hierarchical data. DFS, BFS traversals, diameter, LCA — core interview topics.", subtopics: {} },
@@ -2058,7 +3327,255 @@ function SubtopicView({ data, name }) {
         </div>
       )}
 
-      {/* ── STANDARD SECTIONS (renders for ALL subtopics) ── */}
+      {/* Queue: FIFO visualizer */}
+      {is("Basics & FIFO") && (
+        <div className="sec">
+          <div className="stitle">FIFO Visualized</div>
+          <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", overflowX: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 8 }}>
+              <div style={{ fontSize: ".68rem", color: "var(--accent3)", fontFamily: "'Space Mono',monospace", marginRight: 8, flexShrink: 0 }}>FRONT →</div>
+              {[10, 20, 30, 40].map((v, i) => (
+                <div key={i} style={{ background: i === 0 ? "var(--accent3)" : "var(--bg3)", border: "1px solid var(--accent2)", padding: "10px 16px", fontFamily: "'Space Mono',monospace", fontSize: ".85rem", fontWeight: 700, color: i === 0 ? "#000" : "var(--text2)", borderRight: i < 3 ? "none" : "1px solid var(--accent2)", minWidth: 50, textAlign: "center" }}>{v}</div>
+              ))}
+              <div style={{ fontSize: ".68rem", color: "var(--accent2)", fontFamily: "'Space Mono',monospace", marginLeft: 8, flexShrink: 0 }}>← REAR</div>
+            </div>
+            <div style={{ fontSize: ".7rem", color: "var(--text3)", fontFamily: "'Space Mono',monospace" }}>
+              Dequeue() removes 10 (front) ✓ &nbsp;|&nbsp; Enqueue(50) adds at rear ✓
+            </div>
+          </div>
+          <div className="callout callout-tip" style={{ marginTop: 10 }}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Queue vs Stack:</strong> Stack removes from the SAME end you insert (LIFO). Queue removes from the OPPOSITE end (FIFO). Queue = fair. Stack = last-in priority.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Queue: types overview */}
+      {is("Types of Queues") && (
+        <div className="sec">
+          <div className="stitle">Types at a Glance</div>
+          <div className="constraint-row">
+            {[
+              ["Simple Queue", "FIFO. Insert rear, remove front. Array wastes space after dequeues."],
+              ["Circular Queue", "rear=(rear+1)%size. Reuses freed slots. Fixes wasted space."],
+              ["Priority Queue", "Backed by heap. O(log n) ops. Used in Dijkstra, Prim's."],
+              ["Deque", "Both ends. appendleft/popleft + append/pop. Most flexible."],
+            ].map(([n, d]) => (
+              <div className="cr-card" key={n} style={{ minWidth: 140 }}>
+                <div className="cr-n" style={{ fontSize: ".75rem" }}>{n}</div>
+                <div className="cr-algo">{d}</div>
+              </div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{ marginTop: 10 }}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Circular Queue:</strong> The modulo trick <code style={{ fontFamily: "'Space Mono',monospace" }}>rear = (rear+1) % size</code> wraps the index back to 0 when it hits the end — eliminating wasted space without moving elements.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Queue: two stacks op-badge */}
+      {is("Queue using Two Stacks") && (
+        <div className="sec">
+          <div className="stitle">Amortised Analysis</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            <span className="op-badge ob-o1">Enqueue — O(1)</span>
+            <span className="op-badge ob-on">Dequeue — O(n) worst</span>
+            <span className="op-badge ob-o1">Dequeue — O(1) amortised</span>
+          </div>
+          <div className="theorem-box">
+            <div className="theorem-label">Why O(1) amortised?</div>
+            <div className="theorem-text">Each element: pushed to S1 once (O(1)) → moved to S2 once (O(1)) → popped from S2 once (O(1)). Total = O(3) per element = O(1) amortised, even though a single pour costs O(n).</div>
+          </div>
+        </div>
+      )}
+
+      {/* Queue: patterns pills */}
+      {is("Important Patterns") && (
+        <div className="sec">
+          <div className="stitle">Pattern Toolkit</div>
+          <div className="pattern-pills">
+            {["BFS","Level Order Traversal","Sliding Window Max (Deque)","Rotten Oranges","First Non-Repeating","Generate Binary Numbers","Producer-Consumer","Multi-source BFS"].map(p => (
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{ marginTop: 10 }}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>BFS = Queue. DFS = Stack.</strong> This mapping is fundamental. Level-order traversal uses BFS level-by-level: process all nodes at distance d before distance d+1.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Queue: complexity comparison table */}
+      {is("Complexity & Applications") && (
+        <div className="sec">
+          <div className="stitle">Operation Complexity</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            <span className="op-badge ob-o1">Enqueue — O(1)</span>
+            <span className="op-badge ob-o1">Dequeue — O(1)</span>
+            <span className="op-badge ob-o1">Peek — O(1)</span>
+            <span className="op-badge ob-on">Python list.pop(0) — O(n) ⚠</span>
+          </div>
+          <table className="fn-table">
+            <thead><tr><th>Operation</th><th>Array/LL</th><th>Python list</th><th>Python deque</th></tr></thead>
+            <tbody>
+              {[
+                ["Enqueue","O(1)","O(1) append","O(1) append"],
+                ["Dequeue","O(1)","O(n) pop(0) ⚠","O(1) popleft ✓"],
+                ["Peek","O(1)","O(1)","O(1)"],
+                ["Space","O(n)","O(n)","O(n)"],
+              ].map(([op,a,pl,pd]) => (
+                <tr key={op}>
+                  <td className="op">{op}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{a}</td>
+                  <td style={{color:pl.includes("⚠")?"var(--red)":"var(--text2)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{pl}</td>
+                  <td style={{color:pd.includes("✓")?"var(--green)":"var(--text2)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{pd}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Recursion: call stack visualizer */}
+      {is("Basics & Call Stack") && (
+        <div className="sec">
+          <div className="stitle">Call Stack Visualization — factorial(3)</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0, maxWidth: 320 }}>
+            {[
+              { label: "factorial(0)", phase: "base", color: "var(--accent3)" },
+              { label: "factorial(1)", phase: "waiting", color: "var(--accent2)" },
+              { label: "factorial(2)", phase: "waiting", color: "var(--accent2)" },
+              { label: "factorial(3)", phase: "first", color: "var(--accent)" },
+            ].map((f, i) => (
+              <div key={i} style={{ background: i === 0 ? "rgba(6,255,165,.12)" : "var(--bg3)", border: `1px solid ${f.color}`, borderBottom: i < 3 ? "none" : `1px solid ${f.color}`, padding: "8px 16px", fontFamily: "'Space Mono',monospace", fontSize: ".78rem", color: f.color, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>{f.label}</span>
+                <span style={{ fontSize: ".65rem", color: "var(--text3)" }}>{i === 0 ? "← BASE (top of stack)" : i === 3 ? "← first call" : "← waiting"}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: ".68rem", color: "var(--text3)", fontFamily: "'Space Mono',monospace", marginTop: 6 }}>Frames push on call, pop on return. Bottom = first call, top = deepest call.</div>
+          <div className="callout callout-warn" style={{ marginTop: 10 }}>
+            <span className="callout-icon">⚠️</span>
+            <div className="callout-text"><strong>Stack Overflow:</strong> If the base case is missing or never reached, frames push indefinitely until the OS kills the process. Always verify the base case is reachable.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Recursion: types comparison */}
+      {is("Types of Recursion") && (
+        <div className="sec">
+          <div className="stitle">Types at a Glance</div>
+          <table className="fn-table">
+            <thead><tr><th>Type</th><th>Description</th><th>Example</th><th>Space</th></tr></thead>
+            <tbody>
+              {[
+                ["Tail","Last op = recursive call","fact_tail(n-1, n*acc)","O(1) with TCO"],
+                ["Non-Tail","Work after recursive call","n * fact(n-1)","O(n) stack"],
+                ["Linear","One call per function","factorial, binary search","O(n)"],
+                ["Tree","Multiple calls per function","fib(n-1)+fib(n-2)","O(n) depth"],
+                ["Mutual","A calls B, B calls A","isEven↔isOdd","O(n)"],
+              ].map(([t,d,e,s]) => (
+                <tr key={t}>
+                  <td className="op">{t}</td>
+                  <td style={{color:"var(--text2)",fontSize:".76rem"}}>{d}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".72rem"}}>{e}</td>
+                  <td style={{color:s.includes("1)")?"var(--green)":"var(--yellow)",fontFamily:"Space Mono,monospace",fontSize:".72rem"}}>{s}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Tree recursion warning:</strong> fib(n) without memoization makes O(2^n) calls. fib(50) = ~10^15 calls. Always memoize tree recursion!</div>
+          </div>
+        </div>
+      )}
+
+      {/* Recursion: key algorithms complexity cards */}
+      {is("Key Algorithms") && (
+        <div className="sec">
+          <div className="stitle">Algorithm Complexity</div>
+          <table className="fn-table">
+            <thead><tr><th>Algorithm</th><th>Time</th><th>Space</th><th>Type</th></tr></thead>
+            <tbody>
+              {[
+                ["Factorial","O(n)","O(n) stack","Linear","g"],
+                ["Fibonacci (naive)","O(2^n)","O(n)","Tree","r"],
+                ["Fibonacci (memo)","O(n)","O(n)","Linear","g"],
+                ["Tower of Hanoi","O(2^n)","O(n)","Tree","y"],
+                ["Binary Search","O(log n)","O(log n)","Linear","g"],
+                ["Merge Sort","O(n log n)","O(n)","Tree","g"],
+              ].map(([a,t,s,type,c]) => (
+                <tr key={a}>
+                  <td className="op">{a}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{t}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{s}</td>
+                  <td style={{color:"var(--text3)",fontSize:".73rem"}}>{type}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Recursion: backtracking pattern template */}
+      {is("Backtracking Pattern") && (
+        <div className="sec">
+          <div className="stitle">Backtracking Template</div>
+          <div className="theorem-box">
+            <div className="theorem-label">Universal Pattern</div>
+            <div className="theorem-text" style={{fontFamily:"'Space Mono',monospace",fontSize:".78rem",lineHeight:2}}>
+              {"for each option in choices:"}<br/>
+              {"  if is_valid(option):       // PRUNE"}<br/>
+              {"    apply(option)            // CHOOSE"}<br/>
+              {"    backtrack(next_state)    // EXPLORE"}<br/>
+              {"    undo(option)             // UNCHOOSE ← crucial!"}
+            </div>
+          </div>
+          <div className="pattern-pills" style={{marginTop:10}}>
+            {["Subsets O(2^n)","Permutations O(n!)","Combination Sum","N-Queens","Sudoku Solver","Word Search"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Most common bug:</strong> Forgetting the <code style={{fontFamily:"'Space Mono',monospace"}}>undo</code> step. Without it, choices from one branch corrupt the next — results will be wrong or duplicated.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Recursion: memo vs naive comparison */}
+      {is("Memoization & Optimization") && (
+        <div className="sec">
+          <div className="stitle">Naive vs Memoized</div>
+          <table className="fn-table">
+            <thead><tr><th>Approach</th><th>fib(10)</th><th>fib(40)</th><th>fib(100)</th><th>Space</th></tr></thead>
+            <tbody>
+              {[
+                ["Naive recursion","177 calls","~330M calls","TIMEOUT","O(n) stack","r"],
+                ["Memoization","11 calls","41 calls","101 calls","O(n)","g"],
+                ["Tabulation (DP)","O(n) ops","O(n) ops","O(n) ops","O(n)","g"],
+                ["Space-optimised","O(n) ops","O(n) ops","O(n) ops","O(1)","g"],
+              ].map(([a,t10,t40,t100,sp,c]) => (
+                <tr key={a}>
+                  <td className="op" style={{fontSize:".75rem"}}>{a}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".7rem"}}>{t10}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".7rem"}}>{t40}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".7rem"}}>{t100}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".7rem"}}>{sp}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Two DP criteria:</strong> (1) Overlapping Subproblems — same inputs recomputed. (2) Optimal Substructure — optimal solution built from optimal subsolutions. If both hold → DP applies.</div>
+          </div>
+        </div>
+      )}
+
+      {/* ── STANDARD SECTIONS ── */}
       <div className="sec">
         <div className="stitle">Concept Explanation</div>
         <div className="prose">{data.explanation}</div>
