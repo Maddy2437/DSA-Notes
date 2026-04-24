@@ -2827,7 +2827,603 @@ def fib_opt(n):
       }
     }
   },
-  Searching: { icon: "🔍", diff: "easy", desc: "Linear O(n) to Binary O(log n). Master binary search and its variants.", subtopics: {} },
+  Searching: {
+    icon: "🔍", diff: "easy",
+    desc: "Linear O(n) to Binary O(log n). Sorted arrays, binary search variants, and hashing for O(1) lookup.",
+    subtopics: {
+      "Basics & Linear Search": {
+        diff: "easy",
+        explanation: "Searching is the process of finding a specific element (key) in a collection of data. There are two classic techniques: (1) Linear Search — works on any data, sorted or unsorted. Checks each element one by one from the beginning until the desired element is found or the list is exhausted. Time: O(n). If search is successful, returns the index. If unsuccessful, reports not found. From the textbook: 'An ordered or unordered list will be searched one by one from the beginning until the desired element is found. If not found, the search is unsuccessful.' (2) Binary Search — requires sorted data. Divides the search space in half each step. Time: O(log n). Average comparisons for 9 elements: 2.77 (successful), 3.4 (unsuccessful).",
+        intuition: "Think of searching like finding a book in a library. Linear search = randomly check books one by one — simple but slow. Binary search = go to sorted catalog and directly narrow down — fast but needs sorted data. The key trade-off: linear is simple and works everywhere; binary is exponentially faster but requires the array to be sorted first.",
+        steps: [
+          "LINEAR SEARCH: Start at index 0. Compare arr[i] with key. If match → return i (found). If i reaches n → return -1 (not found). O(n) worst case.",
+          "LINEAR SEARCH AVERAGE: if element is at position k, needs k comparisons. Average = (1+2+...+n)/n = (n+1)/2. For 12 elements: avg ≈ 3.08 comparisons.",
+          "SUCCESSFUL SEARCH: element is found and index is returned.",
+          "UNSUCCESSFUL SEARCH: entire array scanned, element not present, return -1.",
+          "RECURSIVE LINEAR SEARCH: base case = position >= n (not found) OR arr[position] == key (found). Recursive case: linear_search(arr, key, position+1, n).",
+          "BEST CASE: element is at index 0 → O(1). WORST CASE: element at end or not present → O(n)."
+        ],
+        dryRun: `── LINEAR SEARCH: find 7 in [-15,-6,0,7,9,23,54,82,101] ───
+Index:    0   1  2  3  4   5   6   7   8
+Elements:-15 -6  0  7  9  23  54  82 101
+
+i=0: -15 == 7? No
+i=1:  -6 == 7? No
+i=2:   0 == 7? No
+i=3:   7 == 7? YES → return 3 ✓  (4 comparisons)
+
+── LINEAR SEARCH: find 42 (not present) ────────────────
+i=0..8: check all elements, none match
+Return -1 → Unsuccessful (9 comparisons = O(n)) ✗
+
+── UNSORTED ARRAY: [45,39,8,54,77,38,24,16,4,7,9,20] ──
+Search for 4  → found after 9 comparisons
+Search for 7  → found after 10 comparisons
+Search for 99 → not found after 12 comparisons ✗
+
+Key: works on ANY array — sorted or unsorted ✓`,
+        time: { best: "O(1)", avg: "O(n)", worst: "O(n)" },
+        space: "O(1) iterative / O(n) recursive",
+        stable: undefined,
+        when: "Use linear search when: array is small (n < 50), array is unsorted and sorting would be expensive, searching only once (sorting overhead not justified), or data structure doesn't support binary search (linked list).",
+        pros: [
+          "Works on sorted AND unsorted data",
+          "No preprocessing needed — just scan",
+          "Works on any data structure: array, linked list, string",
+          "O(1) space — no extra memory"
+        ],
+        cons: [
+          "O(n) worst case — slow for large n",
+          "For large sorted arrays, binary search is exponentially better",
+          "Recursive version uses O(n) call stack space"
+        ],
+        cpp: `// Linear Search — C++ (Iterative)
+int linearSearch(int arr[], int n, int key) {
+    for (int i = 0; i < n; i++) {
+        if (arr[i] == key)
+            return i;      // found at index i
+    }
+    return -1;             // not found
+}
+
+// Linear Search — C++ (Recursive, from textbook)
+int linearSearchRec(int a[], int data, int pos, int n) {
+    if (pos >= n) return -1;           // base: not found
+    if (a[pos] == data) return pos;    // base: found
+    return linearSearchRec(a, data, pos + 1, n); // recurse
+}
+
+// Usage
+int arr[] = {-15, -6, 0, 7, 9, 23, 54, 82, 101};
+int n = 9;
+cout << linearSearch(arr, n, 7);    // 3
+cout << linearSearch(arr, n, 42);   // -1`,
+        python: `# Linear Search — Python (Iterative)
+def linear_search(arr, key):
+    for i in range(len(arr)):
+        if arr[i] == key:
+            return i       # found at index i
+    return -1              # not found
+
+# Linear Search — Python (Recursive)
+def linear_search_rec(arr, key, pos=0):
+    if pos >= len(arr): return -1       # not found
+    if arr[pos] == key: return pos      # found
+    return linear_search_rec(arr, key, pos + 1)
+
+# Test
+arr = [-15, -6, 0, 7, 9, 23, 54, 82, 101]
+print(linear_search(arr, 7))   # 3
+print(linear_search(arr, 42))  # -1
+
+# Python built-ins (linear search under the hood)
+if 7 in arr: print(arr.index(7))   # O(n)`,
+        practice: [
+          { name: "Find Index of First Occurrence", diff: "easy" },
+          { name: "Search in a Linked List", diff: "easy" },
+          { name: "Find Maximum in Unsorted Array", diff: "easy" }
+        ]
+      },
+      "Binary Search": {
+        diff: "easy",
+        explanation: "Binary search requires a sorted array. It works by repeatedly halving the search space. Find the middle element: if it matches the key, done. If key < mid, search only the left half. If key > mid, search only the right half. Each comparison eliminates half the remaining elements. From the textbook: 'Every unsuccessful comparison reduces the un-searched portion roughly by half. The array needs to be searched only log₂n times before reaching trivial length, so worst case complexity is O(log n).' Average comparisons for 12 elements: 37/12 ≈ 3.08. For 9 elements: 25/9 ≈ 2.77 successful, 34/10 = 3.4 unsuccessful.",
+        intuition: "Instead of checking every element, binary search bets: the middle element divides the sorted array into two halves. The key must be in exactly one of them. Each step throws away half the remaining candidates. Starting with n=1 million: step 1→500K, step 2→250K, ... step 20→1. So binary search finds any element in at most 20 steps! log₂(1,000,000) ≈ 20. Critical: always use mid = lo + (hi-lo)/2 to avoid integer overflow.",
+        steps: [
+          "PRECONDITION: array MUST be sorted in ascending order.",
+          "Initialize low=0, high=n-1.",
+          "While low <= high: compute mid = low + (high-low)/2. (NOT (low+high)/2 — avoids overflow!)",
+          "If arr[mid] == key → return mid (found).",
+          "If key < arr[mid] → high = mid-1 (search left half).",
+          "If key > arr[mid] → low = mid+1 (search right half).",
+          "If loop ends without return → return -1 (not found).",
+          "RECURSIVE VERSION: same logic but call itself with updated low/high."
+        ],
+        dryRun: `── BINARY SEARCH: x=4 in [4,7,8,9,16,20,24,38,39,45,54,77] ─
+low=1, high=12, mid=6 → arr[6]=20 → 4<20 → high=5
+low=1, high=5,  mid=3 → arr[3]=8  → 4<8  → high=2
+low=1, high=2,  mid=1 → arr[1]=4  → FOUND at 1 ✓ (3 comparisons)
+
+── BINARY SEARCH: x=20 in same array ──────────────────
+low=1, high=12, mid=6 → arr[6]=20 → FOUND at 6 ✓ (1 comparison!)
+
+── BINARY SEARCH: x=42 (not present) ──────────────────
+low=1, high=12, mid=6  → 20 → 42>20 → low=7
+low=7, high=12, mid=9  → 39 → 42>39 → low=10
+low=10,high=12, mid=11 → 54 → 42<54 → high=10
+low=10,high=10, mid=10 → 45 → 42<45 → high=9
+low=10 > high=9 → NOT FOUND ✗ (4 comparisons)
+
+── OVERFLOW SAFE MID calculation ───────────────────────
+WRONG: mid = (low + high) / 2  // overflow if low+high > INT_MAX
+RIGHT: mid = low + (high - low) / 2  // always safe ✓`,
+        time: { best: "O(1)", avg: "O(log n)", worst: "O(log n)" },
+        space: "O(1) iterative / O(log n) recursive",
+        stable: undefined,
+        when: "Use binary search when: array is sorted, searching repeatedly (amortised), or n is large. Binary search is exponentially faster: n=10⁹ needs only ~30 comparisons vs 10⁹ for linear.",
+        pros: [
+          "O(log n) — extremely fast. 10⁹ elements in ~30 steps",
+          "O(1) space for iterative version",
+          "Correct for both successful and unsuccessful search",
+          "Foundation for many advanced patterns (lower bound, upper bound, binary search on answer)"
+        ],
+        cons: [
+          "REQUIRES sorted array — sorting cost O(n log n) must be justified",
+          "Not suitable for linked lists (no O(1) mid access)",
+          "Recursive version uses O(log n) stack space",
+          "Easy to write infinite loops with wrong mid update"
+        ],
+        cpp: `// Binary Search — C++ (Iterative, from textbook)
+int binarySearch(int arr[], int n, int key) {
+    int low = 0, high = n - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2; // overflow-safe!
+        if (arr[mid] == key)
+            return mid;          // found
+        else if (key < arr[mid])
+            high = mid - 1;      // search left half
+        else
+            low = mid + 1;       // search right half
+    }
+    return -1;                   // not found
+}
+
+// Binary Search — C++ (Recursive, from textbook)
+int binSearchRec(int a[], int data, int low, int high) {
+    if (low > high) return -1;  // base: not found
+    int mid = low + (high - low) / 2;
+    if (a[mid] == data) return mid;       // found
+    if (data < a[mid])
+        return binSearchRec(a, data, low, mid - 1);
+    return binSearchRec(a, data, mid + 1, high);
+}
+
+// STL binary search
+#include <algorithm>
+vector<int> v = {4,7,8,9,16,20,24,38,39,45,54,77};
+bool found = binary_search(v.begin(), v.end(), 20); // true
+auto it = lower_bound(v.begin(), v.end(), 20); // iterator to 20`,
+        python: `# Binary Search — Python (Iterative)
+def binary_search(arr, key):
+    low, high = 0, len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2   # Python ints don't overflow
+        if arr[mid] == key:
+            return mid             # found
+        elif key < arr[mid]:
+            high = mid - 1         # search left
+        else:
+            low = mid + 1          # search right
+    return -1                      # not found
+
+# Binary Search — Python (Recursive)
+def bin_search_rec(arr, data, low, high):
+    if low > high: return -1       # not found
+    mid = (low + high) // 2
+    if arr[mid] == data: return mid
+    if data < arr[mid]:
+        return bin_search_rec(arr, data, low, mid - 1)
+    return bin_search_rec(arr, data, mid + 1, high)
+
+# Python bisect module (standard library)
+import bisect
+arr = [4, 7, 8, 9, 16, 20, 24, 38, 39, 45, 54, 77]
+idx = bisect.bisect_left(arr, 20)   # 5 (index of 20)
+print(arr[idx] == 20)               # True`,
+        practice: [
+          { name: "Binary Search (LeetCode 704)", diff: "easy" },
+          { name: "Search in Rotated Sorted Array", diff: "medium" },
+          { name: "Find First and Last Position in Sorted Array", diff: "medium" },
+          { name: "Square Root using Binary Search", diff: "easy" }
+        ]
+      },
+      "Binary Search Variants": {
+        diff: "medium",
+        explanation: "Beyond basic binary search, there are critical variants: (1) Lower Bound — first index where arr[i] >= key. (2) Upper Bound — first index where arr[i] > key. (3) Count Occurrences — upper_bound - lower_bound. (4) Search in Rotated Sorted Array — one half is always sorted, check which and search accordingly. (5) Peak Element — element greater than both neighbours; binary search on the slope. (6) Binary Search on Answer — don't search in an array, search on the answer space (min/max possible answer). (7) First/Last Occurrence — modified binary search that doesn't stop on first match.",
+        intuition: "Lower/upper bound: when arr[mid]==key, don't stop — keep searching left (for lower) or right (for upper). This finds the boundary. Rotated array: at least one half [lo..mid] or [mid..hi] is guaranteed sorted — check which one, then determine if key is in that sorted half. Binary search on answer: the answer lies in a range [min, max]; write an is_possible(mid) function and binary search on it.",
+        steps: [
+          "LOWER BOUND: when arr[mid]>=key → result=mid, high=mid-1. When arr[mid]<key → low=mid+1. Return result.",
+          "UPPER BOUND: when arr[mid]>key → result=mid, high=mid-1. When arr[mid]<=key → low=mid+1. Return result.",
+          "FIRST OCCURRENCE: when arr[mid]==key → save mid as answer, high=mid-1 (keep searching left).",
+          "LAST OCCURRENCE: when arr[mid]==key → save mid as answer, low=mid+1 (keep searching right).",
+          "ROTATED ARRAY: if arr[lo]<=arr[mid] → left half sorted. If key in [arr[lo],arr[mid]] → search left. Else search right. Flip logic for right-sorted half.",
+          "PEAK ELEMENT: if arr[mid]>arr[mid+1] → peak is on left (high=mid). Else peak on right (low=mid+1).",
+          "BINARY SEARCH ON ANSWER: define lo=min_answer, hi=max_answer. Check is_feasible(mid). Narrow range."
+        ],
+        dryRun: `── LOWER BOUND of 7 in [1,3,7,7,7,9,11] ──────────────
+lo=0,hi=6: mid=3, arr[3]=7 >= 7 → result=3, hi=2
+lo=0,hi=2: mid=1, arr[1]=3 < 7  → lo=2
+lo=2,hi=2: mid=2, arr[2]=7 >= 7 → result=2, hi=1
+lo=2 > hi=1 → return result=2 ✓ (first 7 at index 2)
+
+── UPPER BOUND of 7 in same array ──────────────────────
+lo=0,hi=6: mid=3, arr[3]=7 <=7 → lo=4
+lo=4,hi=6: mid=5, arr[5]=9 > 7 → result=5, hi=4
+lo=4,hi=4: mid=4, arr[4]=7 <=7 → lo=5
+lo=5 > hi=4 → return result=5 ✓ (first element > 7 at index 5)
+Count of 7s = upper_bound - lower_bound = 5-2 = 3 ✓
+
+── ROTATED ARRAY: find 0 in [4,5,6,7,0,1,2] ───────────
+lo=0,hi=6: mid=3, arr[3]=7
+  arr[lo=0]=4 <= arr[mid]=7 → LEFT half [4,5,6,7] sorted
+  key=0 in [4,7]? NO → search right: lo=4
+lo=4,hi=6: mid=5, arr[5]=1
+  arr[lo=4]=0 <= arr[mid]=1 → LEFT half [0,1] sorted
+  key=0 in [0,1]? YES → search left: hi=4
+lo=4,hi=4: mid=4, arr[4]=0 == 0 → FOUND at 4 ✓`,
+        time: { best: "O(1)", avg: "O(log n)", worst: "O(log n)" },
+        space: "O(1)",
+        stable: undefined,
+        when: "Lower/upper bound: counting occurrences, range queries. Rotated array: real interview question. Peak element: finding local maxima. Binary search on answer: optimization problems (Koko eating bananas, aggressive cows, allocate books).",
+        pros: [
+          "All variants run in O(log n) — same as standard binary search",
+          "Lower/upper bound enable O(log n) count of occurrences",
+          "Binary search on answer solves hard optimization problems elegantly"
+        ],
+        cons: [
+          "Each variant has subtle differences — easy to mix up",
+          "Binary search on answer requires defining a good feasibility function",
+          "Off-by-one errors in hi=mid vs hi=mid-1 are the most common bugs"
+        ],
+        cpp: `// Binary Search Variants — C++
+
+// 1. First Occurrence (Lower Bound equivalent)
+int firstOccurrence(vector<int>& arr, int key) {
+    int lo=0, hi=arr.size()-1, result=-1;
+    while (lo <= hi) {
+        int mid = lo + (hi-lo)/2;
+        if (arr[mid] == key) { result=mid; hi=mid-1; } // keep searching left!
+        else if (arr[mid] < key) lo = mid+1;
+        else hi = mid-1;
+    }
+    return result;
+}
+
+// 2. Last Occurrence
+int lastOccurrence(vector<int>& arr, int key) {
+    int lo=0, hi=arr.size()-1, result=-1;
+    while (lo <= hi) {
+        int mid = lo + (hi-lo)/2;
+        if (arr[mid] == key) { result=mid; lo=mid+1; } // keep searching right!
+        else if (arr[mid] < key) lo = mid+1;
+        else hi = mid-1;
+    }
+    return result;
+}
+
+// 3. Search in Rotated Sorted Array
+int searchRotated(vector<int>& arr, int key) {
+    int lo=0, hi=arr.size()-1;
+    while (lo <= hi) {
+        int mid = lo + (hi-lo)/2;
+        if (arr[mid] == key) return mid;
+        if (arr[lo] <= arr[mid]) { // left half sorted
+            if (key>=arr[lo] && key<arr[mid]) hi=mid-1;
+            else lo=mid+1;
+        } else { // right half sorted
+            if (key>arr[mid] && key<=arr[hi]) lo=mid+1;
+            else hi=mid-1;
+        }
+    }
+    return -1;
+}
+
+// 4. Peak Element
+int peakElement(vector<int>& arr) {
+    int lo=0, hi=arr.size()-1;
+    while (lo < hi) {
+        int mid = lo + (hi-lo)/2;
+        if (arr[mid] > arr[mid+1]) hi=mid;   // peak on left side
+        else lo=mid+1;                         // peak on right side
+    }
+    return lo; // peak index
+}`,
+        python: `# Binary Search Variants — Python
+
+# 1. First Occurrence
+def first_occurrence(arr, key):
+    lo, hi, result = 0, len(arr)-1, -1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if arr[mid] == key: result=mid; hi=mid-1  # search left
+        elif arr[mid] < key: lo = mid+1
+        else: hi = mid-1
+    return result
+
+# 2. Last Occurrence
+def last_occurrence(arr, key):
+    lo, hi, result = 0, len(arr)-1, -1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if arr[mid] == key: result=mid; lo=mid+1  # search right
+        elif arr[mid] < key: lo = mid+1
+        else: hi = mid-1
+    return result
+
+# 3. Count Occurrences using both bounds
+def count_occurrences(arr, key):
+    first = first_occurrence(arr, key)
+    if first == -1: return 0
+    return last_occurrence(arr, key) - first + 1
+
+# 4. Square Root using Binary Search — O(log n)
+def sqrt_binary(n):
+    if n < 2: return n
+    lo, hi, ans = 1, n//2, 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if mid * mid == n: return mid
+        if mid * mid < n: ans=mid; lo=mid+1
+        else: hi=mid-1
+    return ans
+
+# 5. Using Python bisect
+import bisect
+arr = [1,3,7,7,7,9,11]
+lo = bisect.bisect_left(arr, 7)   # 2 — first 7
+hi = bisect.bisect_right(arr, 7)  # 5 — after last 7
+print(hi - lo)                    # 3 (count of 7s) ✓`,
+        practice: [
+          { name: "Find First and Last Position (LeetCode 34)", diff: "medium" },
+          { name: "Search in Rotated Sorted Array (LeetCode 33)", diff: "medium" },
+          { name: "Find Peak Element (LeetCode 162)", diff: "medium" },
+          { name: "Sqrt(x) using Binary Search (LeetCode 69)", diff: "easy" },
+          { name: "Find Minimum in Rotated Sorted Array", diff: "medium" }
+        ]
+      },
+      "Advanced Search Techniques": {
+        diff: "medium",
+        explanation: "Beyond linear and binary search, four more techniques: (1) Interpolation Search — for uniformly distributed sorted data, estimates position using formula: pos = lo + ((key - arr[lo]) × (hi-lo)) / (arr[hi]-arr[lo]). O(log log n) average for uniform data, O(n) worst case. (2) Exponential Search — for unbounded/infinite arrays: find range by doubling index until arr[index]>=key, then binary search in [index/2, index]. O(log n). (3) Jump Search — for sorted arrays, skip blocks of size √n then linear search. O(√n). (4) Hashing — use hash table for O(1) average search. No sorting needed. O(n) space.",
+        intuition: "Interpolation search is like looking up a name in a dictionary — if searching for 'Smith' you don't open to the middle; you open near the end. It predicts where the key should be based on its value relative to the range. Exponential search solves the 'I don't know the size' problem by doubling the range until the key could be there. Jump search is a middle ground between O(n) and O(log n) — skip √n elements at a time.",
+        steps: [
+          "INTERPOLATION SEARCH: pos = lo + ((key-arr[lo]) × (hi-lo)) / (arr[hi]-arr[lo]). If arr[pos]==key → found. If key<arr[pos] → hi=pos-1. Else lo=pos+1.",
+          "EXPONENTIAL SEARCH: find range: i=1, while i<n && arr[i]<=key: i*=2. Then binary search in [i/2, min(i,n-1)].",
+          "JUMP SEARCH: step=√n. While arr[min(step,n)-1]<key: prev=step, step+=√n. Linear search from prev to min(step,n).",
+          "HASHING SEARCH: insert all elements into hash map (key→index). Search = O(1) average. Extra O(n) space.",
+          "INTERPOLATION PRECONDITION: data must be uniformly distributed AND sorted. Non-uniform data → O(n) worst case.",
+          "WHEN TO USE: Interpolation: uniform sorted large data. Exponential: unknown size. Jump: sorted, O(√n) acceptable. Hashing: O(1) search needed."
+        ],
+        dryRun: `── INTERPOLATION SEARCH: key=77 in [4,7,8,9,16,20,24,38,39,45,54,77] ──
+lo=0, hi=11, arr[lo]=4, arr[hi]=77
+pos = 0 + ((77-4) × (11-0)) / (77-4)
+    = 0 + (73 × 11) / 73
+    = 0 + 11 = 11
+arr[11]=77 == 77 → FOUND in 1 step! ✓ (better than binary's 4!)
+
+── EXPONENTIAL SEARCH: key=77 in same array ─────────────
+i=1: arr[1]=7  < 77 → i=2
+i=2: arr[2]=8  < 77 → i=4
+i=4: arr[4]=16 < 77 → i=8
+i=8: arr[8]=39 < 77 → i=16
+i=16 >= n=12 → binary search in [8, 11]
+Binary search [8,11]: mid=9→45<77→lo=10; mid=10→54<77→lo=11; mid=11→77 ✓
+
+── JUMP SEARCH: key=54 in [4,7,8,9,16,20,24,38,39,45,54,77], n=12 ─
+step=√12≈3
+arr[2]=8  < 54 → prev=3, step=6
+arr[5]=20 < 54 → prev=6, step=9
+arr[8]=39 < 54 → prev=9, step=12
+Linear search from 9 to 11: arr[9]=45, arr[10]=54 ✓ (found at 10)`,
+        time: { best: "O(1)", avg: "O(log log n) interpolation", worst: "O(n) interpolation" },
+        space: "O(1) / O(n) hashing",
+        stable: undefined,
+        when: "Interpolation: large uniformly distributed sorted data (phone books, timestamps). Exponential: sorted array of unknown size. Jump: sorted array, simpler than binary. Hashing: when O(1) lookup needed and space available.",
+        pros: [
+          "Interpolation: O(log log n) average — faster than binary for uniform data",
+          "Exponential: handles unknown-size arrays elegantly",
+          "Hashing: O(1) average — fastest possible lookup"
+        ],
+        cons: [
+          "Interpolation: O(n) worst case on skewed data — dangerous",
+          "Hashing: O(n) extra space, collision handling needed",
+          "Jump: O(√n) — worse than binary O(log n) for large n"
+        ],
+        cpp: `// Advanced Search Techniques — C++
+
+// 1. Interpolation Search — O(log log n) uniform data
+int interpolationSearch(int arr[], int n, int key) {
+    int lo = 0, hi = n - 1;
+    while (lo <= hi && key >= arr[lo] && key <= arr[hi]) {
+        if (lo == hi) { return arr[lo]==key ? lo : -1; }
+        // formula: estimate position based on value
+        int pos = lo + ((long long)(key - arr[lo]) *
+                        (hi - lo)) / (arr[hi] - arr[lo]);
+        if (arr[pos] == key) return pos;
+        if (arr[pos] < key) lo = pos + 1;
+        else hi = pos - 1;
+    }
+    return -1;
+}
+
+// 2. Exponential Search — O(log n), good for unknown-size arrays
+int exponentialSearch(int arr[], int n, int key) {
+    if (arr[0] == key) return 0;
+    int i = 1;
+    while (i < n && arr[i] <= key) i *= 2; // double until past key
+    // binary search in [i/2, min(i, n-1)]
+    return binarySearch(arr + i/2, min(i, n-1) - i/2 + 1, key);
+}
+
+// 3. Hashing Search — O(1) average
+#include <unordered_map>
+unordered_map<int,int> buildIndex(int arr[], int n) {
+    unordered_map<int,int> idx;
+    for (int i = 0; i < n; i++) idx[arr[i]] = i;
+    return idx;
+}
+// search: idx.count(key) ? idx[key] : -1`,
+        python: `# Advanced Search Techniques — Python
+
+# 1. Interpolation Search
+def interpolation_search(arr, key):
+    lo, hi = 0, len(arr) - 1
+    while lo <= hi and arr[lo] <= key <= arr[hi]:
+        if lo == hi:
+            return lo if arr[lo] == key else -1
+        # estimate position
+        pos = lo + ((key - arr[lo]) * (hi - lo)) // (arr[hi] - arr[lo])
+        if arr[pos] == key: return pos
+        if arr[pos] < key: lo = pos + 1
+        else: hi = pos - 1
+    return -1
+
+# 2. Exponential Search
+def exponential_search(arr, key):
+    n = len(arr)
+    if arr[0] == key: return 0
+    i = 1
+    while i < n and arr[i] <= key: i *= 2  # find range
+    # binary search in [i//2, min(i, n-1)]
+    lo, hi = i // 2, min(i, n - 1)
+    return binary_search(arr, key, lo, hi)
+
+# 3. Hashing — O(1) lookup
+def build_hash_index(arr):
+    return {val: idx for idx, val in enumerate(arr)}
+
+# Usage
+arr = [4, 7, 8, 9, 16, 20, 24, 38, 39, 45, 54, 77]
+index = build_hash_index(arr)
+print(index.get(77, -1))  # 11 — O(1) ✓
+print(index.get(42, -1))  # -1 — O(1) ✓`,
+        practice: [
+          { name: "Search in Infinite Sorted Array", diff: "medium" },
+          { name: "Two Sum (Hashing approach)", diff: "easy" },
+          { name: "Find Duplicate Number (no extra space)", diff: "medium" },
+          { name: "Median of Two Sorted Arrays", diff: "hard" }
+        ]
+      },
+      "Complexity & Comparison": {
+        diff: "easy",
+        explanation: "Complete complexity reference for all searching techniques. Key insight from the textbook: 'Binary search is exponentially faster than linear search.' For n=10⁹: linear needs up to 10⁹ comparisons; binary needs only 30. Important exam questions: (1) Binary search requires sorted array. (2) Binary search works on arrays, NOT linked lists (no O(1) mid access). (3) Both linear and binary can be done recursively and iteratively. (4) Hashing gives O(1) average but needs extra O(n) space. (5) Overflow bug: always use mid = lo+(hi-lo)/2, not (lo+hi)/2.",
+        intuition: "The choice of search algorithm depends on: Is data sorted? How often do you search? How much space can you use? Is n large? For small n or unsorted data, linear search is fine and simpler. For large sorted data, binary search is essential. For very frequent lookups where space is available, build a hash table once and enjoy O(1) forever.",
+        steps: [
+          "Linear: O(n) worst case. No precondition. Works on all structures.",
+          "Binary: O(log n). MUST be sorted. Array only (needs O(1) random access).",
+          "Interpolation: O(log log n) average, O(n) worst. Uniform + sorted.",
+          "Exponential: O(log n). Sorted. Good for unknown size.",
+          "Jump: O(√n). Sorted.",
+          "Hashing: O(1) average. No sort needed. O(n) extra space."
+        ],
+        dryRun: `Search Technique Comparison:
+Technique       | Time (avg) | Space | Sorted? | Structure
+────────────────┼────────────┼───────┼─────────┼──────────
+Linear          | O(n)       | O(1)  | No      | Any
+Binary          | O(log n)   | O(1)  | YES     | Array only
+Interpolation   | O(log log n)| O(1) | YES+uniform| Array
+Exponential     | O(log n)   | O(1)  | YES     | Array
+Jump            | O(√n)      | O(1)  | YES     | Array
+Hashing         | O(1) avg   | O(n)  | No      | Hash table
+
+n = 1,000,000 comparisons needed:
+Linear search:        up to 1,000,000
+Binary search:        up to 20
+Interpolation (unif): up to ~4
+Hashing:              1 (average)
+
+Exam MCQ answers:
+  Q: Worst case serial search?         A: Linear / O(n)
+  Q: Worst case binary search?         A: Logarithmic / O(log n)
+  Q: Binary search requirement?        A: Array must be SORTED
+  Q: Which search halves elements?     A: Binary Search
+  Q: Stable sort for searching?        A: Bubble Sort (stable)`,
+        time: { best: "O(1) hashing", avg: "O(log n) binary", worst: "O(n) linear" },
+        space: "O(1) most / O(n) hashing",
+        stable: undefined,
+        when: "Unsorted/small n → Linear. Sorted large n → Binary. Uniform sorted → Interpolation. Frequent lookups + space available → Hashing. Unknown size → Exponential.",
+        pros: [
+          "Binary search: O(log n) — handles billion-element arrays in 30 steps",
+          "Hashing: O(1) average — fastest possible for repeated queries",
+          "Linear: zero preconditions — works on any collection"
+        ],
+        cons: [
+          "Binary search: array must be sorted — O(n log n) sorting cost",
+          "Hashing: O(n) extra space + collision handling complexity",
+          "Interpolation: O(n) worst case on skewed distributions"
+        ],
+        cpp: `// Common Searching Mistakes to Avoid — C++
+
+// 1. OVERFLOW in mid calculation
+int mid_WRONG = (low + high) / 2;       // BUG: overflow if large!
+int mid_RIGHT = low + (high - low) / 2; // CORRECT always ✓
+
+// 2. Wrong condition: should be <= not <
+while (low <= high) { /* correct */ }
+while (low < high)  { /* misses single element! */ }
+
+// 3. Off-by-one in rotated array
+// Always handle arr[lo]<=arr[mid] (not <) for duplicates
+
+// 4. Binary search on unsorted array → WRONG RESULTS
+// Always verify sorted before calling binary search!
+
+// 5. Count occurrences correctly
+int count = lastOccurrence(arr, n, key) -
+            firstOccurrence(arr, n, key) + 1;
+// Handle case where key not present: firstOccurrence returns -1
+
+// Use STL for reliability:
+#include <algorithm>
+auto lo = lower_bound(v.begin(), v.end(), key);
+auto hi = upper_bound(v.begin(), v.end(), key);
+int cnt = hi - lo;  // count of occurrences`,
+        python: `# Quick Reference — Python
+
+import bisect
+
+# Binary search using bisect (standard library)
+def bs_find(arr, key):
+    i = bisect.bisect_left(arr, key)
+    return i if i < len(arr) and arr[i] == key else -1
+
+# First occurrence
+def first_occ(arr, key):
+    i = bisect.bisect_left(arr, key)
+    return i if i < len(arr) and arr[i] == key else -1
+
+# Last occurrence
+def last_occ(arr, key):
+    i = bisect.bisect_right(arr, key) - 1
+    return i if i >= 0 and arr[i] == key else -1
+
+# Count occurrences — O(log n)
+def count_occ(arr, key):
+    return bisect.bisect_right(arr,key) - bisect.bisect_left(arr,key)
+
+# Common mistakes:
+# ✗ binary search on unsorted list → wrong results
+# ✗ list.index(x) on large list → O(n) linear scan
+# ✓ bisect for O(log n) on sorted list
+# ✓ set/dict for O(1) membership test`,
+        practice: [
+          { name: "Binary Search (LeetCode 704)", diff: "easy" },
+          { name: "Aggressive Cows (Binary Search on Answer)", diff: "hard" },
+          { name: "Koko Eating Bananas (Binary Search on Answer)", diff: "medium" },
+          { name: "Median of Two Sorted Arrays", diff: "hard" },
+          { name: "Find Minimum in Rotated Sorted Array", diff: "medium" }
+        ]
+      }
+    }
+  },
   Hashing: { icon: "#️⃣", diff: "medium", desc: "O(1) average lookups. HashMap, HashSet, collision handling, frequency counting.", subtopics: {} },
   Trees: { icon: "🌳", diff: "medium", desc: "Hierarchical data. DFS, BFS traversals, diameter, LCA — core interview topics.", subtopics: {} },
   "Binary Search Trees": { icon: "🌲", diff: "medium", desc: "Ordered trees enabling O(log n) search, insert, delete. Inorder gives sorted output.", subtopics: {} },
@@ -3571,6 +4167,128 @@ function SubtopicView({ data, name }) {
           <div className="callout callout-tip" style={{marginTop:10}}>
             <span className="callout-icon">💡</span>
             <div className="callout-text"><strong>Two DP criteria:</strong> (1) Overlapping Subproblems — same inputs recomputed. (2) Optimal Substructure — optimal solution built from optimal subsolutions. If both hold → DP applies.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Searching: linear search step visualizer */}
+      {is("Basics & Linear Search") && (
+        <div className="sec">
+          <div className="stitle">Linear Search — Step by Step</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", marginBottom: 8 }}>
+            {[-15,-6,0,7,9,23].map((v, i) => (
+              <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 48 }}>
+                <div style={{ background: i === 3 ? "var(--accent3)" : i < 3 ? "rgba(255,92,92,.15)" : "var(--bg3)", border: `1px solid ${i===3?"var(--accent3)":i<3?"var(--red)":"var(--border)"}`, borderRight: i < 5 ? "none" : `1px solid ${i===3?"var(--accent3)":"var(--border)"}`, padding: "9px 4px", fontFamily: "'Space Mono',monospace", fontSize: ".8rem", fontWeight: 700, color: i===3?"#000":i<3?"var(--red)":"var(--text2)", width: "100%", textAlign: "center" }}>{v}</div>
+                <div style={{ fontSize: ".62rem", color: "var(--text3)", fontFamily: "'Space Mono',monospace", marginTop: 3 }}>[{i}]</div>
+                <div style={{ fontSize: ".6rem", color: i===3?"var(--accent3)":i<3?"var(--red)":"var(--text3)", marginTop: 2 }}>{i===3?"✓":i<3?"✗":""}</div>
+              </div>
+            ))}
+            <div style={{ padding: "0 12px", color: "var(--text3)", fontSize: ".75rem" }}>...</div>
+          </div>
+          <div style={{ fontSize: ".7rem", color: "var(--text3)", fontFamily: "'Space Mono',monospace" }}>Searching for 7 — found at index 3 after 4 comparisons. Red = no match, Green = found.</div>
+          <div className="callout callout-tip" style={{ marginTop: 10 }}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>When linear beats binary:</strong> Unsorted data (can't binary search), linked lists (no O(1) mid), small n&lt;50 (overhead not worth it), one-time search (sorting cost not justified).</div>
+          </div>
+        </div>
+      )}
+
+      {/* Searching: binary search visual */}
+      {is("Binary Search") && (
+        <div className="sec">
+          <div className="stitle">Binary Search — Halving the Space</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {[
+              { arr: [4,7,8,9,16,"→20←",24,38,39,45,54,77], label: "Step 1: mid=20, key=4 < 20 → search LEFT", hi: 5 },
+              { arr: [4,7,"→8←",9,16], label: "Step 2: mid=8, key=4 < 8 → search LEFT", hi: 2 },
+              { arr: ["→4←",7], label: "Step 3: mid=4, FOUND ✓", hi: 0 },
+            ].map((row, i) => (
+              <div key={i} style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 12px" }}>
+                <div style={{ fontSize: ".68rem", color: "var(--accent2)", fontFamily: "'Space Mono',monospace", marginBottom: 4 }}>{row.label}</div>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {row.arr.map((v, j) => (
+                    <span key={j} style={{ padding: "3px 8px", borderRadius: 4, background: String(v).includes("→") ? "var(--accent)" : "var(--bg3)", color: String(v).includes("→") ? "#fff" : "var(--text2)", fontFamily: "'Space Mono',monospace", fontSize: ".75rem", fontWeight: String(v).includes("→") ? 700 : 400 }}>{String(v).replace(/→|←/g, "")}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{ marginTop: 10 }}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Overflow bug:</strong> <code style={{ fontFamily: "'Space Mono',monospace" }}>mid = (lo+hi)/2</code> overflows when lo+hi &gt; INT_MAX. Always use <code style={{ fontFamily: "'Space Mono',monospace" }}>mid = lo + (hi-lo)/2</code> ✓</div>
+          </div>
+        </div>
+      )}
+
+      {/* Searching: variants pattern pills */}
+      {is("Binary Search Variants") && (
+        <div className="sec">
+          <div className="stitle">Variant Pattern Toolkit</div>
+          <div className="pattern-pills">
+            {["Lower Bound","Upper Bound","First Occurrence","Last Occurrence","Count Occurrences","Rotated Sorted Array","Peak Element","Binary Search on Answer"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="theorem-box" style={{ marginTop: 12 }}>
+            <div className="theorem-label">Key insight — First vs Last Occurrence</div>
+            <div className="theorem-text" style={{ fontFamily: "'Space Mono',monospace", fontSize: ".76rem", lineHeight: 2 }}>
+              {"First: when arr[mid]==key → result=mid, hi=mid-1  (keep left)"}<br/>
+              {"Last:  when arr[mid]==key → result=mid, lo=mid+1  (keep right)"}<br/>
+              {"Count: last_occurrence - first_occurrence + 1"}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Searching: technique comparison table */}
+      {is("Complexity & Comparison") && (
+        <div className="sec">
+          <div className="stitle">All Techniques at a Glance</div>
+          <table className="fn-table">
+            <thead><tr><th>Technique</th><th>Time</th><th>Space</th><th>Sorted?</th><th>Structure</th></tr></thead>
+            <tbody>
+              {[
+                ["Linear","O(n)","O(1)","No","Any","y"],
+                ["Binary","O(log n)","O(1)","YES","Array only","g"],
+                ["Interpolation","O(log log n)*","O(1)","YES+uniform","Array","g"],
+                ["Exponential","O(log n)","O(1)","YES","Array/unknown","g"],
+                ["Jump","O(√n)","O(1)","YES","Array","y"],
+                ["Hashing","O(1) avg","O(n)","No","Hash table","g"],
+              ].map(([t,time,sp,sort,str,c])=>(
+                <tr key={t}>
+                  <td className="op">{t}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{time}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{sp}</td>
+                  <td style={{color:sort==="No"?"var(--green)":"var(--yellow)",fontSize:".73rem"}}>{sort}</td>
+                  <td style={{color:"var(--text3)",fontSize:".72rem"}}>{str}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{fontSize:".66rem",color:"var(--text3)",fontFamily:"'Space Mono',monospace",marginTop:4}}>* interpolation average for uniformly distributed data</div>
+        </div>
+      )}
+
+      {/* Searching: advanced techniques overview */}
+      {is("Advanced Search Techniques") && (
+        <div className="sec">
+          <div className="stitle">Technique Selection Guide</div>
+          <div className="constraint-row">
+            {[
+              ["Interpolation","Uniform + sorted large data. O(log log n) avg."],
+              ["Exponential","Sorted array of unknown/infinite size."],
+              ["Jump","Simple sorted array when O(√n) acceptable."],
+              ["Hashing","Frequent O(1) lookups, O(n) space available."],
+            ].map(([n,d])=>(
+              <div className="cr-card" key={n} style={{minWidth:130}}>
+                <div className="cr-n" style={{fontSize:".75rem"}}>{n}</div>
+                <div className="cr-algo">{d}</div>
+              </div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Interpolation pitfall:</strong> O(n) worst case on skewed data (e.g. [1,2,3,...,100,1000000]). Always verify uniform distribution before using it.</div>
           </div>
         </div>
       )}
