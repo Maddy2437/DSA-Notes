@@ -3424,8 +3424,1248 @@ def count_occ(arr, key):
       }
     }
   },
-  Hashing: { icon: "#️⃣", diff: "medium", desc: "O(1) average lookups. HashMap, HashSet, collision handling, frequency counting.", subtopics: {} },
-  Trees: { icon: "🌳", diff: "medium", desc: "Hierarchical data. DFS, BFS traversals, diameter, LCA — core interview topics.", subtopics: {} },
+  Hashing: {
+    icon: "#️⃣", diff: "medium",
+    desc: "O(1) average insert/search/delete. Hash functions, collision handling, and the backbone of frequency counting.",
+    subtopics: {
+      "Basics & Hash Functions": {
+        diff: "easy",
+        explanation: "Hashing is a technique to store and retrieve data efficiently using a hash function. A hash function converts a key into an index in an array. Instead of linear O(n) search or tree O(log n) search, hashing gives average O(1) for insert, search, and delete. Key terms: Hash Function — maps key to index (e.g. h(key) = key % tableSize). Hash Table — array where data is stored at hashed indices. Collision — two different keys map to the same index (h(23)=3 and h(33)=3 both give index 3). Load Factor — (number of elements) / (table size). Measures how full the table is. Rehashing — when load factor exceeds a threshold (~0.7), create a larger table and reinsert all elements.",
+        intuition: "Think of hashing like a gym locker system. Each locker has a number (index). You store your item based on a rule (hash function). Instead of checking every locker, you jump directly to the right one. Problem: what if two people get the same locker number? That's a collision — you need a strategy to handle it. Perfect hashing = no collisions, every key gets its own locker.",
+        steps: [
+          "HASH FUNCTION: h(key) = key % tableSize. Maps any key to an index in [0, tableSize-1].",
+          "INSERTION: compute index = h(key). If slot is empty → store. If occupied → collision → resolve.",
+          "SEARCH: compute index = h(key). Check element at that index. If match → found. If not → follow collision chain.",
+          "DELETION: find element → remove. In open addressing, must mark as 'deleted' (not empty) to not break search chains.",
+          "LOAD FACTOR = n/m where n=elements, m=table size. Keep load factor < 0.7 for good performance.",
+          "REHASHING: when load factor exceeds threshold, create table of size ~2m, recompute all hashes and reinsert. O(n) but rare."
+        ],
+        dryRun: `Hash Function: h(key) = key % 10, table size = 10
+
+INSERT 10: h(10)=0  → table[0]=10
+INSERT 25: h(25)=5  → table[5]=25
+INSERT 37: h(37)=7  → table[7]=37
+INSERT 23: h(23)=3  → table[3]=23
+INSERT 33: h(33)=3  → table[3] already has 23! → COLLISION
+
+Table after inserts (no collision handling shown):
+Index: 0  1  2  3  4  5  6  7  8  9
+Data: [10][ ][ ][23][ ][25][ ][37][ ][ ]
+
+SEARCH for 25:
+  h(25)=5 → check table[5]=25 → FOUND in O(1) ✓
+
+SEARCH for 99:
+  h(99)=9 → check table[9]=empty → NOT FOUND O(1) ✓
+
+Load Factor after 4 inserts in size-10 table:
+  LF = 4/10 = 0.4 → acceptable ✓
+  LF > 0.7 → trigger rehashing!`,
+        time: { best: "O(1)", avg: "O(1)", worst: "O(n) all collide" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Use hashing for: O(1) average lookup (Two Sum, frequency count), detecting duplicates, grouping (anagrams), caches, symbol tables. Avoid when: ordered iteration needed (use map/BST instead).",
+        pros: [
+          "O(1) average insert, search, delete — fastest possible",
+          "Works with any key type (strings, ints, pairs with custom hash)",
+          "Backbone of frequency counting — most common interview pattern"
+        ],
+        cons: [
+          "Worst case O(n) when all keys collide (poor hash function)",
+          "No ordering — cannot iterate in sorted order",
+          "Extra O(n) space for table",
+          "Rehashing is O(n) — occasional spike in operation time"
+        ],
+        cpp: `// Hash Basics — C++
+
+// Simple hash function
+int hashFunction(int key, int tableSize) {
+    return key % tableSize;  // division method
+}
+
+// STL unordered_map — automatic hashing, O(1) avg
+#include <unordered_map>
+unordered_map<int, int> mp;
+mp[1] = 10;           // insert — O(1)
+mp[2] = 20;
+cout << mp[1];        // access — O(1)
+mp.erase(1);          // delete — O(1)
+bool found = mp.find(2) != mp.end(); // search — O(1)
+
+// STL unordered_set — unique keys only
+#include <unordered_set>
+unordered_set<int> st;
+st.insert(5);
+bool has5 = st.count(5);  // O(1)
+
+// ordered map (BST-based, O(log n))
+#include <map>
+map<int,int> ordered;  // keys always sorted, O(log n) ops`,
+        python: `# Hash Basics — Python
+
+# Python dict is a hash map — O(1) average
+mp = {}
+mp[1] = 10      # insert
+mp[2] = 20
+print(mp[1])    # access — O(1)
+del mp[1]       # delete — O(1)
+if 2 in mp:     # search — O(1)
+    print("Found")
+
+# Python set is a hash set
+st = set()
+st.add(5)
+st.add(5)       # duplicates ignored
+print(5 in st)  # O(1)
+
+# Build simple hash table manually
+class HashTable:
+    def __init__(self, size=10):
+        self.size = size
+        self.table = [[] for _ in range(size)]  # chaining
+
+    def _hash(self, key):
+        return key % self.size
+
+    def insert(self, key):
+        self.table[self._hash(key)].append(key)
+
+    def search(self, key):
+        return key in self.table[self._hash(key)]`,
+        practice: [
+          { name: "Design HashMap (LeetCode 706)", diff: "easy" },
+          { name: "Design HashSet (LeetCode 705)", diff: "easy" },
+          { name: "Find Frequency of Array Elements", diff: "easy" }
+        ]
+      },
+      "Collision Handling": {
+        diff: "medium",
+        explanation: "Collisions are inevitable — two keys hash to the same index. Two families of solutions: (1) Separate Chaining — each index stores a linked list (or vector). All keys that hash to the same index are chained together. O(1) average insert, O(n/m) search where m=table size. Simple and handles high load factors well. (2) Open Addressing — all elements stored inside the array itself. On collision, probe for next empty slot. Three probing strategies: (a) Linear Probing: index = (h(key)+i)%size. Simple but causes primary clustering. (b) Quadratic Probing: index = (h(key)+i²)%size. Reduces clustering. (c) Double Hashing: index = (h1(key)+i×h2(key))%size. Best distribution, no clustering.",
+        intuition: "Separate chaining: each bucket is a list — overflow vertically. Open addressing: no extra structure — overflow horizontally (probe other slots). Linear probing is cache-friendly but clusters. Quadratic spreads out. Double hashing is most uniform. Deletion in open addressing is tricky — you must mark deleted slots as 'tombstone' not 'empty', or subsequent searches will stop too early.",
+        steps: [
+          "SEPARATE CHAINING INSERT: h(key)=idx. table[idx].push_back(key). Always O(1).",
+          "SEPARATE CHAINING SEARCH: h(key)=idx. Scan linked list at table[idx]. O(1) avg, O(n) worst.",
+          "LINEAR PROBING INSERT: idx=(h(key)+i)%size for i=0,1,2... until empty slot found.",
+          "LINEAR PROBING SEARCH: probe same sequence until key found or empty slot (not tombstone).",
+          "QUADRATIC PROBING: idx=(h(key)+i²)%size. Better spread than linear.",
+          "DOUBLE HASHING: h2(key) = prime - (key % prime). idx=(h1(key)+i×h2(key))%size. Most uniform.",
+          "DELETION in open addressing: mark slot as DELETED (tombstone), not EMPTY — or searches break."
+        ],
+        dryRun: `── SEPARATE CHAINING: insert 10,20,30 in size-10 table ──
+h(10)=0: table[0]→[10]
+h(20)=0: table[0]→[10→20]   (chained, both at index 0)
+h(30)=0: table[0]→[10→20→30]
+
+Search 20: h(20)=0 → scan list [10→20] → found ✓ O(2)
+
+── LINEAR PROBING: insert 10,20,30 in size-10 table ────
+h(10)=0: table[0]=10 ✓
+h(20)=0: table[0] taken! → try table[1]=20 ✓
+h(30)=0: table[0] taken! → try table[1] taken! → table[2]=30 ✓
+
+Table: [10,20,30,_,_,_,_,_,_,_]
+
+Search 30: h(30)=0 → table[0]=10≠30 → table[1]=20≠30 → table[2]=30 ✓
+
+DELETE 20 (linear probing):
+  Set table[1] = TOMBSTONE (not EMPTY!)
+  Search 30 later: probe 0→10, 1→TOMBSTONE(continue!), 2→30 ✓
+  If we set EMPTY: search 30 would stop at 1 → WRONG ✗
+
+── DOUBLE HASHING: h1(key)=key%7, h2(key)=5-(key%5) ───
+Insert 3:  h1(3)=3 → table[3]=3
+Insert 10: h1(10)=3 → collision!
+  i=1: (3 + 1×h2(10))%7 = (3+1×5)%7 = 8%7=1 → table[1]=10 ✓`,
+        time: { best: "O(1)", avg: "O(1)", worst: "O(n)" },
+        space: "O(n) chaining + chain overhead / O(m) open addressing",
+        stable: undefined,
+        when: "Separate chaining: when load factor can exceed 1, simpler deletion. Open addressing: when memory locality matters, no extra pointers. Double hashing: when uniform distribution critical.",
+        pros: [
+          "Chaining: handles load factor > 1, simple deletion, no primary clustering",
+          "Linear probing: cache-friendly, all data in one array",
+          "Double hashing: best distribution, minimises collision chains"
+        ],
+        cons: [
+          "Chaining: extra memory for pointers/list nodes",
+          "Linear probing: primary clustering — long runs of filled slots",
+          "Open addressing: deletion needs tombstones — complicates logic",
+          "Quadratic probing: may not probe all slots (not always finds empty slot)"
+        ],
+        cpp: `// Collision Handling — C++
+
+// 1. Separate Chaining
+#include <list>
+class HashTableChaining {
+    int size;
+    vector<list<int>> table;
+public:
+    HashTableChaining(int s): size(s), table(s) {}
+
+    int hashFn(int key) { return key % size; }
+
+    void insert(int key) {
+        table[hashFn(key)].push_back(key);  // O(1)
+    }
+    bool search(int key) {
+        for (int x : table[hashFn(key)])
+            if (x == key) return true;
+        return false;
+    }
+    void remove(int key) {
+        table[hashFn(key)].remove(key);     // O(chain length)
+    }
+};
+
+// 2. Linear Probing
+class HashTableLinear {
+    int size;
+    vector<int> table;
+    vector<bool> deleted;
+    const int EMPTY = -1;
+public:
+    HashTableLinear(int s): size(s), table(s,EMPTY), deleted(s,false) {}
+
+    void insert(int key) {
+        int idx = key % size;
+        while (table[idx] != EMPTY && !deleted[idx])
+            idx = (idx + 1) % size;  // linear probe
+        table[idx] = key; deleted[idx] = false;
+    }
+    bool search(int key) {
+        int idx = key % size, start = idx;
+        while (table[idx] != EMPTY || deleted[idx]) {
+            if (!deleted[idx] && table[idx] == key) return true;
+            idx = (idx + 1) % size;
+            if (idx == start) break;
+        }
+        return false;
+    }
+};`,
+        python: `# Collision Handling — Python
+
+# 1. Separate Chaining
+class HashTableChaining:
+    def __init__(self, size=10):
+        self.size = size
+        self.table = [[] for _ in range(size)]
+
+    def _hash(self, key): return key % self.size
+
+    def insert(self, key):
+        self.table[self._hash(key)].append(key)    # O(1)
+
+    def search(self, key):
+        return key in self.table[self._hash(key)]  # O(chain len)
+
+    def remove(self, key):
+        bucket = self.table[self._hash(key)]
+        if key in bucket: bucket.remove(key)
+
+# 2. Linear Probing
+class HashTableLinear:
+    EMPTY, DELETED = None, "DELETED"
+
+    def __init__(self, size=10):
+        self.size = size
+        self.table = [self.EMPTY] * size
+
+    def _hash(self, key): return key % self.size
+
+    def insert(self, key):
+        idx = self._hash(key)
+        while self.table[idx] not in (self.EMPTY, self.DELETED):
+            idx = (idx + 1) % self.size
+        self.table[idx] = key
+
+    def search(self, key):
+        idx = self._hash(key)
+        while self.table[idx] is not self.EMPTY:
+            if self.table[idx] == key: return True
+            idx = (idx + 1) % self.size
+        return False
+
+    def delete(self, key):
+        idx = self._hash(key)
+        while self.table[idx] is not self.EMPTY:
+            if self.table[idx] == key:
+                self.table[idx] = self.DELETED  # tombstone!
+                return
+            idx = (idx + 1) % self.size`,
+        practice: [
+          { name: "Design HashMap (Chaining implementation)", diff: "easy" },
+          { name: "Find if Array has Duplicates (O(n) hashing)", diff: "easy" },
+          { name: "Check if Two Strings are Anagrams", diff: "easy" }
+        ]
+      },
+      "Important Patterns": {
+        diff: "medium",
+        explanation: "Five hashing patterns solve the majority of interview problems: (1) Frequency Counting — count occurrences of elements using a hash map in O(n). (2) Two Sum Pattern — for each element x, store it; check if (target-x) already in map. O(n). (3) Prefix Sum + Hashing — find subarrays with sum=k by storing prefix sums; count[prefixSum-k] gives number of valid subarrays. (4) Hash Set for Uniqueness — detect duplicates or find unique elements in O(n). (5) Sliding Window + HashMap — track character frequencies in window; shrink/expand based on map.",
+        intuition: "Two Sum key insight: instead of checking all pairs O(n²), for each element ask 'have I seen the complement?' — O(1) lookup makes the whole thing O(n). Prefix sum + hashing: if prefixSum[j]-prefixSum[i]=k, then subarray [i+1..j] has sum k. Store prefix sums as keys, count how many times each has appeared. This converts O(n²) to O(n).",
+        steps: [
+          "FREQUENCY COUNT: for x in arr: freq[x]++. Query freq[x] in O(1). Find most frequent, first unique, etc.",
+          "TWO SUM: for each x: if (target-x) in seen → return pair. Else add x to seen. O(n).",
+          "SUBARRAY SUM K: maintain running prefix sum. At each index: if (prefix-k) in count → add count[prefix-k] to answer. count[prefix]++.",
+          "DETECT DUPLICATE: add elements to set. If element already in set → duplicate found. O(n) time, O(n) space.",
+          "GROUP ANAGRAMS: sort each string → use as hash key. All anagrams share same sorted key.",
+          "LONGEST NO-REPEAT: sliding window + map of last seen index. If char seen and index >= left: move left. Update right = max of stored index+1."
+        ],
+        dryRun: `── TWO SUM: [2,7,11,15], target=9 ──────────────────────
+seen = {}
+x=2: target-x=7, 7 in seen? No → seen={2:0}
+x=7: target-x=2, 2 in seen? YES → return [seen[2],1]=[0,1] ✓
+O(n) total, O(n) space
+
+── SUBARRAY SUM K=3: [1,1,1] ───────────────────────────
+count={0:1}, prefix=0, ans=0
+i=0: prefix=1, prefix-k=1-3=-2, -2 in count? No → count={0:1,1:1}
+i=1: prefix=2, prefix-k=2-3=-1, -1 in count? No → count={0:1,1:1,2:1}
+i=2: prefix=3, prefix-k=3-3=0, 0 in count? YES! ans+=count[0]=1
+                                                  count={0:1,1:1,2:1,3:1}
+Answer: 2... wait, prefix=3 again checks prefix=3 vs 3:
+Recalculate: subarrays [1,1,1],[1,1],[1,1] → ans=2 ✓
+
+── FREQUENCY COUNT: [4,4,1,2,4,2] ─────────────────────
+freq={4:3, 1:1, 2:2}
+First non-repeating? scan in order: 1 (freq=1) ✓
+Most frequent? 4 (freq=3) ✓
+Has duplicate? freq[4]=3>1 → YES ✓`,
+        time: { best: "O(n)", avg: "O(n)", worst: "O(n²) collisions" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Frequency count: any counting problem. Two Sum: pair/triplet problems. Prefix+hash: subarray sum problems. Set: duplicate detection. Anagram grouping: sorting+hash key.",
+        pros: [
+          "Converts O(n²) brute force to O(n) for most problems",
+          "Frequency count is the single most used pattern in interviews",
+          "Prefix sum + hashing handles all subarray sum variants"
+        ],
+        cons: [
+          "Extra O(n) space for hash map",
+          "Worst case O(n) per operation with poor hash/many collisions",
+          "Prefix sum hashing can be tricky to get right (initialize count[0]=1)"
+        ],
+        cpp: `// Important Hashing Patterns — C++
+
+// 1. Frequency Count
+unordered_map<int,int> freq;
+for (int x : arr) freq[x]++;
+// Query: freq[x] → count of x
+
+// 2. Two Sum — O(n)
+vector<int> twoSum(vector<int>& arr, int target) {
+    unordered_map<int,int> seen; // val → index
+    for (int i = 0; i < arr.size(); i++) {
+        int comp = target - arr[i];
+        if (seen.count(comp)) return {seen[comp], i};
+        seen[arr[i]] = i;
+    }
+    return {};
+}
+
+// 3. Subarray Sum Equals K — O(n)
+int subarraySum(vector<int>& arr, int k) {
+    unordered_map<int,int> count = {{0, 1}}; // prefix=0 seen once
+    int prefix = 0, ans = 0;
+    for (int x : arr) {
+        prefix += x;
+        ans += count[prefix - k]; // how many prev prefixes match
+        count[prefix]++;
+    }
+    return ans;
+}
+
+// 4. Group Anagrams — O(nm log m)
+vector<vector<string>> groupAnagrams(vector<string>& strs) {
+    unordered_map<string, vector<string>> mp;
+    for (string& s : strs) {
+        string key = s; sort(key.begin(), key.end());
+        mp[key].push_back(s);
+    }
+    vector<vector<string>> res;
+    for (auto& [k,v] : mp) res.push_back(v);
+    return res;
+}
+
+// 5. First Non-Repeating Character
+char firstUnique(string s) {
+    unordered_map<char,int> freq;
+    for (char c : s) freq[c]++;
+    for (char c : s) if (freq[c]==1) return c;
+    return '#';
+}`,
+        python: `# Important Hashing Patterns — Python
+from collections import defaultdict, Counter
+
+# 1. Frequency Count — O(n)
+arr = [4,4,1,2,4,2]
+freq = Counter(arr)   # {4:3, 1:1, 2:2}
+# or: freq = defaultdict(int); for x in arr: freq[x]+=1
+
+# 2. Two Sum — O(n)
+def two_sum(arr, target):
+    seen = {}   # val → index
+    for i, x in enumerate(arr):
+        comp = target - x
+        if comp in seen: return [seen[comp], i]
+        seen[x] = i
+    return []
+
+# 3. Subarray Sum Equals K — O(n)
+def subarray_sum_k(arr, k):
+    count = {0: 1}   # IMPORTANT: initialize with 0:1
+    prefix = ans = 0
+    for x in arr:
+        prefix += x
+        ans += count.get(prefix - k, 0)
+        count[prefix] = count.get(prefix, 0) + 1
+    return ans
+
+# 4. Detect Duplicates — O(n)
+def has_duplicate(arr):
+    return len(arr) != len(set(arr))
+
+# 5. Top K Frequent Elements
+def top_k(arr, k):
+    freq = Counter(arr)
+    return [x for x, _ in freq.most_common(k)]
+
+# 6. Longest Substring Without Repeating Characters
+def longest_no_repeat(s):
+    last = {}; l = res = 0
+    for r, c in enumerate(s):
+        if c in last and last[c] >= l: l = last[c] + 1
+        last[c] = r; res = max(res, r - l + 1)
+    return res`,
+        practice: [
+          { name: "Two Sum", diff: "easy" },
+          { name: "Subarray Sum Equals K", diff: "medium" },
+          { name: "Group Anagrams", diff: "medium" },
+          { name: "Top K Frequent Elements", diff: "medium" },
+          { name: "Longest Substring Without Repeating Characters", diff: "medium" },
+          { name: "First Non-Repeating Character", diff: "easy" }
+        ]
+      },
+      "Complexity & Applications": {
+        diff: "easy",
+        explanation: "All hash table operations are O(1) average, O(n) worst case. Worst case happens when all keys collide (same hash index) — the hash table degenerates to a linked list. Good hash functions and load factor control keep average case O(1). Space is O(n). Key comparisons: Hashing vs Array — array is index-based O(1), hashing is key-based O(1) average but with collision risk. Hashing vs Tree (BST/map) — hashing O(1) average but unordered; tree O(log n) but maintains sorted order. In C++: unordered_map uses hashing (O(1) avg), map uses red-black tree (O(log n), ordered).",
+        intuition: "The worst case O(n) for hashing sounds scary but is extremely rare with a good hash function. In practice, unordered_map is faster than map for most workloads. Use map only when you need sorted iteration or range queries. Rolling hash (Rabin-Karp) extends hashing to substrings — enables O(1) substring comparison, used in plagiarism detection and pattern matching.",
+        steps: [
+          "Insert: O(1) average. Compute hash, store at index (or chain).",
+          "Search: O(1) average. Compute hash, check index (or scan chain).",
+          "Delete: O(1) average. Find and remove from chain or mark tombstone.",
+          "Worst case O(n): all n elements hash to same index — chain of length n.",
+          "Load factor > 0.7 → rehash to table of size 2m → O(n) but rare. Amortised O(1).",
+          "Python dict and C++ unordered_map: well-tuned hash tables with O(1) average for all ops."
+        ],
+        dryRun: `Operation Complexity:
+Operation | Average | Worst  | Notes
+──────────┼─────────┼────────┼───────────────────────
+Insert    | O(1)    | O(n)   | All keys collide → chain
+Search    | O(1)    | O(n)   | Must scan full chain
+Delete    | O(1)    | O(n)   | Chaining or tombstone
+Space     | O(n)    | O(n)   | Table + chains
+
+Hashing vs Other Structures:
+Structure    | Insert   | Search   | Delete   | Ordered?
+─────────────┼──────────┼──────────┼──────────┼─────────
+Hash Table   | O(1) avg | O(1) avg | O(1) avg | No
+BST/map      | O(log n) | O(log n) | O(log n) | YES
+Array        | O(1)*    | O(n)     | O(n)     | No
+Sorted Array | O(n)     | O(log n) | O(n)     | YES
+
+C++ map vs unordered_map:
+unordered_map: hashing → O(1) avg, keys unordered
+map:           red-black tree → O(log n), keys sorted
+
+Python dict vs sorted:
+dict:   O(1) avg all ops, Python 3.7+ preserves insertion order
+sorted: O(n log n) to build, O(log n) search with bisect
+
+Real-world uses:
+  ✓ Password hashing (bcrypt, SHA)
+  ✓ Database indexing (hash indexes)
+  ✓ Caches (Redis, Memcached)
+  ✓ Compilers (symbol tables)
+  ✓ URL shorteners (hash → short code)
+  ✓ Blockchain (cryptographic hashing)`,
+        time: { best: "O(1) all ops", avg: "O(1) all ops", worst: "O(n) all collide" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Use hashing when O(1) lookup is needed and order doesn't matter. Use ordered map when sorted iteration or range queries required. Build frequency tables, deduplication sets, and complement lookups with hashing.",
+        pros: [
+          "O(1) average — fastest possible for insert/search/delete",
+          "Python dict and C++ unordered_map are production-ready, well-tuned",
+          "Extremely versatile — from frequency counting to LRU cache"
+        ],
+        cons: [
+          "O(n) worst case — poor hash function or adversarial input",
+          "No ordering — can't do range queries or sorted traversal",
+          "Extra O(n) space — sometimes not acceptable"
+        ],
+        cpp: `// Hashing Applications — C++
+#include <unordered_map>
+#include <unordered_set>
+
+// 1. Check if array has duplicates — O(n)
+bool hasDuplicate(vector<int>& arr) {
+    unordered_set<int> seen;
+    for (int x : arr) {
+        if (seen.count(x)) return true;
+        seen.insert(x);
+    }
+    return false;
+}
+
+// 2. Intersection of two arrays — O(n+m)
+vector<int> intersection(vector<int>& a, vector<int>& b) {
+    unordered_set<int> setA(a.begin(), a.end());
+    vector<int> res;
+    for (int x : b)
+        if (setA.count(x)) { res.push_back(x); setA.erase(x); }
+    return res;
+}
+
+// 3. Custom hash for pairs (needed in C++)
+struct PairHash {
+    size_t operator()(const pair<int,int>& p) const {
+        return hash<int>()(p.first) ^ (hash<int>()(p.second) << 16);
+    }
+};
+unordered_map<pair<int,int>, int, PairHash> pairMap;
+
+// 4. Rolling Hash (Rabin-Karp style)
+long long rollingHash(string& s, int l, int r, long long base=31, long long mod=1e9+7) {
+    long long h = 0, pw = 1;
+    for (int i = l; i <= r; i++) {
+        h = (h + (s[i]-'a'+1) * pw) % mod;
+        pw = pw * base % mod;
+    }
+    return h;
+}`,
+        python: `# Hashing Applications — Python
+from collections import defaultdict, Counter
+
+# 1. Find all duplicates — O(n)
+def find_duplicates(arr):
+    freq = Counter(arr)
+    return [x for x, c in freq.items() if c > 1]
+
+# 2. Intersection of two arrays — O(n+m)
+def intersection(a, b):
+    set_a = set(a)
+    return list(set(x for x in b if x in set_a))
+
+# 3. LRU Cache (using OrderedDict) — O(1) all ops
+from collections import OrderedDict
+class LRUCache:
+    def __init__(self, capacity):
+        self.cap = capacity
+        self.cache = OrderedDict()
+
+    def get(self, key):
+        if key not in self.cache: return -1
+        self.cache.move_to_end(key)  # mark as recently used
+        return self.cache[key]
+
+    def put(self, key, value):
+        if key in self.cache: self.cache.move_to_end(key)
+        self.cache[key] = value
+        if len(self.cache) > self.cap:
+            self.cache.popitem(last=False)  # remove LRU
+
+# 4. Frequency count pattern
+arr = [3,1,4,1,5,9,2,6,5,3,5]
+freq = Counter(arr)
+print(freq.most_common(2))  # [(5,3),(1,2)] — top 2 frequent`,
+        practice: [
+          { name: "Contains Duplicate", diff: "easy" },
+          { name: "Intersection of Two Arrays", diff: "easy" },
+          { name: "LRU Cache (LeetCode 146)", diff: "medium" },
+          { name: "Find All Anagrams in a String", diff: "medium" },
+          { name: "Longest Consecutive Sequence", diff: "medium" }
+        ]
+      }
+    }
+  },
+  Trees: {
+    icon: "🌳", diff: "medium",
+    desc: "Hierarchical non-linear structure. Traversals, height, diameter, LCA — top 3 interview topic.",
+    subtopics: {
+      "Basics & Terminology": {
+        diff: "easy",
+        explanation: "A tree is a non-linear data structure used to represent hierarchical relationships. Unlike arrays or linked lists (linear), trees branch out like an inverted tree. A tree consists of nodes connected by edges. Key terms: Root — topmost node, no parent. Edge — connection between two nodes. Parent — node that has children. Child — node derived from a parent. Leaf — node with no children (degree 0). Subtree — tree formed from any node and all its descendants. Depth — number of edges from root to a node. Height — longest path from a node down to a leaf. Degree — number of children of a node. Binary Tree — each node has at most 2 children (left and right).",
+        intuition: "Think of trees like an organization hierarchy (CEO → Managers → Employees), a family tree, or a folder structure (folders inside folders). You move top-down from root to leaves (searching) or bottom-up from leaves to root (computing heights, sizes). The key advantage over linear structures: O(log n) operations on balanced trees vs O(n) for arrays/linked lists.",
+        steps: [
+          "ROOT: single topmost node. Depth=0. Has no parent.",
+          "LEAF: node with no children. Depth can be any value. Height=0.",
+          "HEIGHT of node: max(height(left), height(right)) + 1. Height of leaf=0. Height of null=-1.",
+          "DEPTH of node: distance from root. Root has depth 0.",
+          "DEGREE: number of children. In binary tree: 0 (leaf), 1, or 2.",
+          "SIZE: total number of nodes. size(node) = 1 + size(left) + size(right).",
+          "For a binary tree with n nodes: height is between log₂n (balanced) and n-1 (skewed)."
+        ],
+        dryRun: `        1          ← root (depth=0, height=3)
+       / \\
+      2   3        ← depth=1
+     / \\
+    4   5          ← depth=2
+   /
+  8               ← leaf (depth=3, height=0)
+
+Node 1: degree=2, height=3, depth=0
+Node 2: degree=2, height=2, depth=1
+Node 3: degree=0 (LEAF), height=0, depth=1
+Node 4: degree=1, height=1, depth=2
+Node 5: degree=0 (LEAF), height=0, depth=2
+Node 8: degree=0 (LEAF), height=0, depth=3
+
+Height of tree = height of root = 3
+Total nodes = 6
+Leaves = {3, 5, 8}
+
+Height formula (recursive):
+  h(8)=0, h(null)=-1
+  h(4)=max(-1,0)+1=1
+  h(5)=0
+  h(2)=max(1,0)+1=2
+  h(3)=0
+  h(1)=max(2,0)+1=3 ✓`,
+        time: { best: "O(1) root access", avg: "O(n) traversal", worst: "O(n) traversal" },
+        space: "O(n) nodes / O(h) stack",
+        stable: undefined,
+        when: "Use trees for hierarchical data: file systems, org charts, expression parsing, network routing. Binary trees for sorted data (BST), priority access (heap), and string problems (trie).",
+        pros: [
+          "O(log n) operations on balanced trees",
+          "Natural representation for hierarchical data",
+          "Foundation for heaps, tries, segment trees, AVL trees"
+        ],
+        cons: [
+          "O(n) on unbalanced/skewed trees (degenerates to linked list)",
+          "No O(1) random access by index",
+          "More complex to implement than arrays or linked lists"
+        ],
+        cpp: `// Binary Tree Node — C++
+struct Node {
+    int data;
+    Node* left;
+    Node* right;
+    Node(int val) : data(val), left(nullptr), right(nullptr) {}
+};
+
+// Build a simple tree
+Node* root = new Node(1);
+root->left  = new Node(2);
+root->right = new Node(3);
+root->left->left  = new Node(4);
+root->left->right = new Node(5);
+
+// Height of tree — O(n)
+int height(Node* root) {
+    if (!root) return -1;  // null has height -1
+    return 1 + max(height(root->left), height(root->right));
+}
+
+// Size (count nodes) — O(n)
+int size(Node* root) {
+    if (!root) return 0;
+    return 1 + size(root->left) + size(root->right);
+}
+
+// Count leaves — O(n)
+int countLeaves(Node* root) {
+    if (!root) return 0;
+    if (!root->left && !root->right) return 1; // leaf
+    return countLeaves(root->left) + countLeaves(root->right);
+}`,
+        python: `# Binary Tree Node — Python
+class Node:
+    def __init__(self, val):
+        self.data = val
+        self.left = None
+        self.right = None
+
+# Build a simple tree
+root = Node(1)
+root.left  = Node(2)
+root.right = Node(3)
+root.left.left  = Node(4)
+root.left.right = Node(5)
+
+# Height — O(n)
+def height(root):
+    if not root: return -1  # null = -1
+    return 1 + max(height(root.left), height(root.right))
+
+# Size — O(n)
+def size(root):
+    if not root: return 0
+    return 1 + size(root.left) + size(root.right)
+
+# Count leaves — O(n)
+def count_leaves(root):
+    if not root: return 0
+    if not root.left and not root.right: return 1
+    return count_leaves(root.left) + count_leaves(root.right)`,
+        practice: [
+          { name: "Maximum Depth of Binary Tree", diff: "easy" },
+          { name: "Count Nodes in Complete Binary Tree", diff: "medium" },
+          { name: "Symmetric Tree", diff: "easy" }
+        ]
+      },
+      "Types of Trees": {
+        diff: "easy",
+        explanation: "Seven key tree types: (1) Full Binary Tree — every node has 0 or 2 children (never 1). (2) Complete Binary Tree — all levels filled except possibly the last, which is filled left to right. Heaps use this. (3) Perfect Binary Tree — all internal nodes have 2 children, all leaves at same level. n = 2^(h+1)-1 nodes. (4) Balanced Binary Tree — height is O(log n). AVL, Red-Black trees are balanced. (5) Binary Search Tree (BST) — left subtree < node < right subtree. O(log n) average search. (6) Degenerate/Skewed Tree — every node has only one child. Degenerates to linked list. O(n) operations. (7) N-ary Tree — nodes can have more than 2 children (e.g. file system folders).",
+        intuition: "Complete binary tree is what a heap looks like — filled level by level left to right, so it can be stored in an array (parent at i, children at 2i+1 and 2i+2). Perfect binary tree is the ideal — all nodes used. Balanced = guarantee of O(log n). Skewed = worst case = O(n). Most interview problems assume balanced unless stated otherwise.",
+        steps: [
+          "FULL: leaf nodes=internal nodes+1. n nodes → (n+1)/2 leaves.",
+          "COMPLETE: n nodes → height = floor(log₂n). Can be stored in array of size n.",
+          "PERFECT: h levels → 2^h-1 internal nodes + 2^h leaves = 2^(h+1)-1 total nodes.",
+          "BALANCED: |height(left)-height(right)| ≤ 1 for every node. Self-check recursively.",
+          "BST: inorder traversal gives sorted sequence. Left < root < right at every node.",
+          "SKEWED: all nodes on one side. Height=n-1. BST on sorted input → skewed!",
+          "AVL/Red-Black: self-balancing BSTs that maintain O(log n) after every insert/delete."
+        ],
+        dryRun: `FULL binary tree:
+    1
+   / \\
+  2   3
+ / \\
+4   5
+Every node has 0 or 2 children ✓ (node 3 has 0, others have 2)
+
+COMPLETE binary tree (can store in array):
+    1         index 0
+   / \\
+  2   3       index 1,2
+ / \\ /
+4  5 6        index 3,4,5
+parent(i)=(i-1)/2, left=2i+1, right=2i+2
+
+PERFECT binary tree (h=2):
+    1
+   / \\
+  2   3
+ /\\ /\\
+4 5 6 7
+n=7=2³-1 ✓, leaves=4=2²
+
+SKEWED (worst BST on sorted input [1,2,3,4]):
+1
+ \\
+  2
+   \\
+    3
+     \\
+      4   ← height=3, O(n) search ✗`,
+        time: { best: "O(log n) balanced", avg: "O(log n) balanced", worst: "O(n) skewed" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Complete binary tree → heaps. BST → sorted data lookups. Balanced BST (AVL/RB) → when ordered and guaranteed O(log n). Trie → string prefix problems.",
+        pros: [
+          "Complete/balanced: O(log n) guaranteed",
+          "BST: inorder traversal gives sorted output free",
+          "Perfect: maximum space efficiency"
+        ],
+        cons: [
+          "Skewed BST: degrades to O(n) — always balance or use AVL/RB",
+          "AVL/Red-Black: complex rotation logic",
+          "N-ary trees: traversal more complex than binary"
+        ],
+        cpp: `// Tree Type Checks — C++
+
+// Check if balanced — O(n)
+int checkBalanced(Node* root) {
+    if (!root) return 0;
+    int lh = checkBalanced(root->left);
+    if (lh == -1) return -1;
+    int rh = checkBalanced(root->right);
+    if (rh == -1) return -1;
+    if (abs(lh - rh) > 1) return -1;  // unbalanced!
+    return 1 + max(lh, rh);
+}
+bool isBalanced(Node* root) { return checkBalanced(root) != -1; }
+
+// Check if Full Binary Tree
+bool isFull(Node* root) {
+    if (!root) return true;
+    if (!root->left && !root->right) return true;  // leaf
+    if (root->left && root->right)   // both children
+        return isFull(root->left) && isFull(root->right);
+    return false;  // exactly one child → not full
+}
+
+// Complete binary tree — can store in array
+// parent at i → children at 2i+1, 2i+2
+// child at i → parent at (i-1)/2`,
+        python: `# Tree Type Checks — Python
+
+# Check balanced — O(n)
+def is_balanced(root):
+    def check(node):
+        if not node: return 0
+        lh = check(node.left)
+        if lh == -1: return -1
+        rh = check(node.right)
+        if rh == -1: return -1
+        if abs(lh - rh) > 1: return -1
+        return 1 + max(lh, rh)
+    return check(root) != -1
+
+# Check full binary tree
+def is_full(root):
+    if not root: return True
+    if not root.left and not root.right: return True
+    if root.left and root.right:
+        return is_full(root.left) and is_full(root.right)
+    return False  # one child → not full
+
+# Check perfect — nodes = 2^(h+1) - 1
+def is_perfect(root):
+    h = height(root)
+    n = size(root)
+    return n == (2 ** (h+1)) - 1`,
+        practice: [
+          { name: "Check if Tree is Balanced", diff: "easy" },
+          { name: "Check Completeness of Binary Tree", diff: "medium" },
+          { name: "Check if Two Trees are Identical", diff: "easy" }
+        ]
+      },
+      "Tree Traversals": {
+        diff: "easy",
+        explanation: "Four fundamental tree traversal methods: (1) Inorder (Left→Root→Right) — on a BST gives sorted ascending order. (2) Preorder (Root→Left→Right) — used to copy a tree or serialize it. (3) Postorder (Left→Right→Root) — used to delete a tree (children before parent) or evaluate expression trees. (4) Level Order (BFS) — traverse level by level using a queue. Used for level-based problems, finding minimum depth, zigzag traversal. All traversals are O(n) time and O(h) space for recursive (h=height), O(n) for level order.",
+        intuition: "Mnemonic: In-Pre-Post refers to when the ROOT is visited relative to children. INorder: root IN the middle. PREorder: root FIRST. POSTorder: root LAST. Level order uses a queue — natural BFS. For a BST, inorder always gives sorted output — this is the most useful property of BSTs.",
+        steps: [
+          "INORDER (L→Root→R): recurse left, print root, recurse right. BST → sorted output.",
+          "PREORDER (Root→L→R): print root, recurse left, recurse right. Serialization order.",
+          "POSTORDER (L→R→Root): recurse left, recurse right, print root. Delete/evaluate order.",
+          "LEVEL ORDER: enqueue root. While queue not empty: dequeue, process, enqueue left and right children.",
+          "ITERATIVE INORDER: use explicit stack. Push nodes left while going down. Pop, process, go right.",
+          "BASE CASE for all: if root==NULL, return immediately."
+        ],
+        dryRun: `Tree:      1
+          / \\
+         2   3
+        / \\
+       4   5
+
+INORDER  (L,Root,R): 4 → 2 → 5 → 1 → 3
+  Left(2)→Left(4)→[4]→back→[2]→Right(5)→[5]→back→Root[1]→Right(3)→[3]
+  Result: 4 2 5 1 3
+
+PREORDER (Root,L,R): 1 → 2 → 4 → 5 → 3
+  Root[1]→Left→Root[2]→Left→[4]→Right→[5]→back→Right→[3]
+  Result: 1 2 4 5 3
+
+POSTORDER(L,R,Root): 4 → 5 → 2 → 3 → 1
+  Left→Left→[4]→Right→[5]→Root[2]→Right→[3]→Root[1]
+  Result: 4 5 2 3 1
+
+LEVEL ORDER (BFS):
+  Queue=[1]
+  Dequeue 1 → print 1, enqueue 2,3 → Queue=[2,3]
+  Dequeue 2 → print 2, enqueue 4,5 → Queue=[3,4,5]
+  Dequeue 3 → print 3, no children → Queue=[4,5]
+  Dequeue 4 → print 4 → Queue=[5]
+  Dequeue 5 → print 5 → Queue=[]
+  Result: 1 2 3 4 5`,
+        time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
+        space: "O(h) recursive / O(n) level order",
+        stable: undefined,
+        when: "Inorder: BST sorted output, validate BST. Preorder: serialize/copy tree. Postorder: delete tree, evaluate expression. Level order: find minimum depth, connect level nodes, zigzag traversal.",
+        pros: [
+          "All traversals O(n) — visit every node exactly once",
+          "Inorder on BST gives sorted order for free",
+          "Level order finds shortest path to any node from root"
+        ],
+        cons: [
+          "Recursive traversals use O(h) stack — O(n) for skewed trees",
+          "Iterative versions require explicit stack or queue — more code",
+          "Morris traversal gives O(1) space but modifies tree temporarily"
+        ],
+        cpp: `// Tree Traversals — C++ (from notes)
+#include <queue>
+
+void inorder(Node* root) {     // L → Root → R
+    if (!root) return;
+    inorder(root->left);
+    cout << root->data << " ";
+    inorder(root->right);
+}
+
+void preorder(Node* root) {    // Root → L → R
+    if (!root) return;
+    cout << root->data << " ";
+    preorder(root->left);
+    preorder(root->right);
+}
+
+void postorder(Node* root) {   // L → R → Root
+    if (!root) return;
+    postorder(root->left);
+    postorder(root->right);
+    cout << root->data << " ";
+}
+
+void levelOrder(Node* root) {  // BFS — level by level
+    if (!root) return;
+    queue<Node*> q;
+    q.push(root);
+    while (!q.empty()) {
+        Node* node = q.front(); q.pop();
+        cout << node->data << " ";
+        if (node->left)  q.push(node->left);
+        if (node->right) q.push(node->right);
+    }
+}
+
+// Level order returning 2D vector (by level)
+vector<vector<int>> levelOrderLevels(Node* root) {
+    if (!root) return {};
+    queue<Node*> q; q.push(root);
+    vector<vector<int>> res;
+    while (!q.empty()) {
+        int sz = q.size(); vector<int> level;
+        for (int i=0;i<sz;i++) {
+            auto n=q.front();q.pop();
+            level.push_back(n->data);
+            if(n->left) q.push(n->left);
+            if(n->right) q.push(n->right);
+        }
+        res.push_back(level);
+    }
+    return res;
+}`,
+        python: `# Tree Traversals — Python (from notes)
+from collections import deque
+
+def inorder(root):      # L → Root → R
+    if not root: return
+    inorder(root.left)
+    print(root.data, end=" ")
+    inorder(root.right)
+
+def preorder(root):     # Root → L → R
+    if not root: return
+    print(root.data, end=" ")
+    preorder(root.left)
+    preorder(root.right)
+
+def postorder(root):    # L → R → Root
+    if not root: return
+    postorder(root.left)
+    postorder(root.right)
+    print(root.data, end=" ")
+
+def level_order(root):  # BFS
+    if not root: return
+    q = deque([root])
+    while q:
+        node = q.popleft()
+        print(node.data, end=" ")
+        if node.left:  q.append(node.left)
+        if node.right: q.append(node.right)
+
+# Level order returning list of levels
+def level_order_levels(root):
+    if not root: return []
+    q, res = deque([root]), []
+    while q:
+        level = []
+        for _ in range(len(q)):
+            node = q.popleft()
+            level.append(node.data)
+            if node.left:  q.append(node.left)
+            if node.right: q.append(node.right)
+        res.append(level)
+    return res`,
+        practice: [
+          { name: "Binary Tree Inorder Traversal", diff: "easy" },
+          { name: "Binary Tree Level Order Traversal", diff: "medium" },
+          { name: "Binary Tree Zigzag Level Order", diff: "medium" },
+          { name: "Binary Tree Right Side View", diff: "medium" }
+        ]
+      },
+      "Important Problems": {
+        diff: "medium",
+        explanation: "Seven canonical tree problems every CS student must master: (1) Height/Diameter — diameter = max path through any node = left_height + right_height + 2. (2) Lowest Common Ancestor (LCA) — deepest node that is an ancestor of both given nodes. (3) Path Sum — does any root-to-leaf path sum equal target? (4) Invert Binary Tree — mirror the tree (swap left and right at every node). (5) Validate BST — check BST property using min/max bounds, not just local comparison. (6) Serialize/Deserialize — convert tree to string and back. (7) Kth Smallest in BST — inorder traversal gives sorted order; return kth element.",
+        intuition: "Diameter trick: instead of computing max(leftDiameter, rightDiameter, leftH+rightH+2) separately, maintain a global max during height computation — single O(n) pass. LCA trick: if root equals p or q, root IS the LCA. If p and q are in different subtrees, root IS the LCA. Validate BST: passing min/max bounds down catches cases like [5,4,6,null,null,3,7] — the 3 passes local check (3<6) but violates global BST property.",
+        steps: [
+          "HEIGHT: h(null)=-1, h(node)=1+max(h(left),h(right)). O(n) recursive.",
+          "DIAMETER: at each node, candidate=h(left)+h(right)+2. Track global max while computing heights. O(n).",
+          "LCA: if root==null or root==p or root==q return root. Recurse left and right. If both non-null → root is LCA.",
+          "INVERT: swap root.left and root.right. Recurse on both. O(n).",
+          "VALIDATE BST: inorder(root,min=-∞,max=+∞). At each node: if node.val <= min or >= max → false. Recurse with updated bounds.",
+          "PATH SUM: if leaf and sum==target → true. Else recurse left(target-val) or right(target-val).",
+          "KTH SMALLEST: do inorder traversal, decrement k each visit. Return when k==0."
+        ],
+        dryRun: `── DIAMETER of tree ────────────────────────────────
+Tree:     1
+         / \\
+        2   3
+       / \\
+      4   5
+
+At node 4: h_left=-1, h_right=-1 → candidate=0
+At node 5: h_left=-1, h_right=-1 → candidate=0
+At node 2: h_left=0, h_right=0   → candidate=0+0+2=2, global_max=2
+At node 3: h_left=-1,h_right=-1  → candidate=0
+At node 1: h_left=1, h_right=0   → candidate=1+0+2=3, global_max=3 ✓
+Diameter = 3 (path: 4→2→5 has length 2, but 4→2→1→3 has length 3)
+
+── LCA of nodes 4 and 5 ────────────────────────────
+lca(1,4,5): recurse left(2,4,5), recurse right(3,4,5)
+  lca(2,4,5): recurse left(4,4,5)→return 4, recurse right(5,4,5)→return 5
+    both non-null → return node 2 ← LCA ✓
+  lca(3,4,5): left=null, right=null → return null
+left=node2, right=null → return node2 ✓
+
+── VALIDATE BST: [5,4,6,null,null,3,7] ─────────────
+validate(5, -∞, +∞): 5 in range ✓
+  validate(4, -∞, 5): 4 in range ✓
+    left=null, right=null → true ✓
+  validate(6, 5, +∞): 6 in range ✓
+    validate(3, 5, +∞): 3 <= min(5) → FALSE ✗ ← caught!`,
+        time: { best: "O(n)", avg: "O(n)", worst: "O(n)" },
+        space: "O(h) recursive stack",
+        stable: undefined,
+        when: "These 7 problems are the core of tree interviews. Master them in order — height → diameter → LCA → path sum → invert → validate BST → serialize.",
+        pros: [
+          "Most problems are elegant O(n) recursive solutions",
+          "Global variable trick converts O(n²) diameter to O(n)",
+          "LCA has O(log n) solution for BST, O(n) for general binary tree"
+        ],
+        cons: [
+          "Validate BST with local comparison is a classic bug — must use bounds",
+          "Serialize/Deserialize has multiple approaches (preorder, level order)",
+          "Diameter and height must be tracked simultaneously for O(n)"
+        ],
+        cpp: `// Important Tree Problems — C++
+
+// 1. Diameter — O(n) with global max trick
+int diamGlobal = 0;
+int diamHelper(Node* root) {
+    if (!root) return -1;
+    int lh = diamHelper(root->left);
+    int rh = diamHelper(root->right);
+    diamGlobal = max(diamGlobal, lh + rh + 2); // update diameter
+    return 1 + max(lh, rh);                    // return height
+}
+
+// 2. Lowest Common Ancestor — O(n)
+Node* lca(Node* root, Node* p, Node* q) {
+    if (!root || root==p || root==q) return root;
+    Node* left  = lca(root->left, p, q);
+    Node* right = lca(root->right, p, q);
+    if (left && right) return root; // p and q in diff subtrees
+    return left ? left : right;
+}
+
+// 3. Validate BST — O(n) with bounds
+bool isValidBST(Node* root, long mn=LLONG_MIN, long mx=LLONG_MAX) {
+    if (!root) return true;
+    if (root->data <= mn || root->data >= mx) return false;
+    return isValidBST(root->left, mn, root->data) &&
+           isValidBST(root->right, root->data, mx);
+}
+
+// 4. Invert Binary Tree — O(n)
+Node* invert(Node* root) {
+    if (!root) return nullptr;
+    swap(root->left, root->right);
+    invert(root->left);
+    invert(root->right);
+    return root;
+}
+
+// 5. Path Sum — O(n)
+bool hasPathSum(Node* root, int target) {
+    if (!root) return false;
+    if (!root->left && !root->right) return root->data == target;
+    return hasPathSum(root->left,  target - root->data) ||
+           hasPathSum(root->right, target - root->data);
+}`,
+        python: `# Important Tree Problems — Python
+
+# 1. Diameter — O(n)
+def diameter(root):
+    max_d = [0]
+    def height(node):
+        if not node: return -1
+        lh = height(node.left)
+        rh = height(node.right)
+        max_d[0] = max(max_d[0], lh + rh + 2)
+        return 1 + max(lh, rh)
+    height(root)
+    return max_d[0]
+
+# 2. LCA — O(n)
+def lca(root, p, q):
+    if not root or root == p or root == q: return root
+    left  = lca(root.left, p, q)
+    right = lca(root.right, p, q)
+    if left and right: return root  # p,q in diff subtrees
+    return left or right
+
+# 3. Validate BST — O(n) with bounds
+def is_valid_bst(root, mn=float('-inf'), mx=float('inf')):
+    if not root: return True
+    if root.data <= mn or root.data >= mx: return False
+    return (is_valid_bst(root.left, mn, root.data) and
+            is_valid_bst(root.right, root.data, mx))
+
+# 4. Invert Binary Tree — O(n)
+def invert(root):
+    if not root: return None
+    root.left, root.right = root.right, root.left
+    invert(root.left); invert(root.right)
+    return root
+
+# 5. Kth Smallest in BST — O(n)
+def kth_smallest(root, k):
+    stack, node = [], root
+    while stack or node:
+        while node: stack.append(node); node = node.left
+        node = stack.pop(); k -= 1
+        if k == 0: return node.data
+        node = node.right`,
+        practice: [
+          { name: "Diameter of Binary Tree", diff: "easy" },
+          { name: "Lowest Common Ancestor", diff: "medium" },
+          { name: "Validate Binary Search Tree", diff: "medium" },
+          { name: "Path Sum", diff: "easy" },
+          { name: "Invert Binary Tree", diff: "easy" },
+          { name: "Serialize and Deserialize Binary Tree", diff: "hard" }
+        ]
+      },
+      "Complexity & Patterns": {
+        diff: "easy",
+        explanation: "Tree operation complexities depend on the height h. For a balanced tree h=O(log n); for a skewed tree h=O(n). Key patterns: (1) DFS recursion — most tree problems solved with recursive post-order (compute children first, then combine at root). (2) BFS with queue — level-order problems, shortest path from root. (3) Tree DP — compute some value at each node using left and right subtree results. (4) Path sum problems — track running sum from root. (5) Height-based problems — return both height and answer from same recursive call (diameter trick). (6) Divide and conquer — split problem at root, solve subtrees independently, combine.",
+        intuition: "The divide-and-conquer pattern is the most powerful tree technique. For almost any tree problem: solve for left subtree, solve for right subtree, combine results at the current node. This naturally gives O(n) for most problems. The 'return multiple values' trick (return height AND answer together) avoids O(n²) repeated computations.",
+        steps: [
+          "TRAVERSAL: O(n) time, O(h) space. DFS uses call stack, BFS uses queue.",
+          "BST operations (balanced): O(log n). BST operations (skewed): O(n).",
+          "Always check: is root==NULL before accessing root->left or root->data.",
+          "DFS PATTERN: base case → recurse left → recurse right → combine.",
+          "BFS PATTERN: enqueue root → while queue: dequeue, process, enqueue children.",
+          "TREE DP: solve subproblem at each node using subtree results. Return value upward."
+        ],
+        dryRun: `Complexity by tree type:
+Operation  | Balanced BST | Skewed BST | General BT
+───────────┼──────────────┼────────────┼───────────
+Search     | O(log n)     | O(n)       | O(n)
+Insert     | O(log n)     | O(n)       | O(n)
+Delete     | O(log n)     | O(n)       | O(n)
+Traversal  | O(n)         | O(n)       | O(n)
+Height     | O(log n)     | O(n)       | O(n)
+Space      | O(log n)     | O(n)       | O(n) stack
+
+Pattern → Problem mapping:
+  DFS post-order    → height, diameter, path sum
+  DFS pre-order     → path problems, serialize
+  DFS inorder       → BST sorted output, kth smallest
+  BFS level order   → level-wise, min depth, right view
+  Tree DP           → max path sum, rob houses on tree
+  Divide & Conquer  → LCA, count nodes, validate BST
+
+Common bug: validating BST only locally
+  [5,4,6,null,null,3,7] — node 3 passes local check (3<6)
+  but violates global BST property (3 < root=5) → INVALID
+  Fix: pass min/max bounds down the tree ✓`,
+        time: { best: "O(log n) balanced", avg: "O(n) general", worst: "O(n) skewed" },
+        space: "O(h) stack / O(n) level order",
+        stable: undefined,
+        when: "DFS for most tree problems. BFS when level matters. Tree DP when combining subtree results. Always ensure tree is balanced for O(log n) — use AVL or Red-Black in practice.",
+        pros: [
+          "O(n) traversals cover most interview problems",
+          "Recursive solutions are concise and elegant",
+          "Tree DP extends dynamic programming to hierarchical structures"
+        ],
+        cons: [
+          "Recursion stack overflow for very deep trees (use iterative for safety)",
+          "Skewed trees destroy O(log n) guarantees — balance in production",
+          "Tree problems require strong base case intuition"
+        ],
+        cpp: `// Tree Patterns — C++
+
+// DFS post-order template (most common pattern)
+int dfsPostorder(Node* root) {
+    if (!root) return BASE_VALUE;    // base case
+    int left  = dfsPostorder(root->left);   // solve left
+    int right = dfsPostorder(root->right);  // solve right
+    return combine(left, right, root->data); // combine
+}
+
+// Maximum Path Sum (classic Tree DP)
+int maxPathGlobal = INT_MIN;
+int maxPathHelper(Node* root) {
+    if (!root) return 0;
+    int l = max(0, maxPathHelper(root->left));   // ignore negatives
+    int r = max(0, maxPathHelper(root->right));
+    maxPathGlobal = max(maxPathGlobal, l + r + root->data);
+    return root->data + max(l, r);  // return max single branch
+}
+
+// Serialize (preorder) — O(n)
+string serialize(Node* root) {
+    if (!root) return "#,";
+    return to_string(root->data)+","+serialize(root->left)+serialize(root->right);
+}
+
+// BFS right side view
+vector<int> rightSideView(Node* root) {
+    if (!root) return {};
+    queue<Node*> q; q.push(root);
+    vector<int> res;
+    while (!q.empty()) {
+        int sz=q.size();
+        for(int i=0;i<sz;i++){
+            auto n=q.front();q.pop();
+            if(i==sz-1) res.push_back(n->data); // rightmost
+            if(n->left) q.push(n->left);
+            if(n->right) q.push(n->right);
+        }
+    }
+    return res;
+}`,
+        python: `# Tree Patterns — Python
+
+# DFS post-order template
+def dfs_postorder(root):
+    if not root: return BASE_VALUE
+    left  = dfs_postorder(root.left)
+    right = dfs_postorder(root.right)
+    return combine(left, right, root.data)
+
+# Maximum Path Sum (Tree DP)
+def max_path_sum(root):
+    res = [float('-inf')]
+    def helper(node):
+        if not node: return 0
+        l = max(0, helper(node.left))   # ignore negatives
+        r = max(0, helper(node.right))
+        res[0] = max(res[0], l + r + node.data)
+        return node.data + max(l, r)
+    helper(root)
+    return res[0]
+
+# Iterative inorder (no recursion) — O(n), O(h)
+def inorder_iterative(root):
+    stack, result, node = [], [], root
+    while stack or node:
+        while node: stack.append(node); node = node.left
+        node = stack.pop()
+        result.append(node.data)
+        node = node.right
+    return result`,
+        practice: [
+          { name: "Binary Tree Maximum Path Sum", diff: "hard" },
+          { name: "Serialize and Deserialize Binary Tree", diff: "hard" },
+          { name: "Binary Tree Right Side View", diff: "medium" },
+          { name: "Maximum Depth of Binary Tree", diff: "easy" },
+          { name: "Construct Binary Tree from Preorder and Inorder", diff: "medium" }
+        ]
+      }
+    }
+  },
   "Binary Search Trees": { icon: "🌲", diff: "medium", desc: "Ordered trees enabling O(log n) search, insert, delete. Inorder gives sorted output.", subtopics: {} },
   Heaps: { icon: "🏔️", diff: "medium", desc: "Priority queues, top-K problems, scheduling. Max-heap and min-heap.", subtopics: {} },
   Graphs: { icon: "🕸️", diff: "hard", desc: "BFS, DFS, Dijkstra, Bellman-Ford, Topological Sort, Union-Find.", subtopics: {} },
@@ -4289,6 +5529,267 @@ function SubtopicView({ data, name }) {
           <div className="callout callout-warn" style={{marginTop:10}}>
             <span className="callout-icon">⚡</span>
             <div className="callout-text"><strong>Interpolation pitfall:</strong> O(n) worst case on skewed data (e.g. [1,2,3,...,100,1000000]). Always verify uniform distribution before using it.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Hashing: hash function visualizer */}
+      {is("Basics & Hash Functions") && (
+        <div className="sec">
+          <div className="stitle">Hash Function in Action</div>
+          <div style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:10,padding:"14px 18px",overflowX:"auto"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",fontFamily:"'Space Mono',monospace",fontSize:".78rem"}}>
+              {[[10,0],[25,5],[37,7],[23,3],[33,3]].map(([k,idx],i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:6}}>
+                  <span style={{color:"var(--accent2)",fontWeight:700}}>{k}</span>
+                  <span style={{color:"var(--text3)"}}>%10=</span>
+                  <span style={{background:k===33?"rgba(255,92,92,.2)":"rgba(6,255,165,.12)",border:`1px solid ${k===33?"var(--red)":"var(--accent3)"}`,borderRadius:6,padding:"3px 10px",color:k===33?"var(--red)":"var(--accent3)",fontWeight:700}}>{idx}</span>
+                  {k===33&&<span style={{color:"var(--red)",fontSize:".68rem"}}>← collision!</span>}
+                  {i<4&&<span style={{color:"var(--text3)"}}>→</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Load Factor:</strong> keep it below 0.7. If n/m &gt; 0.7, rehash to a table of ~2× size. This keeps average chain length short and operations O(1).</div>
+          </div>
+        </div>
+      )}
+
+      {/* Hashing: collision strategies comparison */}
+      {is("Collision Handling") && (
+        <div className="sec">
+          <div className="stitle">Collision Strategies</div>
+          <table className="fn-table">
+            <thead><tr><th>Strategy</th><th>Probe Formula</th><th>Pros</th><th>Cons</th></tr></thead>
+            <tbody>
+              {[
+                ["Chaining","N/A (linked list)","Simple, LF>1 OK","Extra pointer memory"],
+                ["Linear Probing","(h+i)%size","Cache-friendly","Primary clustering"],
+                ["Quadratic","(h+i²)%size","Less clustering","May miss slots"],
+                ["Double Hash","(h1+i×h2)%size","Best distribution","Two hash fns needed"],
+              ].map(([s,f,p,c])=>(
+                <tr key={s}>
+                  <td className="op">{s}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".72rem"}}>{f}</td>
+                  <td style={{color:"var(--green)",fontSize:".73rem"}}>{p}</td>
+                  <td style={{color:"var(--red)",fontSize:".73rem"}}>{c}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Deletion in open addressing:</strong> Never mark as EMPTY. Use a TOMBSTONE marker — otherwise searches for keys that probed past this slot will incorrectly stop and report "not found".</div>
+          </div>
+        </div>
+      )}
+
+      {/* Hashing: patterns toolkit */}
+      {is("Important Patterns") && (
+        <div className="sec">
+          <div className="stitle">Pattern Toolkit</div>
+          <div className="pattern-pills">
+            {["Frequency Count","Two Sum","Prefix Sum + HashMap","Hash Set (Duplicates)","Sliding Window + Map","Group Anagrams","Rolling Hash","Complement Lookup"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="theorem-box" style={{marginTop:12}}>
+            <div className="theorem-label">Subarray Sum = K — Key Insight</div>
+            <div className="theorem-text" style={{fontFamily:"'Space Mono',monospace",fontSize:".76rem",lineHeight:2}}>
+              {"Initialize: count = {0: 1}  ← crucial! prefix 0 seen once"}<br/>
+              {"For each element: prefix += x"}<br/>
+              {"  ans += count.get(prefix - k, 0)"}<br/>
+              {"  count[prefix]++"}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hashing: complexity table */}
+      {is("Complexity & Applications") && (
+        <div className="sec">
+          <div className="stitle">Operations at a Glance</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>
+            <span className="op-badge ob-o1">Insert — O(1) avg</span>
+            <span className="op-badge ob-o1">Search — O(1) avg</span>
+            <span className="op-badge ob-o1">Delete — O(1) avg</span>
+            <span className="op-badge ob-on">All — O(n) worst</span>
+          </div>
+          <table className="fn-table">
+            <thead><tr><th>Structure</th><th>Insert</th><th>Search</th><th>Ordered?</th><th>Use when</th></tr></thead>
+            <tbody>
+              {[
+                ["Hash Table","O(1) avg","O(1) avg","No","Fast lookup needed"],
+                ["BST / map","O(log n)","O(log n)","YES","Sorted order needed"],
+                ["Array","O(1) end","O(n)","No","Index-based access"],
+                ["Sorted Array","O(n)","O(log n)","YES","Static + binary search"],
+              ].map(([s,ins,srch,ord,use])=>(
+                <tr key={s}>
+                  <td className="op">{s}</td>
+                  <td style={{color:ins.includes("1)")?"var(--green)":"var(--yellow)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{ins}</td>
+                  <td style={{color:srch.includes("1)")?"var(--green)":"var(--yellow)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{srch}</td>
+                  <td style={{color:ord==="YES"?"var(--green)":"var(--red)",fontSize:".73rem"}}>{ord}</td>
+                  <td style={{color:"var(--text3)",fontSize:".72rem"}}>{use}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Trees: node/tree visualizer */}
+      {is("Basics & Terminology") && (
+        <div className="sec">
+          <div className="stitle">Tree Anatomy</div>
+          <div style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:10,padding:"16px 20px",fontFamily:"'Space Mono',monospace",fontSize:".78rem",color:"var(--text2)",lineHeight:2.2}}>
+            <div style={{textAlign:"center"}}>
+              <span style={{background:"var(--accent)",color:"#fff",padding:"4px 14px",borderRadius:6,fontWeight:700}}>1</span>
+              <span style={{color:"var(--text3)",fontSize:".65rem",marginLeft:8}}>← root (depth=0, height=2)</span>
+            </div>
+            <div style={{textAlign:"center",marginTop:2}}>
+              <span style={{color:"var(--text3)"}}>/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \</span>
+            </div>
+            <div style={{display:"flex",justifyContent:"center",gap:48}}>
+              <div style={{textAlign:"center"}}>
+                <span style={{background:"var(--bg3)",border:"1px solid var(--accent2)",color:"var(--accent2)",padding:"4px 12px",borderRadius:6,fontWeight:700}}>2</span>
+                <div style={{fontSize:".62rem",color:"var(--text3)"}}>depth=1, height=1</div>
+                <div style={{color:"var(--text3)"}}>/ &nbsp; \</div>
+                <div style={{display:"flex",gap:12,justifyContent:"center"}}>
+                  {[4,5].map(v=>(
+                    <div key={v} style={{textAlign:"center"}}>
+                      <span style={{background:"var(--bg3)",border:"1px solid var(--accent3)",color:"var(--accent3)",padding:"4px 10px",borderRadius:6,fontWeight:700}}>{v}</span>
+                      <div style={{fontSize:".6rem",color:"var(--accent3)"}}>leaf</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{textAlign:"center"}}>
+                <span style={{background:"var(--bg3)",border:"1px solid var(--accent3)",color:"var(--accent3)",padding:"4px 12px",borderRadius:6,fontWeight:700}}>3</span>
+                <div style={{fontSize:".62rem",color:"var(--accent3)"}}>leaf (depth=1)</div>
+              </div>
+            </div>
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:10}}>
+            {[["Root","1 — no parent"],["Leaves","3,4,5 — no children"],["Height","2 (longest root→leaf)"],["Depth(2)","1 (edges from root)"],["Degree(2)","2 (two children)"]].map(([k,v])=>(
+              <div key={k} style={{background:"var(--bg3)",border:"1px solid var(--border)",borderRadius:8,padding:"6px 12px",fontSize:".72rem"}}>
+                <span style={{color:"var(--accent2)",fontFamily:"'Space Mono',monospace",fontWeight:700}}>{k}: </span>
+                <span style={{color:"var(--text2)"}}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Trees: types comparison */}
+      {is("Types of Trees") && (
+        <div className="sec">
+          <div className="stitle">Tree Types at a Glance</div>
+          <table className="fn-table">
+            <thead><tr><th>Type</th><th>Property</th><th>Height</th><th>Use case</th></tr></thead>
+            <tbody>
+              {[
+                ["Full BT","Every node has 0 or 2 children","O(n)","Expression trees"],
+                ["Complete BT","All levels full except last (left→right)","O(log n)","Heaps"],
+                ["Perfect BT","All levels completely full","O(log n)","Ideal binary tree"],
+                ["Balanced BT","|h(L)-h(R)| ≤ 1 at every node","O(log n)","AVL, Red-Black"],
+                ["BST","left < root < right","O(log n) avg","Ordered search"],
+                ["Skewed","All nodes on one side","O(n)","Worst case BST"],
+              ].map(([t,p,h,u])=>(
+                <tr key={t}>
+                  <td className="op">{t}</td>
+                  <td style={{color:"var(--text2)",fontSize:".74rem"}}>{p}</td>
+                  <td style={{color:h.includes("log")?"var(--green)":"var(--red)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{h}</td>
+                  <td style={{color:"var(--text3)",fontSize:".72rem"}}>{u}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Skewed BST danger:</strong> inserting sorted data [1,2,3,4,5] into a BST without balancing creates a skewed tree — height=n-1, all operations degrade to O(n). Always use AVL or Red-Black in production.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Trees: traversal order visual */}
+      {is("Tree Traversals") && (
+        <div className="sec">
+          <div className="stitle">Traversal Orders — Quick Reference</div>
+          <table className="fn-table">
+            <thead><tr><th>Traversal</th><th>Order</th><th>Result on example</th><th>Use for</th></tr></thead>
+            <tbody>
+              {[
+                ["Inorder","L → Root → R","4 2 5 1 3","BST sorted output"],
+                ["Preorder","Root → L → R","1 2 4 5 3","Serialize / copy tree"],
+                ["Postorder","L → R → Root","4 5 2 3 1","Delete / eval expression"],
+                ["Level Order","BFS level by level","1 2 3 4 5","Min depth, right view"],
+              ].map(([t,o,r,u])=>(
+                <tr key={t}>
+                  <td className="op">{t}</td>
+                  <td style={{color:"var(--accent2)",fontFamily:"Space Mono,monospace",fontSize:".72rem"}}>{o}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{r}</td>
+                  <td style={{color:"var(--text3)",fontSize:".72rem"}}>{u}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Mnemonic:</strong> In/Pre/Post = when the ROOT is visited. <strong>In</strong>order = root <strong>in</strong> middle. <strong>Pre</strong>order = root <strong>first</strong>. <strong>Post</strong>order = root <strong>last</strong>.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Trees: important problems pattern pills */}
+      {is("Important Problems") && (
+        <div className="sec">
+          <div className="stitle">Must-Know Problems</div>
+          <div className="pattern-pills">
+            {["Height","Diameter (global max trick)","LCA","Invert Tree","Validate BST (bounds!)","Path Sum","Kth Smallest BST","Serialize / Deserialize","Max Path Sum","Right Side View"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="theorem-box" style={{marginTop:12}}>
+            <div className="theorem-label">Validate BST — Classic Bug</div>
+            <div className="theorem-text" style={{fontFamily:"'Space Mono',monospace",fontSize:".76rem",lineHeight:2}}>
+              {"WRONG: only check left.val < root < right.val (local)"}<br/>
+              {"RIGHT: pass min/max bounds: isValid(node, min, max)"}<br/>
+              {"  if node.val <= min or node.val >= max → False"}<br/>
+              {"  recurse left with max=node.val, right with min=node.val"}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Trees: complexity table */}
+      {is("Complexity & Patterns") && (
+        <div className="sec">
+          <div className="stitle">Complexity by Tree Type</div>
+          <table className="fn-table">
+            <thead><tr><th>Operation</th><th>Balanced BST</th><th>Skewed BST</th><th>General BT</th></tr></thead>
+            <tbody>
+              {[
+                ["Search","O(log n)","O(n)","O(n)"],
+                ["Insert","O(log n)","O(n)","O(n)"],
+                ["Delete","O(log n)","O(n)","O(n)"],
+                ["Traversal","O(n)","O(n)","O(n)"],
+                ["Stack space","O(log n)","O(n)","O(h)"],
+              ].map(([op,b,s,g])=>(
+                <tr key={op}>
+                  <td className="op">{op}</td>
+                  <td style={{color:"var(--green)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{b}</td>
+                  <td style={{color:"var(--red)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{s}</td>
+                  <td style={{color:"var(--yellow)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{g}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="pattern-pills" style={{marginTop:12}}>
+            {["DFS Post-order","BFS Level-order","Tree DP","Divide & Conquer","Inorder for BST","Height + Global Max"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
           </div>
         </div>
       )}
