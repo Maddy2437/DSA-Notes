@@ -4666,9 +4666,1641 @@ def inorder_iterative(root):
       }
     }
   },
-  "Binary Search Trees": { icon: "🌲", diff: "medium", desc: "Ordered trees enabling O(log n) search, insert, delete. Inorder gives sorted output.", subtopics: {} },
-  Heaps: { icon: "🏔️", diff: "medium", desc: "Priority queues, top-K problems, scheduling. Max-heap and min-heap.", subtopics: {} },
-  Graphs: { icon: "🕸️", diff: "hard", desc: "BFS, DFS, Dijkstra, Bellman-Ford, Topological Sort, Union-Find.", subtopics: {} },
+  "Binary Search Trees": {
+    icon: "🌲", diff: "medium",
+    desc: "Ordered binary tree: left < root < right. O(log n) average search, insert, delete. Inorder gives sorted output.",
+    subtopics: {
+      "BST Basics & Property": {
+        diff: "easy",
+        explanation: "A Binary Search Tree is a binary tree where every node satisfies: all values in the left subtree are less than the node's value, and all values in the right subtree are greater. Both subtrees are also valid BSTs recursively. This ordering property enables binary search — at each node, we eliminate half the remaining candidates. Average case: O(log n) for search, insert, delete. Worst case: O(n) when tree is skewed (e.g. inserting sorted data 1,2,3,4,5 creates a right-skewed tree). Inorder traversal of a BST always produces sorted ascending output — this is the most useful BST property.",
+        intuition: "Think of BST like a dictionary — words before the current word go left, words after go right. Or like a decision tree: compare value, go left if smaller, go right if larger. Each comparison eliminates half the remaining nodes (if balanced), exactly like binary search on a sorted array. The key difference from a sorted array: BST supports O(log n) insert/delete — arrays need O(n) shifting.",
+        steps: [
+          "BST PROPERTY: for every node N: all nodes in N.left < N.val AND all nodes in N.right > N.val. (Recursively true at every node, not just root!)",
+          "SEARCH: compare key with root. Equal → found. Less → go left. Greater → go right. Return null if not found. O(h) time.",
+          "INSERT: traverse like search until a null spot is found. Create new node there. O(h) time.",
+          "INORDER traversal (Left→Root→Right) always gives sorted ascending output. Use this to verify BST.",
+          "HEIGHT h: balanced BST h=O(log n), skewed BST h=O(n-1).",
+          "COMMON MISTAKE: checking only root->left < root < root->right is NOT sufficient. Must check global bounds (see Validate BST)."
+        ],
+        dryRun: `INSERT 5,3,7,2,4 into empty BST:
+
+Insert 5: root=5
+Insert 3: 3<5 → go left → root.left=3
+Insert 7: 7>5 → go right → root.right=7
+Insert 2: 2<5→left(3), 2<3→left → node(3).left=2
+Insert 4: 4<5→left(3), 4>3→right → node(3).right=4
+
+Final BST:
+        5
+       / \\
+      3   7
+     / \\
+    2   4
+
+INORDER traversal: 2 3 4 5 7 ← sorted ✓
+
+SEARCH for 4:
+  4<5 → go left (3)
+  4>3 → go right (4)
+  4==4 → FOUND ✓  (2 comparisons, not 5)
+
+SEARCH for 6:
+  6>5 → go right (7)
+  6<7 → go left → NULL → NOT FOUND ✗`,
+        time: { best: "O(1) root", avg: "O(log n)", worst: "O(n) skewed" },
+        space: "O(h) recursive stack",
+        stable: undefined,
+        when: "Use BST when you need ordered data with O(log n) search+insert+delete. Use balanced BST (AVL/Red-Black) when input order is unpredictable. Use hashing when order doesn't matter and O(1) is critical.",
+        pros: [
+          "O(log n) average search, insert, delete",
+          "Inorder traversal gives sorted output — free sorting",
+          "Supports range queries, predecessor/successor in O(log n)",
+          "Foundation for AVL, Red-Black, B-Trees, Segment Trees"
+        ],
+        cons: [
+          "O(n) worst case on skewed tree (sorted/reverse input)",
+          "No O(1) operations unlike hash tables",
+          "Requires balancing (AVL/RB) for guaranteed O(log n)"
+        ],
+        cpp: `// BST Node and basic search — C++
+struct Node {
+    int data;
+    Node* left, *right;
+    Node(int val) : data(val), left(nullptr), right(nullptr) {}
+};
+
+// Search — O(h)
+bool search(Node* root, int key) {
+    if (!root) return false;
+    if (root->data == key) return true;
+    if (key < root->data) return search(root->left, key);
+    return search(root->right, key);
+}
+
+// Iterative search — O(h), O(1) space
+bool searchIter(Node* root, int key) {
+    while (root) {
+        if (root->data == key) return true;
+        root = (key < root->data) ? root->left : root->right;
+    }
+    return false;
+}
+
+// Inorder traversal → sorted output
+void inorder(Node* root) {
+    if (!root) return;
+    inorder(root->left);
+    cout << root->data << " ";
+    inorder(root->right);
+}`,
+        python: `# BST Node and basic operations — Python
+class Node:
+    def __init__(self, val):
+        self.data = val
+        self.left = None
+        self.right = None
+
+# Search — O(h)
+def search(root, key):
+    if not root: return False
+    if root.data == key: return True
+    if key < root.data: return search(root.left, key)
+    return search(root.right, key)
+
+# Iterative search — O(h), O(1) space
+def search_iter(root, key):
+    while root:
+        if root.data == key: return True
+        root = root.left if key < root.data else root.right
+    return False
+
+# Inorder → sorted output
+def inorder(root):
+    if not root: return []
+    return inorder(root.left) + [root.data] + inorder(root.right)
+
+# Verify BST property
+result = inorder(root)
+is_sorted = all(result[i] < result[i+1] for i in range(len(result)-1))`,
+        practice: [
+          { name: "Search in a Binary Search Tree", diff: "easy" },
+          { name: "Validate Binary Search Tree", diff: "medium" },
+          { name: "Kth Smallest Element in BST", diff: "medium" }
+        ]
+      },
+      "Insert & Delete": {
+        diff: "medium",
+        explanation: "Insertion: traverse like a search until reaching a null child — that null position is where the new node belongs. Recursive: if root is null return new node, else recurse left or right, return root. O(h). Deletion has 3 cases: (1) Leaf node — delete directly, return null. (2) One child — replace the node with its only child. (3) Two children — find the inorder successor (smallest node in right subtree using findMin), copy its value into the current node, delete the inorder successor from the right subtree. All cases O(h).",
+        intuition: "Deletion case 3 is the tricky one. You can't just remove the node because it has two children pulling on it. Instead, find the inorder successor — the smallest value larger than current node — copy its value up, and delete it from the right subtree (where it's guaranteed to be a leaf or have only a right child, making deletion easy). Alternatively use inorder predecessor (largest in left subtree).",
+        steps: [
+          "INSERT: if root==null → return new Node(val). If val < root.data → root.left=insert(root.left,val). Else root.right=insert(root.right,val). Return root.",
+          "DELETE CASE 1 (leaf): root.left==null && root.right==null → return null.",
+          "DELETE CASE 2 (one child): root.left==null → return root.right. root.right==null → return root.left.",
+          "DELETE CASE 3 (two children): find inorder successor = findMin(root.right). root.data = successor.data. root.right = delete(root.right, successor.data). Return root.",
+          "FINDMIN: go left as far as possible. Return leftmost node.",
+          "FINDMAX: go right as far as possible. Return rightmost node."
+        ],
+        dryRun: `BST:     5
+        / \\
+       3   7
+      / \\
+     2   4
+
+DELETE 3 (two children):
+  Find inorder successor of 3 = findMin(3.right) = 4
+  Copy 4 into node: node becomes 4
+  Delete 4 from right subtree of node(4)
+    delete(node(4), 4): node(4)==4, leaf → return null
+  Result:
+        5
+       / \\
+      4   7
+     /
+    2    ✓
+
+DELETE 7 (leaf):
+  node(7).left==null && node(7).right==null → return null
+  Result: 5.right = null ✓
+
+INSERT 6 into original BST:
+  6>5 → go right (7)
+  6<7 → go left → null → insert here
+  Result:
+        5
+       / \\
+      3   7
+     / \\ /
+    2  4 6  ✓`,
+        time: { best: "O(log n) balanced", avg: "O(log n)", worst: "O(n) skewed" },
+        space: "O(h) recursive",
+        stable: undefined,
+        when: "BST insert/delete when ordered dynamic data needed. For guaranteed O(log n): use self-balancing BST (AVL/Red-Black).",
+        pros: [
+          "O(log n) average — no element shifting unlike sorted arrays",
+          "Deletion case 3 elegantly reuses BST structure",
+          "Recursive implementation is clean and concise"
+        ],
+        cons: [
+          "O(n) worst case on sorted input without balancing",
+          "Deletion case 3 is the most error-prone in interviews",
+          "Recursive stack O(h) — use iterative for deep trees"
+        ],
+        cpp: `// BST Insert and Delete — C++ (from notes)
+
+// Insert — O(h)
+Node* insert(Node* root, int val) {
+    if (!root) return new Node(val);   // base case: insert here
+    if (val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+    return root;
+}
+
+// Find minimum node (inorder successor helper)
+Node* findMin(Node* root) {
+    while (root->left)   // go as far left as possible
+        root = root->left;
+    return root;
+}
+
+// Delete — O(h), all 3 cases
+Node* deleteNode(Node* root, int key) {
+    if (!root) return nullptr;
+    if (key < root->data)
+        root->left = deleteNode(root->left, key);
+    else if (key > root->data)
+        root->right = deleteNode(root->right, key);
+    else {
+        // Case 1: leaf
+        if (!root->left && !root->right) return nullptr;
+        // Case 2: one child
+        if (!root->left) return root->right;
+        if (!root->right) return root->left;
+        // Case 3: two children — use inorder successor
+        Node* successor = findMin(root->right);
+        root->data = successor->data;           // copy value up
+        root->right = deleteNode(root->right, successor->data); // delete successor
+    }
+    return root;
+}`,
+        python: `# BST Insert and Delete — Python (from notes)
+
+# Insert — O(h)
+def insert(root, val):
+    if not root: return Node(val)   # base: insert here
+    if val < root.data:
+        root.left = insert(root.left, val)
+    else:
+        root.right = insert(root.right, val)
+    return root
+
+# Find minimum node
+def find_min(root):
+    while root.left:   # go as far left as possible
+        root = root.left
+    return root
+
+# Delete — O(h), all 3 cases
+def delete_node(root, key):
+    if not root: return None
+    if key < root.data:
+        root.left = delete_node(root.left, key)
+    elif key > root.data:
+        root.right = delete_node(root.right, key)
+    else:
+        # Case 1 & 2: 0 or 1 child
+        if not root.left: return root.right
+        if not root.right: return root.left
+        # Case 3: two children — inorder successor
+        successor = find_min(root.right)
+        root.data = successor.data          # copy value up
+        root.right = delete_node(root.right, successor.data)
+    return root`,
+        practice: [
+          { name: "Insert into a Binary Search Tree", diff: "medium" },
+          { name: "Delete Node in a BST", diff: "medium" },
+          { name: "Merge Two BSTs", diff: "hard" }
+        ]
+      },
+      "Important BST Problems": {
+        diff: "medium",
+        explanation: "Six canonical BST problems: (1) Validate BST — use min/max bounds (not local comparison). (2) LCA in BST — exploit ordering: if both p,q < root → go left; if both > root → go right; else root IS the LCA. O(h). (3) Kth Smallest — inorder traversal gives sorted order; decrement k each visit, return when k==0. (4) Convert Sorted Array to BST — use middle element as root, recurse on halves. Gives balanced BST. (5) Range Sum — traverse selectively: if node < lo skip right subtree; if node > hi skip left subtree. O(n) worst, better in practice. (6) Floor/Ceil — largest value ≤ key (floor) and smallest value ≥ key (ceil) using BST property.",
+        intuition: "LCA in BST is O(h) vs O(n) for general binary tree because BST ordering tells you exactly which subtree to search — no need to explore both. Sorted array to BST: always pick the middle as root to guarantee a balanced tree (height = log n). Kth smallest: inorder is sorted, so just count to k. Range sum: prune subtrees outside [lo, hi] using BST property — much faster than full traversal.",
+        steps: [
+          "VALIDATE BST: isValid(node, min=-∞, max=+∞). At each node: if node.val ≤ min or ≥ max → false. Recurse left(max=node.val), right(min=node.val).",
+          "LCA IN BST: if p.val < root.val AND q.val < root.val → recurse left. If both > root → recurse right. Else → root is LCA.",
+          "KTH SMALLEST: inorder traversal with counter. When k reaches 0 → return current node value.",
+          "SORTED ARRAY TO BST: mid=(lo+hi)/2. root=arr[mid]. root.left=build(lo,mid-1). root.right=build(mid+1,hi).",
+          "RANGE SUM [lo,hi]: if node.val < lo → only check right (left subtree all smaller). If node.val > hi → only check left. Else: add node.val + rangeSum(left) + rangeSum(right).",
+          "FLOOR: largest value ≤ key. If node.val==key return node. If key < node.val → floor in left subtree. Else: candidate=node.val, check right for closer value."
+        ],
+        dryRun: `── LCA in BST: p=2, q=4, root at 5 ──────────────────
+        5
+       / \\
+      3   7
+     / \\
+    2   4
+
+Step 1: 2<5 AND 4<5 → both in left subtree → go left (3)
+Step 2: 2<3 AND 4>3 → p and q in DIFFERENT subtrees → LCA = node(3) ✓
+O(h) = O(2) vs O(n) for general BT!
+
+── SORTED ARRAY TO BALANCED BST: [1,2,3,4,5,6,7] ───
+mid=3 → root=arr[3]=4
+  left:  [1,2,3] mid=1 → root=2, left=1, right=3
+  right: [5,6,7] mid=1 → root=6, left=5, right=7
+Result:
+        4
+       / \\
+      2   6
+     / \\ / \\
+    1  3 5  7  ← perfectly balanced ✓
+
+── KTH SMALLEST (k=3) in BST ─────────────────────────
+Inorder: 2 → 3 → 4 → 5 → 7
+  Visit 2: k=3→2 (not 0)
+  Visit 3: k=2→1 (not 0)
+  Visit 4: k=1→0 → RETURN 4 ✓ (3rd smallest)`,
+        time: { best: "O(log n) LCA/BST ops", avg: "O(log n)", worst: "O(n) skewed" },
+        space: "O(h)",
+        stable: undefined,
+        when: "LCA in BST → O(h) using ordering (vs O(n) general tree). Kth smallest → O(n) inorder or O(k+log n) with augmented BST. Sorted array to BST → always for balanced construction.",
+        pros: [
+          "BST ordering enables O(h) LCA — much faster than general tree O(n)",
+          "Range queries prune subtrees — better than full O(n) traversal",
+          "Sorted array to BST always gives balanced result — O(log n) height"
+        ],
+        cons: [
+          "Validate BST: local comparison is wrong — must use bounds",
+          "Kth smallest: O(n) unless augmented with subtree sizes",
+          "Skewed BST degrades all operations to O(n)"
+        ],
+        cpp: `// Important BST Problems — C++
+
+// 1. Validate BST — O(n) with bounds
+bool isValidBST(Node* root, long mn=LLONG_MIN, long mx=LLONG_MAX) {
+    if (!root) return true;
+    if (root->data <= mn || root->data >= mx) return false;
+    return isValidBST(root->left,  mn, root->data) &&
+           isValidBST(root->right, root->data, mx);
+}
+
+// 2. LCA in BST — O(h), exploits ordering
+Node* lcaBST(Node* root, Node* p, Node* q) {
+    if (!root) return nullptr;
+    if (p->data < root->data && q->data < root->data)
+        return lcaBST(root->left, p, q);   // both in left
+    if (p->data > root->data && q->data > root->data)
+        return lcaBST(root->right, p, q);  // both in right
+    return root;  // they diverge here → root is LCA
+}
+
+// 3. Kth Smallest — O(n)
+int kthSmallest(Node* root, int& k) {
+    if (!root) return -1;
+    int left = kthSmallest(root->left, k);
+    if (k == 0) return left;
+    if (--k == 0) return root->data;       // k-th visited
+    return kthSmallest(root->right, k);
+}
+
+// 4. Sorted Array to Balanced BST — O(n)
+Node* sortedToBST(vector<int>& arr, int lo, int hi) {
+    if (lo > hi) return nullptr;
+    int mid = lo + (hi - lo) / 2;
+    Node* root = new Node(arr[mid]);
+    root->left  = sortedToBST(arr, lo, mid-1);
+    root->right = sortedToBST(arr, mid+1, hi);
+    return root;
+}
+
+// 5. Range Sum [lo, hi] — O(n) worst, prunes in practice
+int rangeSum(Node* root, int lo, int hi) {
+    if (!root) return 0;
+    if (root->data < lo) return rangeSum(root->right, lo, hi);
+    if (root->data > hi) return rangeSum(root->left, lo, hi);
+    return root->data + rangeSum(root->left, lo, hi)
+                      + rangeSum(root->right, lo, hi);
+}`,
+        python: `# Important BST Problems — Python
+
+# 1. Validate BST — O(n)
+def is_valid_bst(root, mn=float('-inf'), mx=float('inf')):
+    if not root: return True
+    if root.data <= mn or root.data >= mx: return False
+    return (is_valid_bst(root.left,  mn, root.data) and
+            is_valid_bst(root.right, root.data, mx))
+
+# 2. LCA in BST — O(h)
+def lca_bst(root, p, q):
+    if not root: return None
+    if p.data < root.data and q.data < root.data:
+        return lca_bst(root.left, p, q)   # both in left
+    if p.data > root.data and q.data > root.data:
+        return lca_bst(root.right, p, q)  # both in right
+    return root  # diverge here → LCA
+
+# 3. Kth Smallest — O(n) inorder
+def kth_smallest(root, k):
+    stack, node = [], root
+    while stack or node:
+        while node: stack.append(node); node = node.left
+        node = stack.pop(); k -= 1
+        if k == 0: return node.data
+        node = node.right
+
+# 4. Sorted Array to Balanced BST — O(n)
+def sorted_to_bst(arr, lo=None, hi=None):
+    if lo is None: lo, hi = 0, len(arr)-1
+    if lo > hi: return None
+    mid = (lo + hi) // 2
+    root = Node(arr[mid])
+    root.left  = sorted_to_bst(arr, lo, mid-1)
+    root.right = sorted_to_bst(arr, mid+1, hi)
+    return root
+
+# 5. Range Sum — prunes using BST property
+def range_sum(root, lo, hi):
+    if not root: return 0
+    if root.data < lo: return range_sum(root.right, lo, hi)
+    if root.data > hi: return range_sum(root.left, lo, hi)
+    return root.data + range_sum(root.left, lo, hi) + range_sum(root.right, lo, hi)`,
+        practice: [
+          { name: "Validate Binary Search Tree", diff: "medium" },
+          { name: "Lowest Common Ancestor of BST", diff: "medium" },
+          { name: "Kth Smallest Element in BST", diff: "medium" },
+          { name: "Convert Sorted Array to BST", diff: "easy" },
+          { name: "Range Sum of BST", diff: "easy" }
+        ]
+      },
+      "BST vs Other Structures": {
+        diff: "easy",
+        explanation: "BST compared to four alternatives: (1) BST vs Binary Tree — BST is ordered (left<root<right), binary tree has no ordering constraint. BST supports O(log n) search; binary tree needs O(n) traversal. (2) BST vs Heap — BST supports ordered search (find any element). Heap only gives O(1) access to max/min, not arbitrary elements. (3) BST vs Hashing — hash table O(1) average, unordered. BST O(log n), fully ordered — supports range queries, predecessor, successor. (4) Balanced BST (AVL/Red-Black) vs plain BST — self-balancing trees guarantee O(log n) worst case by performing rotations on insert/delete. Plain BST degrades to O(n) on sorted input.",
+        intuition: "Use BST when you need ORDER: sorting, range queries, predecessor/successor. Use hashing when you only need existence/lookup and order doesn't matter. Use heap when you only need the maximum or minimum. The key BST advantage over hashing: range queries like 'find all elements between 10 and 50' are O(log n + k) on a BST but O(n) with a hash table.",
+        steps: [
+          "BST vs Sorted Array: both O(log n) search. BST O(log n) insert/delete vs O(n) for array. Array better for cache, BST better for dynamic data.",
+          "BST vs Heap: BST = ordered, arbitrary search O(log n). Heap = shape-based, only max/min O(1).",
+          "BST vs Hash: BST ordered + range queries. Hash faster O(1) but unordered.",
+          "AVL Tree: |h(left)-h(right)| ≤ 1 at every node. Rotations on insert/delete maintain balance. O(log n) guaranteed.",
+          "Red-Black Tree: colour-based balancing rules. Fewer rotations than AVL on insert/delete. Used in C++ map/set and Java TreeMap.",
+          "When to use which: interviews → plain BST. Production ordered data → Red-Black (std::map). Indexed arrays → Fenwick/Segment Tree."
+        ],
+        dryRun: `Structure Comparison:
+Structure    | Search   | Insert   | Delete   | Ordered? | Range Query
+─────────────┼──────────┼──────────┼──────────┼──────────┼────────────
+BST (plain)  | O(h)     | O(h)     | O(h)     | YES      | O(log n+k)
+AVL Tree     | O(log n) | O(log n) | O(log n) | YES      | O(log n+k)
+Red-Black    | O(log n) | O(log n) | O(log n) | YES      | O(log n+k)
+Hash Table   | O(1) avg | O(1) avg | O(1) avg | NO       | O(n)
+Heap         | O(n)     | O(log n) | O(log n) | Partial  | N/A
+Sorted Array | O(log n) | O(n)     | O(n)     | YES      | O(log n+k)
+
+C++ map (Red-Black) vs unordered_map (Hash):
+  map: ordered, O(log n) all ops, supports lower_bound/upper_bound
+  unordered_map: O(1) avg, no ordering, faster for pure lookups
+
+Python sortedcontainers.SortedList:
+  Maintains sorted order, O(log n) insert/delete, O(log n) search
+  Use when hashing not enough and you need sorted iteration`,
+        time: { best: "O(log n) balanced", avg: "O(log n)", worst: "O(n) skewed" },
+        space: "O(n)",
+        stable: undefined,
+        when: "BST when: ordered iteration needed, range queries, predecessor/successor. Hash when: pure O(1) lookup, no ordering. AVL/RB when: BST with guaranteed O(log n).",
+        pros: [
+          "Range queries O(log n + k) — unmatched by hash tables",
+          "Inorder traversal = free sorting",
+          "Predecessor/Successor queries O(log n)"
+        ],
+        cons: [
+          "O(n) worst case without balancing",
+          "Slower than hash for simple existence queries",
+          "AVL/Red-Black rotation logic is complex to implement"
+        ],
+        cpp: `// BST Comparisons — C++
+
+// C++ map = Red-Black Tree (ordered, O(log n))
+#include <map>
+map<int,int> ordered_map;
+ordered_map[5] = 1;
+ordered_map[3] = 2;
+// iterate in sorted order:
+for (auto& [k,v] : ordered_map) cout << k << " "; // 3 5
+// range query:
+auto lo = ordered_map.lower_bound(3);
+auto hi = ordered_map.upper_bound(5);
+
+// C++ set = Red-Black Tree (ordered unique keys)
+#include <set>
+set<int> s = {5, 3, 7, 2, 4};
+auto it = s.lower_bound(4); // O(log n)
+cout << *s.begin();  // min = 2
+cout << *s.rbegin(); // max = 7
+
+// C++ unordered_map = Hash (O(1) avg, unordered)
+#include <unordered_map>
+unordered_map<int,int> hash_map;
+hash_map[5] = 1; // O(1) avg, no ordering
+
+// Choose:
+// Need sorted iteration or range → map/set (Red-Black)
+// Just need fast lookup → unordered_map/set (Hash)`,
+        python: `# BST Comparisons — Python
+
+# Python dict = hash map (O(1) avg, unordered in concept)
+d = {5: 1, 3: 2, 7: 3}
+# iterate sorted:
+for k in sorted(d): print(k)  # O(n log n)
+
+# sortedcontainers.SortedList — BST-like O(log n)
+# pip install sortedcontainers
+from sortedcontainers import SortedList, SortedDict
+sl = SortedList([5, 3, 7, 2, 4])
+sl.add(6)              # O(log n)
+sl.irange(3, 6)        # range query O(log n + k)
+print(sl[0], sl[-1])   # min, max — O(log n)
+
+# SortedDict = ordered dict with O(log n) ops
+sd = SortedDict({5:1, 3:2, 7:3})
+print(sd.keys())       # [3, 5, 7] — always sorted
+print(sd.irange(3, 6)) # range iteration
+
+# Choose in Python:
+# Need O(1) lookup only → dict (hash)
+# Need sorted order + O(log n) → SortedList/SortedDict
+# Simple BST for interview → implement from scratch`,
+        practice: [
+          { name: "Recover Binary Search Tree", diff: "hard" },
+          { name: "Balance a Binary Search Tree", diff: "medium" },
+          { name: "Closest Binary Search Tree Value", diff: "easy" },
+          { name: "Two Sum IV — Input is a BST", diff: "easy" }
+        ]
+      }
+    }
+  },
+  Heaps: {
+    icon: "🏔️", diff: "medium",
+    desc: "Complete binary tree with heap property. O(1) peek, O(log n) insert/delete. Powers priority queues, top-K, Dijkstra.",
+    subtopics: {
+      "Basics & Heap Property": {
+        diff: "easy",
+        explanation: "A heap is a special complete binary tree satisfying the heap property. Two types: Max Heap — every parent >= its children (largest element at root). Min Heap — every parent <= its children (smallest element at root). Complete binary tree: all levels are completely filled except possibly the last, which is filled from left to right. Key advantage: the root always holds the max (or min) — O(1) access. Heaps are implemented using arrays — no pointer overhead. For element at index i: left child = 2i+1, right child = 2i+2, parent = (i-1)/2. This index formula is exact because the complete binary tree fills left to right, giving a bijection between tree positions and array indices.",
+        intuition: "Think of a heap like a leaderboard: the top scorer always stays at position 0 (root). When a new score arrives, it bubbles up if it's better. When the top scorer leaves, the next best takes the position through heapify-down. Critical insight: a heap is NOT fully sorted — siblings have no ordering guarantee. Only the parent-child relationship matters. This is weaker than BST ordering but sufficient for 'give me the max/min repeatedly'.",
+        steps: [
+          "ARRAY REPRESENTATION: heap stored as arr[0..n-1]. Root at index 0.",
+          "For node at index i: left child = 2i+1, right child = 2i+2, parent = (i-1)/2.",
+          "MAX HEAP property: arr[parent] >= arr[child] for every parent-child pair.",
+          "MIN HEAP property: arr[parent] <= arr[child] for every parent-child pair.",
+          "PEEK (get max/min): return arr[0]. O(1) — root is always max/min.",
+          "The heap is NOT sorted — siblings can be in any order. Only parent > children guaranteed."
+        ],
+        dryRun: `Max Heap — array [50, 30, 40, 10, 20, 35]:
+
+Tree view:
+          50          ← index 0 (root, max)
+         /  \\
+        30   40       ← index 1, 2
+       / \\  /
+      10 20 35        ← index 3,4,5
+
+Index formula check:
+  i=1 (node 30): left=2*1+1=3 (10) ✓, right=2*1+2=4 (20) ✓
+  i=2 (node 40): left=2*2+1=5 (35) ✓, right=2*2+2=6 (out of bounds)
+  i=3 (node 10): parent=(3-1)/2=1 (30) ✓
+
+Heap property check (Max):
+  50 >= 30 ✓, 50 >= 40 ✓
+  30 >= 10 ✓, 30 >= 20 ✓
+  40 >= 35 ✓
+All good → valid Max Heap ✓
+
+Compare: [10, 30, 40, 50, 20, 35] is NOT a valid max heap
+  10 >= 30? NO ✗`,
+        time: { best: "O(1) peek", avg: "O(log n) insert/delete", worst: "O(log n)" },
+        space: "O(n)",
+        stable: undefined,
+        when: "Use heap when you need repeated access to max or min. Priority queue = heap. Dijkstra's shortest path uses min-heap. Top-K elements use min-heap of size k. Median of stream uses two heaps.",
+        pros: [
+          "O(1) peek (max or min always at root)",
+          "O(log n) insert and delete",
+          "O(n) build from array — better than O(n log n) naive",
+          "Array implementation — no pointer overhead, cache-friendly"
+        ],
+        cons: [
+          "Not fully sorted — only root is guaranteed max/min",
+          "No O(log n) search for arbitrary element (not a BST)",
+          "Duplicates allowed — no BST-style uniqueness"
+        ],
+        cpp: `// Heap array representation — C++
+// Max heap: [50, 30, 40, 10, 20, 35]
+// index i: left=2i+1, right=2i+2, parent=(i-1)/2
+
+// STL priority_queue — max heap by default
+#include <queue>
+priority_queue<int> maxHeap;
+maxHeap.push(30); maxHeap.push(50); maxHeap.push(40);
+cout << maxHeap.top();  // 50 — O(1)
+maxHeap.pop();          // removes 50 — O(log n)
+
+// Min heap using STL
+priority_queue<int, vector<int>, greater<int>> minHeap;
+minHeap.push(30); minHeap.push(10); minHeap.push(40);
+cout << minHeap.top();  // 10 — O(1)
+
+// Heap from array — O(n) using make_heap
+vector<int> v = {50, 30, 40, 10, 20, 35};
+make_heap(v.begin(), v.end()); // max heap in O(n)
+cout << v.front(); // 50 (max)`,
+        python: `# Heap basics — Python
+import heapq  # Python heapq = MIN heap by default
+
+# Min heap
+heap = []
+heapq.heappush(heap, 30)
+heapq.heappush(heap, 10)
+heapq.heappush(heap, 40)
+print(heap[0])              # 10 — O(1) peek
+print(heapq.heappop(heap))  # 10 — O(log n) remove min
+
+# Max heap (negate values)
+max_heap = []
+for x in [30, 10, 40]:
+    heapq.heappush(max_heap, -x)
+print(-max_heap[0])              # 40 — max
+print(-heapq.heappop(max_heap))  # 40 — O(log n)
+
+# Build heap from list in O(n)
+arr = [50, 30, 40, 10, 20, 35]
+heapq.heapify(arr)  # converts in-place to min heap, O(n)
+print(arr[0])  # 10 (min)
+
+# Array index formula (0-based):
+# left child of i  = 2*i + 1
+# right child of i = 2*i + 2
+# parent of i      = (i-1) // 2`,
+        practice: [
+          { name: "Kth Largest Element in Array", diff: "medium" },
+          { name: "Last Stone Weight", diff: "easy" },
+          { name: "Check if Array is a Max Heap", diff: "easy" }
+        ]
+      },
+      "Insert & Heapify": {
+        diff: "medium",
+        explanation: "Two core operations: INSERT (bubble up) and DELETE/HEAPIFY (bubble down). Insert: add element at end of array (next available complete tree position), then compare with parent and swap upward until heap property is restored. Called 'bubble up' or 'sift up'. O(log n) because tree height = log n. Delete root: replace root with last element (maintain completeness), remove last element, then compare with children and swap downward until heap property restored. Called 'heapify down' or 'sift down'. Build Heap from array: start from last non-leaf node (index n/2 - 1) and heapify down each node to index 0. O(n) total — better than inserting one by one which is O(n log n).",
+        intuition: "Bubble up maintains completeness by adding at the end, then correctness by swapping up. Bubble down maintains correctness by swapping with the larger child (max heap) or smaller child (min heap). Build heap is O(n) not O(n log n) because most nodes are near the bottom of the tree and heapify down takes O(1) for leaves, O(log n) only for root. The sum telescopes to O(n).",
+        steps: [
+          "INSERT: arr.push_back(val). i = n-1. While i>0 AND arr[parent(i)] < arr[i]: swap(arr[i], arr[parent(i)]). i = parent(i).",
+          "DELETE ROOT: arr[0] = arr[n-1]. arr.pop_back(). heapifyDown(0).",
+          "HEAPIFY DOWN from index i: largest=i. If left child exists and arr[left]>arr[largest]: largest=left. If right child exists and arr[right]>arr[largest]: largest=right. If largest≠i: swap(arr[i],arr[largest]). Recurse heapifyDown(largest).",
+          "BUILD HEAP: for i from n/2-1 down to 0: heapifyDown(i). O(n) total.",
+          "LAST NON-LEAF: index = n/2 - 1. All nodes from n/2 to n-1 are leaves.",
+          "HEAP SORT: buildHeap O(n), then n times: swap root with last, reduce size, heapifyDown. Total O(n log n), space O(1)."
+        ],
+        dryRun: `── INSERT 60 into max heap [50,30,40,10,20,35] ─────────
+Add 60 at end: [50,30,40,10,20,35,60]  idx=6
+parent(6)=(6-1)/2=2  arr[2]=40 < 60 → SWAP
+  → [50,30,60,10,20,35,40]  idx=2
+parent(2)=(2-1)/2=0  arr[0]=50 < 60 → SWAP
+  → [60,30,50,10,20,35,40]  idx=0
+idx=0 → stop (at root)
+Result: [60,30,50,10,20,35,40] ✓
+
+── DELETE ROOT from [60,30,50,10,20,35,40] ──────────────
+Replace root with last: arr[0]=40, pop last
+  → [40,30,50,10,20,35]
+heapifyDown(0):
+  largest=0(40), left=1(30), right=2(50)
+  50>40 → largest=2
+  Swap arr[0] and arr[2]: [50,30,40,10,20,35]
+heapifyDown(2):
+  largest=2(40), left=5(35), right=6(OOB)
+  35<40 → largest stays 2 → STOP
+Result: [50,30,40,10,20,35] ✓
+
+── BUILD HEAP: [3,1,6,5,2,4] → max heap ────────────────
+n=6, start from i=n/2-1=2
+i=2: arr[2]=6, children: arr[5]=4 → 6>4 → no swap
+i=1: arr[1]=1, children: arr[3]=5,arr[4]=2 → largest=5 at idx3
+  swap(1,5): [3,5,6,1,2,4]  heapifyDown(3) → leaf, stop
+i=0: arr[0]=3, children: arr[1]=5,arr[2]=6 → largest=6 at idx2
+  swap(3,6): [6,5,3,1,2,4]  heapifyDown(2): arr[2]=3>arr[5]=4? No
+Result: [6,5,3,1,2,4] → valid max heap ✓  O(n) time`,
+        time: { best: "O(1) insert best", avg: "O(log n)", worst: "O(log n)" },
+        space: "O(1) extra for heapify / O(n) heap storage",
+        stable: undefined,
+        when: "Insert/delete for priority queue. Build heap from array in O(n) before heap sort or repeated deletions. Heapify down after every deletion.",
+        pros: [
+          "Build heap O(n) — faster than n × insert which is O(n log n)",
+          "Bubble up/down uses only swaps — in-place, cache-friendly",
+          "Heap sort is O(n log n) in-place with O(1) extra space"
+        ],
+        cons: [
+          "Not stable — equal elements may reorder during heapify",
+          "No O(log n) arbitrary search — must scan O(n)",
+          "Heapify recursion can stack overflow for huge n — use iterative"
+        ],
+        cpp: `// Insert and Heapify — C++
+class MaxHeap {
+    vector<int> heap;
+public:
+    // Insert — O(log n): add at end, bubble up
+    void insert(int val) {
+        heap.push_back(val);
+        int i = heap.size() - 1;
+        while (i > 0 && heap[(i-1)/2] < heap[i]) {
+            swap(heap[i], heap[(i-1)/2]);
+            i = (i-1)/2;  // move to parent
+        }
+    }
+
+    // Heapify down from index i — O(log n)
+    void heapifyDown(int i) {
+        int n = heap.size(), largest = i;
+        int l = 2*i+1, r = 2*i+2;
+        if (l < n && heap[l] > heap[largest]) largest = l;
+        if (r < n && heap[r] > heap[largest]) largest = r;
+        if (largest != i) {
+            swap(heap[i], heap[largest]);
+            heapifyDown(largest);  // recurse
+        }
+    }
+
+    // Delete root — O(log n)
+    void deleteRoot() {
+        heap[0] = heap.back(); heap.pop_back();
+        heapifyDown(0);
+    }
+
+    int peek() { return heap[0]; }  // O(1)
+};
+
+// Build heap in O(n)
+void buildHeap(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = n/2 - 1; i >= 0; i--)  // start from last non-leaf
+        heapifyDown(arr, n, i);           // heapify each node
+}`,
+        python: `# Insert and Heapify — Python
+
+class MaxHeap:
+    def __init__(self): self.heap = []
+
+    # Insert — O(log n): bubble up
+    def insert(self, val):
+        self.heap.append(val)
+        i = len(self.heap) - 1
+        while i > 0 and self.heap[(i-1)//2] < self.heap[i]:
+            self.heap[i], self.heap[(i-1)//2] = self.heap[(i-1)//2], self.heap[i]
+            i = (i-1)//2
+
+    # Heapify down from index i — O(log n)
+    def heapify_down(self, i):
+        n, largest = len(self.heap), i
+        l, r = 2*i+1, 2*i+2
+        if l < n and self.heap[l] > self.heap[largest]: largest = l
+        if r < n and self.heap[r] > self.heap[largest]: largest = r
+        if largest != i:
+            self.heap[i], self.heap[largest] = self.heap[largest], self.heap[i]
+            self.heapify_down(largest)
+
+    # Delete root — O(log n)
+    def delete_root(self):
+        self.heap[0] = self.heap[-1]; self.heap.pop()
+        self.heapify_down(0)
+
+    def peek(self): return self.heap[0]  # O(1)
+
+# Build heap in O(n) using heapq
+import heapq
+arr = [3, 1, 6, 5, 2, 4]
+heapq.heapify(arr)  # min heap in-place, O(n)`,
+        practice: [
+          { name: "Heap Sort", diff: "medium" },
+          { name: "Minimum Cost to Connect Ropes", diff: "medium" },
+          { name: "K Closest Points to Origin", diff: "medium" }
+        ]
+      },
+      "Important Patterns": {
+        diff: "medium",
+        explanation: "Five critical heap patterns: (1) Top-K Elements — maintain a min-heap of size k; if new element > heap.top(), pop and push. Final heap contains top-k largest. O(n log k). (2) Kth Largest/Smallest — same as top-k; heap.top() is kth largest after processing all elements. (3) Merge K Sorted Arrays — use min-heap of (value, array_index, element_index); always pop minimum and push next from same array. O(n log k). (4) Median of Stream — maintain max-heap (left half) and min-heap (right half). Balance sizes. Median = maxHeap.top() or average of both tops. (5) Task Scheduler / Reorganize String — use max-heap of frequencies; greedily pick most frequent task that doesn't violate cooldown.",
+        intuition: "Top-K insight: you don't need to sort all n elements to find the top k. A min-heap of size k keeps exactly the k largest seen so far — any new element only enters if it's bigger than the current minimum in the heap. Median of stream: two heaps act like two halves of a sorted array. Max-heap stores the lower half (its top is the median candidate), min-heap stores the upper half.",
+        steps: [
+          "TOP-K LARGEST: minHeap of size k. For each element x: push x. If heap.size()>k: pop (removes smallest). Final: heap.top() = kth largest.",
+          "MERGE K SORTED: push (arr[i][0], i, 0) for all arrays into minHeap. While heap not empty: pop min, push to result, push next element from same array.",
+          "MEDIAN OF STREAM: maxHeap (left), minHeap (right). On add x: if x <= maxHeap.top() push to max, else push to min. Balance: if sizes differ by >1, move top of larger to smaller. Median = larger heap's top or average.",
+          "HEAP SORT: buildMaxHeap O(n). For i from n-1 to 1: swap arr[0] and arr[i], heapifyDown(0,i). Total O(n log n), space O(1).",
+          "SLIDING WINDOW MAXIMUM: use max-heap of (value, index). On window slide: remove elements outside window (lazy deletion using index check). Heap top = window maximum.",
+          "REORGANIZE STRING: count char frequencies. Max-heap of (-freq, char). Each step: pop two most frequent, append to result, push back with decremented freq."
+        ],
+        dryRun: `── TOP-K LARGEST (k=3): [3,2,1,5,6,4] ──────────────────
+Process 3: heap=[3]   size=1
+Process 2: heap=[2,3] size=2
+Process 1: heap=[1,2,3] size=3
+Process 5: push→heap=[1,2,3,5], size>3 → pop 1
+  heap=[2,3,5]
+Process 6: push→heap=[2,3,5,6], pop 2
+  heap=[3,5,6]
+Process 4: push→heap=[3,4,5,6], pop 3
+  heap=[4,5,6]
+Kth largest = heap.top() = 4 ✓ (3rd largest in [3,2,1,5,6,4])
+
+── MEDIAN OF STREAM: add 1,2,3,4,5 ─────────────────────
+add 1: max=[1], min=[] → median=1
+add 2: 2>1→min=[2], max=[1], balance ok → median=(1+2)/2=1.5
+add 3: 3>1→min=[2,3], size diff>1→move 2 to max
+  max=[1,2], min=[3] → median=max.top()=2
+add 4: 4>2→min=[3,4], balance ok → median=(2+3)/2=2.5
+add 5: 5>2→min=[3,4,5], size diff>1→move 3 to max
+  max=[1,2,3], min=[4,5] → median=max.top()=3 ✓`,
+        time: { best: "O(n log k) top-k", avg: "O(n log k)", worst: "O(n log n) merge k" },
+        space: "O(k) top-k / O(n) median",
+        stable: undefined,
+        when: "Top-K: any 'k largest/smallest' problem. Merge k sorted: combine sorted streams. Median of stream: real-time median. Task scheduler: greedy frequency problems. Pattern trigger: 'top k', 'priority-based', 'smallest/largest repeatedly' → heap.",
+        pros: [
+          "Top-K in O(n log k) vs O(n log n) sorting — k << n is huge saving",
+          "Median in O(log n) per insertion vs O(n) naive",
+          "Merge k sorted in O(n log k) vs O(nk) naive"
+        ],
+        cons: [
+          "Lazy deletion (sliding window) adds code complexity",
+          "Median of stream needs careful balancing logic",
+          "Max heap in Python requires negating values — error-prone"
+        ],
+        cpp: `// Important Heap Patterns — C++
+
+// 1. Kth Largest — O(n log k)
+int kthLargest(vector<int>& nums, int k) {
+    priority_queue<int,vector<int>,greater<int>> minH; // min heap
+    for (int x : nums) {
+        minH.push(x);
+        if ((int)minH.size() > k) minH.pop(); // keep only k largest
+    }
+    return minH.top(); // kth largest
+}
+
+// 2. Merge K Sorted Arrays — O(n log k)
+vector<int> mergeK(vector<vector<int>>& arrs) {
+    using T = tuple<int,int,int>; // (val, arr_idx, elem_idx)
+    priority_queue<T,vector<T>,greater<T>> minH;
+    for (int i=0;i<arrs.size();i++)
+        if(!arrs[i].empty()) minH.push({arrs[i][0],i,0});
+    vector<int> res;
+    while (!minH.empty()) {
+        auto [val,i,j] = minH.top(); minH.pop();
+        res.push_back(val);
+        if (j+1 < arrs[i].size()) minH.push({arrs[i][j+1],i,j+1});
+    }
+    return res;
+}
+
+// 3. Median of Stream
+class MedianFinder {
+    priority_queue<int> maxH;                        // left half
+    priority_queue<int,vector<int>,greater<int>> minH; // right half
+public:
+    void addNum(int x) {
+        if (maxH.empty() || x <= maxH.top()) maxH.push(x);
+        else minH.push(x);
+        // balance sizes (differ by at most 1)
+        if (maxH.size() > minH.size()+1) { minH.push(maxH.top()); maxH.pop(); }
+        else if (minH.size() > maxH.size()) { maxH.push(minH.top()); minH.pop(); }
+    }
+    double findMedian() {
+        if (maxH.size() > minH.size()) return maxH.top();
+        return (maxH.top() + minH.top()) / 2.0;
+    }
+};`,
+        python: `# Important Heap Patterns — Python
+import heapq
+
+# 1. Kth Largest — O(n log k)
+def kth_largest(nums, k):
+    min_h = []  # min heap of size k
+    for x in nums:
+        heapq.heappush(min_h, x)
+        if len(min_h) > k: heapq.heappop(min_h)
+    return min_h[0]  # kth largest
+
+# 2. Merge K Sorted Arrays — O(n log k)
+def merge_k_sorted(arrays):
+    heap = []
+    for i, arr in enumerate(arrays):
+        if arr: heapq.heappush(heap, (arr[0], i, 0))
+    result = []
+    while heap:
+        val, i, j = heapq.heappop(heap)
+        result.append(val)
+        if j+1 < len(arrays[i]):
+            heapq.heappush(heap, (arrays[i][j+1], i, j+1))
+    return result
+
+# 3. Median of Stream — O(log n) per insert
+class MedianFinder:
+    def __init__(self):
+        self.max_h = []  # left half (max heap via negation)
+        self.min_h = []  # right half (min heap)
+
+    def add_num(self, x):
+        if not self.max_h or x <= -self.max_h[0]:
+            heapq.heappush(self.max_h, -x)
+        else:
+            heapq.heappush(self.min_h, x)
+        # balance
+        if len(self.max_h) > len(self.min_h)+1:
+            heapq.heappush(self.min_h, -heapq.heappop(self.max_h))
+        elif len(self.min_h) > len(self.max_h):
+            heapq.heappush(self.max_h, -heapq.heappop(self.min_h))
+
+    def find_median(self):
+        if len(self.max_h) > len(self.min_h): return -self.max_h[0]
+        return (-self.max_h[0] + self.min_h[0]) / 2.0`,
+        practice: [
+          { name: "Kth Largest Element in Array", diff: "medium" },
+          { name: "Top K Frequent Elements", diff: "medium" },
+          { name: "Find Median from Data Stream", diff: "hard" },
+          { name: "Merge K Sorted Lists", diff: "hard" },
+          { name: "Task Scheduler", diff: "medium" }
+        ]
+      },
+      "Heap Sort & Complexity": {
+        diff: "medium",
+        explanation: "Heap Sort: (1) Build max-heap from array in O(n). (2) Repeat n-1 times: swap root (max) with last element, reduce heap size by 1, heapify-down from root. This places elements in sorted order from right to left. Time O(n log n), Space O(1) — in-place. While not as fast as quick sort in practice (poor cache performance), heap sort is the only O(n log n) comparison sort with guaranteed worst-case O(n log n) AND O(1) extra space. Comparison: Heap vs BST — heap gives O(1) max/min but no ordered search. BST gives O(log n) search for any element but O(log n) for max/min (balanced). Heap vs array — array needs O(n) to find max each time; heap always O(1).",
+        intuition: "Heap sort builds on two observations: a max-heap's root is always the maximum. After swapping root to the end, we have one more sorted element. Restoring heap property on the remaining n-1 elements takes O(log n). Repeat n times → O(n log n). The 'aha': we're using the heap as a sorted output buffer, filling from right to left.",
+        steps: [
+          "BUILD MAX HEAP: heapify all non-leaf nodes from index n/2-1 down to 0. O(n).",
+          "SORT PHASE: for i from n-1 down to 1: swap(arr[0], arr[i]) — puts max at end. heapifyDown(arr, 0, i) — restore heap on arr[0..i-1]. O(n log n).",
+          "HEAP SORT TOTAL: O(n) + O(n log n) = O(n log n). Space O(1) — in-place.",
+          "WHY BUILD HEAP IS O(n): heapify cost at level l = O(l). Number of nodes at level l from bottom = n/2^l. Sum = n × sum(l/2^l) = O(n).",
+          "HEAP SORT IS NOT STABLE — equal elements may reorder.",
+          "PRIORITY QUEUE: max/min-heap directly implements priority queue. push=insert O(log n), pop=deleteRoot O(log n), top=peek O(1)."
+        ],
+        dryRun: `── HEAP SORT on [4,10,3,5,1] ────────────────────────────
+Step 1: Build max heap
+  Start i=n/2-1=1: heapify(1): arr[1]=10>arr[2]=3,arr[3]=5 → no swap
+  i=0: heapify(0): arr[0]=4 < arr[1]=10 → swap → [10,4,3,5,1]
+        heapify(1): arr[1]=4 < arr[3]=5 → swap → [10,5,3,4,1]
+  Max heap: [10,5,3,4,1] ✓
+
+Step 2: Sort
+  i=4: swap arr[0]↔arr[4] → [1,5,3,4,10], heapify(0,4): 1→5→4→...
+    [5,4,3,1,10]
+  i=3: swap arr[0]↔arr[3] → [1,4,3,5,10], heapify(0,3):
+    [4,1,3,5,10]
+  i=2: swap arr[0]↔arr[2] → [3,1,4,5,10], heapify(0,2): 3>1 ok
+    [3,1,4,5,10]
+  i=1: swap arr[0]↔arr[1] → [1,3,4,5,10]
+Result: [1,3,4,5,10] ✓  sorted ascending`,
+        time: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)" },
+        space: "O(1) heap sort / O(n) heap storage",
+        stable: undefined,
+        when: "Heap sort when O(n log n) guaranteed AND O(1) space required (rare in practice — quick sort is faster avg). Heap as priority queue for scheduling, Dijkstra, Prim's MST.",
+        pros: [
+          "Heap sort: O(n log n) worst case AND O(1) space — unique combination",
+          "O(1) peek always — no need to scan for max/min",
+          "Build heap O(n) — best way to initialise if doing repeated extractions"
+        ],
+        cons: [
+          "Heap sort: poor cache locality — jumps around array randomly",
+          "Not stable — quick sort or merge sort preferred if stability needed",
+          "No O(log n) search for arbitrary elements"
+        ],
+        cpp: `// Heap Sort — C++ (O(n log n), O(1) space)
+void heapifyDown(vector<int>& arr, int n, int i) {
+    int largest = i, l=2*i+1, r=2*i+2;
+    if (l<n && arr[l]>arr[largest]) largest=l;
+    if (r<n && arr[r]>arr[largest]) largest=r;
+    if (largest!=i) { swap(arr[i],arr[largest]); heapifyDown(arr,n,largest); }
+}
+
+void heapSort(vector<int>& arr) {
+    int n = arr.size();
+    // 1. Build max heap — O(n)
+    for (int i=n/2-1; i>=0; i--) heapifyDown(arr,n,i);
+    // 2. Extract max repeatedly — O(n log n)
+    for (int i=n-1; i>0; i--) {
+        swap(arr[0], arr[i]);   // move max to end
+        heapifyDown(arr, i, 0); // restore heap on arr[0..i-1]
+    }
+}
+
+// Complexity summary table:
+// Operation    | Time       | Space | Notes
+// ─────────────┼────────────┼───────┼──────────────
+// Insert       | O(log n)   | O(1)  | bubble up
+// Delete root  | O(log n)   | O(1)  | heapify down
+// Peek         | O(1)       | O(1)  | arr[0]
+// Build heap   | O(n)       | O(1)  | bottom-up
+// Heap sort    | O(n log n) | O(1)  | in-place`,
+        python: `# Heap Sort — Python
+def heapify_down(arr, n, i):
+    largest, l, r = i, 2*i+1, 2*i+2
+    if l < n and arr[l] > arr[largest]: largest = l
+    if r < n and arr[r] > arr[largest]: largest = r
+    if largest != i:
+        arr[i], arr[largest] = arr[largest], arr[i]
+        heapify_down(arr, n, largest)
+
+def heap_sort(arr):
+    n = len(arr)
+    # Build max heap — O(n)
+    for i in range(n//2-1, -1, -1):
+        heapify_down(arr, n, i)
+    # Extract max repeatedly — O(n log n)
+    for i in range(n-1, 0, -1):
+        arr[0], arr[i] = arr[i], arr[0]  # move max to end
+        heapify_down(arr, i, 0)           # restore heap
+    return arr
+
+# Quick recap of all heap operations:
+# heapq.heappush(h, x)      O(log n) — insert
+# heapq.heappop(h)          O(log n) — delete min
+# h[0]                      O(1)     — peek min
+# heapq.heapify(arr)        O(n)     — build heap
+# heapq.nlargest(k, arr)    O(n log k) — top k largest
+# heapq.nsmallest(k, arr)   O(n log k) — top k smallest`,
+        practice: [
+          { name: "Sort an Array (Heap Sort)", diff: "medium" },
+          { name: "Reorganize String", diff: "medium" },
+          { name: "Minimum Cost to Connect Ropes", diff: "medium" },
+          { name: "K Closest Points to Origin", diff: "medium" },
+          { name: "Find Median from Data Stream", diff: "hard" }
+        ]
+      }
+    }
+  },
+  Graphs: {
+    icon: "🕸️", diff: "hard",
+    desc: "Vertices + edges. BFS, DFS, Dijkstra, Topological Sort, Union-Find — master graphs to unlock competitive programming.",
+    subtopics: {
+      "Basics & Representation": {
+        diff: "easy",
+        explanation: "A graph G = (V, E) consists of a set of vertices V (nodes) and edges E (connections). Key terms: Vertex/Node — a point in the graph. Edge — connection between two vertices. Undirected — edge A—B means both A→B and B→A. Directed (Digraph) — edge A→B is one-way only. Degree — number of edges at a vertex. Indegree — incoming edges (directed). Outdegree — outgoing edges (directed). Path — sequence of vertices connected by edges. Cycle — path that starts and ends at same vertex. Connected graph — every vertex reachable from every other. Weighted graph — edges have values (cost, distance). Two representations: Adjacency Matrix — V×V array, O(V²) space, O(1) edge check. Adjacency List — array of lists, O(V+E) space, used in most problems.",
+        intuition: "Think of a graph as cities connected by roads: nodes=cities, edges=roads. Questions become: shortest path (Google Maps), connectivity (can I reach B from A?), cycles (is there a loop?). Social network: nodes=people, edges=friendships. The adjacency list is almost always preferred in practice — sparse graphs (few edges) waste O(V²) space with a matrix but only O(V+E) with a list.",
+        steps: [
+          "ADJACENCY MATRIX: matrix[u][v]=1 if edge u→v exists, 0 otherwise. For weighted: matrix[u][v]=weight. Space O(V²). Edge check O(1). Neighbour scan O(V).",
+          "ADJACENCY LIST: adj[u] = list of neighbours of u. Space O(V+E). Neighbour scan O(degree(u)). Used in 99% of interview problems.",
+          "UNDIRECTED GRAPH: add edge (u,v) → push v to adj[u] AND push u to adj[v].",
+          "DIRECTED GRAPH: add edge (u,v) → push only v to adj[u].",
+          "WEIGHTED: store (neighbour, weight) pairs. adj[u] = [(v1,w1), (v2,w2), ...].",
+          "CONNECTED vs DISCONNECTED: run BFS/DFS from node 0. If all V nodes visited → connected. Else → disconnected, run again from unvisited nodes for each component."
+        ],
+        dryRun: `Graph: V={0,1,2,3}, Edges={(0,1),(0,2),(1,3),(2,3)} undirected
+
+Adjacency Matrix (4×4):
+     0  1  2  3
+  0 [0, 1, 1, 0]
+  1 [1, 0, 0, 1]
+  2 [1, 0, 0, 1]
+  3 [0, 1, 1, 0]
+Space: O(4²)=O(16). Edge(0,2)? matrix[0][2]=1 ✓ O(1)
+
+Adjacency List:
+  0 → [1, 2]
+  1 → [0, 3]
+  2 → [0, 3]
+  3 → [1, 2]
+Space: O(V+E)=O(4+8)=O(12). Better for sparse graphs!
+
+Directed example: 0→1, 1→2, 2→0 (cycle)
+  adj[0]=[1], adj[1]=[2], adj[2]=[0]
+  indegree: 0→1, 1→1, 2→1
+  outdegree: 0→1, 1→1, 2→1
+
+Weighted: 0--(5)-->1, 0--(3)-->2
+  adj[0]=[(1,5),(2,3)], adj[1]=[], adj[2]=[]`,
+        time: { best: "O(1) matrix edge check", avg: "O(V+E) list traversal", worst: "O(V²) matrix" },
+        space: "O(V²) matrix / O(V+E) list",
+        stable: undefined,
+        when: "Adjacency list for almost everything. Adjacency matrix only when: graph is dense (E ≈ V²), or O(1) edge existence check is critical (e.g. Floyd-Warshall).",
+        pros: [
+          "Adjacency list: O(V+E) space — efficient for sparse graphs",
+          "Adjacency matrix: O(1) edge check — fast for dense graphs",
+          "Graphs model any relationship — extremely versatile"
+        ],
+        cons: [
+          "Adjacency matrix: O(V²) space — wasteful for sparse graphs",
+          "Adjacency list: O(degree) edge check — not O(1)",
+          "Graph problems are harder to visualise and debug than linear structures"
+        ],
+        cpp: `// Graph Representation — C++
+#include <vector>
+
+// Adjacency List (undirected, unweighted)
+int V = 4;
+vector<vector<int>> adj(V);
+
+void addEdge(int u, int v) {
+    adj[u].push_back(v);
+    adj[v].push_back(u);  // undirected
+}
+
+// Adjacency List (weighted)
+vector<vector<pair<int,int>>> wadj(V); // (neighbour, weight)
+void addWeightedEdge(int u, int v, int w) {
+    wadj[u].push_back({v, w});
+    wadj[v].push_back({u, w});
+}
+
+// Adjacency Matrix
+vector<vector<int>> matrix(V, vector<int>(V, 0));
+void addEdgeMatrix(int u, int v) {
+    matrix[u][v] = 1;
+    matrix[v][u] = 1; // undirected
+}
+bool hasEdge(int u, int v) { return matrix[u][v] == 1; } // O(1)`,
+        python: `# Graph Representation — Python
+from collections import defaultdict
+
+# Adjacency List (undirected, unweighted)
+adj = defaultdict(list)
+def add_edge(u, v):
+    adj[u].append(v)
+    adj[v].append(u)  # undirected
+
+# Adjacency List (weighted)
+wadj = defaultdict(list)
+def add_weighted_edge(u, v, w):
+    wadj[u].append((v, w))
+    wadj[v].append((u, w))
+
+# Build graph from edge list
+edges = [(0,1),(0,2),(1,3),(2,3)]
+for u, v in edges: add_edge(u, v)
+
+# Adjacency Matrix
+V = 4
+matrix = [[0]*V for _ in range(V)]
+def add_edge_matrix(u, v):
+    matrix[u][v] = 1; matrix[v][u] = 1
+def has_edge(u, v): return matrix[u][v] == 1  # O(1)`,
+        practice: [
+          { name: "Find the Town Judge", diff: "easy" },
+          { name: "Number of Provinces (components)", diff: "medium" },
+          { name: "Clone Graph", diff: "medium" }
+        ]
+      },
+      "BFS & DFS": {
+        diff: "medium",
+        explanation: "Two fundamental graph traversal algorithms: BFS (Breadth First Search) — uses a queue, explores all neighbours at current level before going deeper. Gives shortest path in unweighted graphs. O(V+E) time, O(V) space. DFS (Depth First Search) — uses recursion or explicit stack, explores as deep as possible before backtracking. Good for cycle detection, connected components, topological sort. O(V+E) time, O(V) space. Critical: always maintain a visited array to avoid infinite loops in cyclic graphs. For disconnected graphs, run BFS/DFS from every unvisited node to reach all components.",
+        intuition: "BFS = ripple in water — expands outward layer by layer. All nodes at distance 1 visited before distance 2, etc. This guarantees shortest path in unweighted graphs. DFS = exploring a maze — go as deep as possible, backtrack when stuck. BFS uses a queue (FIFO), DFS uses a stack (LIFO — recursion uses the call stack implicitly).",
+        steps: [
+          "BFS: enqueue start, mark visited. While queue not empty: dequeue u, process u. For each unvisited neighbour v: mark visited, enqueue v.",
+          "DFS (recursive): mark node visited, process. For each unvisited neighbour: recurse.",
+          "DFS (iterative): push start to stack. While stack not empty: pop u, if visited skip, else mark and process. Push all neighbours.",
+          "DISCONNECTED GRAPH: for each vertex i from 0 to V-1: if not visited: run BFS/DFS(i). Each run = one connected component.",
+          "SHORTEST PATH (BFS): track distance array dist[v] = dist[u] + 1 when enqueuing v from u.",
+          "VISITED ARRAY: must be size V, initialised false. Never revisit — prevents infinite loops in cyclic graphs."
+        ],
+        dryRun: `Graph: 0→[1,2], 1→[0,3], 2→[0,3], 3→[1,2]
+
+── BFS from 0 ───────────────────────────────────────
+Queue=[0], visited={0}
+Dequeue 0: print 0, neighbours 1,2 → enqueue both
+  Queue=[1,2], visited={0,1,2}
+Dequeue 1: print 1, neighbours 0(visited),3 → enqueue 3
+  Queue=[2,3], visited={0,1,2,3}
+Dequeue 2: print 2, neighbours 0(v),3(v) → nothing
+  Queue=[3]
+Dequeue 3: print 3, neighbours 1(v),2(v) → nothing
+BFS order: 0 1 2 3 ✓ (level-by-level)
+Shortest path 0→3: 0→1→3 or 0→2→3, distance=2 ✓
+
+── DFS from 0 ───────────────────────────────────────
+visit(0): print 0, go to 1
+  visit(1): print 1, go to 3 (0 visited)
+    visit(3): print 3, go to 2 (1 visited)
+      visit(2): print 2, (0,3 visited) → backtrack
+    backtrack ← 3 ← 1 ← 0
+DFS order: 0 1 3 2 ✓ (deep first)`,
+        time: { best: "O(V+E)", avg: "O(V+E)", worst: "O(V+E)" },
+        space: "O(V) visited + queue/stack",
+        stable: undefined,
+        when: "BFS: shortest path in unweighted graph, level-order traversal, multi-source spread (rotten oranges). DFS: cycle detection, connected components, topological sort, backtracking, flood fill.",
+        pros: [
+          "Both O(V+E) — visit every vertex and edge exactly once",
+          "BFS guarantees shortest path in unweighted graphs",
+          "DFS is naturally recursive — elegant for tree-like problems"
+        ],
+        cons: [
+          "DFS can stack overflow on deep graphs — use iterative version",
+          "BFS uses O(V) queue space — can be large for wide graphs",
+          "Must always track visited — forgetting causes infinite loops"
+        ],
+        cpp: `// BFS and DFS — C++ (from notes)
+#include <queue>
+
+// BFS — O(V+E), O(V) space
+void bfs(int start, vector<vector<int>>& adj) {
+    int V = adj.size();
+    vector<bool> visited(V, false);
+    queue<int> q;
+    q.push(start); visited[start] = true;
+    while (!q.empty()) {
+        int node = q.front(); q.pop();
+        cout << node << " ";
+        for (int nei : adj[node])
+            if (!visited[nei]) { visited[nei]=true; q.push(nei); }
+    }
+}
+
+// DFS recursive — O(V+E), O(V) stack
+void dfs(int node, vector<vector<int>>& adj, vector<bool>& visited) {
+    visited[node] = true;
+    cout << node << " ";
+    for (int nei : adj[node])
+        if (!visited[nei]) dfs(nei, adj, visited);
+}
+
+// Handle disconnected graph — run from every unvisited node
+void traverseAll(vector<vector<int>>& adj) {
+    int V = adj.size();
+    vector<bool> visited(V, false);
+    for (int i = 0; i < V; i++)
+        if (!visited[i]) bfs(i, adj); // or dfs(i, adj, visited)
+}
+
+// BFS shortest path
+vector<int> bfsShortestPath(int src, vector<vector<int>>& adj) {
+    int V = adj.size();
+    vector<int> dist(V, -1);
+    queue<int> q; q.push(src); dist[src]=0;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int v : adj[u]) if (dist[v]==-1) { dist[v]=dist[u]+1; q.push(v); }
+    }
+    return dist; // dist[v] = shortest path from src to v
+}`,
+        python: `# BFS and DFS — Python (from notes)
+from collections import deque
+
+# BFS — O(V+E)
+def bfs(start, adj):
+    visited = [False] * len(adj)
+    q = deque([start]); visited[start] = True
+    order = []
+    while q:
+        node = q.popleft(); order.append(node)
+        for nei in adj[node]:
+            if not visited[nei]:
+                visited[nei] = True; q.append(nei)
+    return order
+
+# DFS recursive — O(V+E)
+def dfs(node, adj, visited):
+    visited[node] = True
+    result = [node]
+    for nei in adj[node]:
+        if not visited[nei]:
+            result += dfs(nei, adj, visited)
+    return result
+
+# Handle disconnected graph
+def traverse_all(adj):
+    V = len(adj); visited = [False]*V; components = []
+    for i in range(V):
+        if not visited[i]:
+            components.append(bfs(i, adj))
+    return components  # list of connected components
+
+# BFS shortest path distances
+def bfs_distances(src, adj):
+    dist = [-1]*len(adj); dist[src]=0
+    q = deque([src])
+    while q:
+        u = q.popleft()
+        for v in adj[u]:
+            if dist[v]==-1: dist[v]=dist[u]+1; q.append(v)
+    return dist`,
+        practice: [
+          { name: "Number of Islands (Grid DFS)", diff: "medium" },
+          { name: "Shortest Path in Binary Matrix (BFS)", diff: "medium" },
+          { name: "Flood Fill (DFS)", diff: "easy" },
+          { name: "Word Ladder (BFS)", diff: "hard" }
+        ]
+      },
+      "Shortest Path Algorithms": {
+        diff: "hard",
+        explanation: "Three shortest path algorithms: (1) BFS — unweighted graphs only. O(V+E). Guarantees shortest path by level-order expansion. (2) Dijkstra's — weighted graph, NO negative edges. Uses a min-heap (priority queue). Always processes the node with smallest current distance. O((V+E) log V). (3) Bellman-Ford — handles negative weights. Relaxes all edges V-1 times. O(VE). Can detect negative cycles (if distance still decreases after V-1 iterations). Floyd-Warshall — all-pairs shortest path. O(V³). DP on intermediate nodes.",
+        intuition: "Dijkstra's insight: once a node is popped from the priority queue with distance d, that distance is final — no shorter path exists (because all edge weights are non-negative). This greedy property fails with negative edges (hence Bellman-Ford is needed). Bellman-Ford insight: any shortest path has at most V-1 edges (no cycles in shortest path). So relaxing all edges V-1 times guarantees shortest paths.",
+        steps: [
+          "DIJKSTRA: dist[src]=0, all others=∞. Push (0,src) to min-heap. While heap not empty: pop (d,u). If d>dist[u] skip. For each (v,w) in adj[u]: if dist[u]+w < dist[v]: update dist[v], push (dist[v],v).",
+          "BELLMAN-FORD: dist[src]=0, all others=∞. Repeat V-1 times: for each edge (u,v,w): if dist[u]+w < dist[v]: dist[v]=dist[u]+w. Check: if any edge still relaxes → negative cycle.",
+          "FLOYD-WARSHALL: dist[i][j]=weight(i,j) or ∞. For k=0..V-1: for i: for j: dist[i][j]=min(dist[i][j], dist[i][k]+dist[k][j]).",
+          "DIJKSTRA COMPLEXITY: O((V+E) log V) with binary heap. Each vertex popped once. Each edge relaxed once. Each heap operation O(log V).",
+          "WHY DIJKSTRA FAILS WITH NEGATIVE EDGES: once a node is popped as 'finalised', a later negative edge could make a shorter path — but we don't revisit.",
+          "MULTI-SOURCE DIJKSTRA: push all sources with distance 0. Works for 'distance from any source' problems (0-1 BFS for 0/1 weights)."
+        ],
+        dryRun: `── DIJKSTRA: 0→1(4), 0→2(1), 2→1(2), 1→3(1) ────────
+dist=[0,∞,∞,∞], heap=[(0,0)]
+
+Pop (0,0): neighbours 1(4),2(1)
+  dist[1]=4 push (4,1), dist[2]=1 push (1,2)
+  heap=[(1,2),(4,1)]
+
+Pop (1,2): neighbours 1(via 2: 1+2=3 < 4!)
+  dist[1]=3 push (3,1)
+  heap=[(3,1),(4,1)]
+
+Pop (3,1): neighbours 3(3+1=4)
+  dist[3]=4 push (4,3)
+  heap=[(4,1),(4,3)]
+
+Pop (4,1): d=4 == dist[1]=3? No, 4>3 → SKIP (stale)
+
+Pop (4,3): no neighbours → done
+
+Final: dist=[0,3,1,4] ✓
+Shortest 0→1=3 (0→2→1, not 0→1=4) ✓
+
+── BELLMAN-FORD: detect negative cycle ──────────────
+After V-1=3 iterations, dist=[0,3,1,4]
+V-th iteration: if any dist[u]+w < dist[v] → NEGATIVE CYCLE ✗`,
+        time: { best: "O(V+E) BFS", avg: "O((V+E)log V) Dijkstra", worst: "O(VE) Bellman-Ford" },
+        space: "O(V) dist array + O(V) heap",
+        stable: undefined,
+        when: "Unweighted → BFS. Weighted, no negatives → Dijkstra. Negative weights → Bellman-Ford. All-pairs → Floyd-Warshall. 0/1 weights → 0-1 BFS (deque).",
+        pros: [
+          "Dijkstra O((V+E)log V) — efficient for most real-world weighted graphs",
+          "Bellman-Ford handles negative weights AND detects negative cycles",
+          "BFS gives exact shortest path in unweighted graphs in O(V+E)"
+        ],
+        cons: [
+          "Dijkstra fails on negative edges — must use Bellman-Ford",
+          "Bellman-Ford O(VE) — too slow for large sparse graphs",
+          "Floyd-Warshall O(V³) — only for small graphs (V ≤ 500)"
+        ],
+        cpp: `// Dijkstra's Algorithm — C++
+#include <queue>
+vector<int> dijkstra(int src, vector<vector<pair<int,int>>>& adj) {
+    int V = adj.size();
+    vector<int> dist(V, INT_MAX);
+    priority_queue<pair<int,int>,vector<pair<int,int>>,greater<>> pq;
+    dist[src] = 0; pq.push({0, src});
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d > dist[u]) continue; // stale entry — skip
+        for (auto [v, w] : adj[u])
+            if (dist[u]+w < dist[v]) { dist[v]=dist[u]+w; pq.push({dist[v],v}); }
+    }
+    return dist;
+}
+
+// Bellman-Ford — O(VE), handles negative weights
+vector<int> bellmanFord(int src, int V, vector<tuple<int,int,int>>& edges) {
+    vector<int> dist(V, INT_MAX); dist[src]=0;
+    for (int i=0; i<V-1; i++)  // relax V-1 times
+        for (auto [u,v,w] : edges)
+            if (dist[u]!=INT_MAX && dist[u]+w < dist[v]) dist[v]=dist[u]+w;
+    // V-th pass: negative cycle check
+    for (auto [u,v,w] : edges)
+        if (dist[u]!=INT_MAX && dist[u]+w < dist[v]) return {}; // neg cycle!
+    return dist;
+}`,
+        python: `# Dijkstra's Algorithm — Python
+import heapq
+def dijkstra(src, adj, V):
+    dist = [float('inf')] * V; dist[src] = 0
+    pq = [(0, src)]  # (distance, node) — min heap
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > dist[u]: continue  # stale — skip
+        for v, w in adj[u]:
+            if dist[u]+w < dist[v]:
+                dist[v] = dist[u]+w
+                heapq.heappush(pq, (dist[v], v))
+    return dist
+
+# Bellman-Ford — O(VE)
+def bellman_ford(src, V, edges):
+    dist = [float('inf')] * V; dist[src] = 0
+    for _ in range(V-1):       # relax V-1 times
+        for u, v, w in edges:
+            if dist[u] != float('inf') and dist[u]+w < dist[v]:
+                dist[v] = dist[u]+w
+    # negative cycle check
+    for u, v, w in edges:
+        if dist[u] != float('inf') and dist[u]+w < dist[v]:
+            return None  # negative cycle detected!
+    return dist`,
+        practice: [
+          { name: "Network Delay Time (Dijkstra)", diff: "medium" },
+          { name: "Cheapest Flights Within K Stops", diff: "medium" },
+          { name: "Path With Minimum Effort", diff: "medium" },
+          { name: "Shortest Path in Weighted Graph", diff: "medium" }
+        ]
+      },
+      "Topological Sort & Union-Find": {
+        diff: "hard",
+        explanation: "Topological Sort: orders vertices of a DAG (Directed Acyclic Graph) such that for every directed edge u→v, u comes before v. Two algorithms: (1) Kahn's Algorithm (BFS) — compute indegree of all vertices, enqueue all with indegree 0, process queue and reduce indegree of neighbours, enqueue when indegree hits 0. Result is a valid topological order. (2) DFS-based — run DFS, on post-order add node to stack, reverse stack. Union-Find (Disjoint Set Union): tracks connected components efficiently. find(x) — finds the root/representative of x's component with path compression O(α(n)). union(x,y) — merges components of x and y using union by rank. Used for: cycle detection in undirected graphs, Kruskal's MST, checking if adding edge creates a cycle.",
+        intuition: "Topological sort models task dependencies: if task A must complete before task B, then A→B. Kahn's processes tasks with no remaining prerequisites first — exactly like a build system resolving dependencies. If the topological order doesn't include all V vertices, the graph has a cycle (not a DAG). Union-Find's path compression makes find() nearly O(1) — after the first call, nodes point directly to their root.",
+        steps: [
+          "KAHN'S (BFS topo sort): compute indegree[]. Enqueue all indegree==0 nodes. While queue: pop u, add to result, for each v in adj[u]: indegree[v]--, if indegree[v]==0 enqueue v. If |result|<V → cycle exists.",
+          "DFS TOPO SORT: run DFS. After all neighbours of u are visited: push u to stack. Reverse stack = topological order.",
+          "UNION-FIND INIT: parent[i]=i, rank[i]=0 for all i.",
+          "FIND with path compression: if parent[x]!=x: parent[x]=find(parent[x]). Return parent[x].",
+          "UNION by rank: find roots rx=find(x), ry=find(y). If rx==ry → already same component (cycle!). Else: attach lower rank root under higher rank root.",
+          "CYCLE DETECTION (undirected): for each edge (u,v): if find(u)==find(v) → cycle! Else: union(u,v)."
+        ],
+        dryRun: `── KAHN'S TOPO SORT: 5→2, 5→0, 4→0, 4→1, 2→3, 3→1 ─
+indegree: 0→2, 1→2, 2→1, 3→1, 4→0, 5→0
+Queue=[4,5] (indegree=0)
+
+Pop 4: result=[4], reduce: 0→1, 1→1 → none hit 0
+Pop 5: result=[4,5], reduce: 2→0,0→0 → enqueue 2,0
+Queue=[2,0]
+
+Pop 2: result=[4,5,2], reduce: 3→0 → enqueue 3
+Pop 0: result=[4,5,2,0], no neighbours
+
+Pop 3: result=[4,5,2,0,3], reduce: 1→0 → enqueue 1
+Pop 1: result=[4,5,2,0,3,1]
+
+|result|=6=V → no cycle, valid topo sort ✓
+
+── UNION-FIND: edges (0,1),(1,2),(2,0) cycle detection ─
+parent=[0,1,2,3]
+Edge(0,1): find(0)=0, find(1)=1 → different → union(0,1)
+  parent=[0,0,2,3] (1's parent = 0)
+Edge(1,2): find(1)=0, find(2)=2 → different → union(0,2)
+  parent=[0,0,0,3]
+Edge(2,0): find(2)=0, find(0)=0 → SAME! → CYCLE ✓`,
+        time: { best: "O(V+E) topo sort", avg: "O(V+E)", worst: "O(α(n)) union-find" },
+        space: "O(V) indegree / parent arrays",
+        stable: undefined,
+        when: "Topo sort: course scheduling, build systems, dependency resolution — any DAG ordering problem. Union-Find: cycle detection, Kruskal's MST, connected components, network connectivity.",
+        pros: [
+          "Kahn's simultaneously detects cycles (result size < V → cycle)",
+          "Union-Find with compression+rank is nearly O(1) per operation",
+          "Both are essential for graph competitions and system design"
+        ],
+        cons: [
+          "Topo sort only works on DAGs — fails on cyclic graphs",
+          "DFS topo sort harder to implement correctly than Kahn's",
+          "Union-Find doesn't support edge deletion"
+        ],
+        cpp: `// Topological Sort (Kahn's BFS) — C++
+vector<int> topoSort(int V, vector<vector<int>>& adj) {
+    vector<int> indegree(V, 0), result;
+    for (int u=0;u<V;u++) for (int v:adj[u]) indegree[v]++;
+    queue<int> q;
+    for (int i=0;i<V;i++) if (indegree[i]==0) q.push(i);
+    while (!q.empty()) {
+        int u=q.front(); q.pop(); result.push_back(u);
+        for (int v:adj[u]) if (--indegree[v]==0) q.push(v);
+    }
+    return result.size()==V ? result : {}; // empty = cycle!
+}
+
+// Union-Find with path compression + rank
+class UnionFind {
+    vector<int> parent, rank_;
+public:
+    UnionFind(int n): parent(n), rank_(n,0) { iota(parent.begin(),parent.end(),0); }
+
+    int find(int x) {                          // path compression
+        if (parent[x]!=x) parent[x]=find(parent[x]);
+        return parent[x];
+    }
+    bool unite(int x, int y) {                 // false = already same = cycle
+        int rx=find(x), ry=find(y);
+        if (rx==ry) return false;
+        if (rank_[rx]<rank_[ry]) swap(rx,ry);
+        parent[ry]=rx;
+        if (rank_[rx]==rank_[ry]) rank_[rx]++;
+        return true;
+    }
+};`,
+        python: `# Topological Sort (Kahn's) + Union-Find — Python
+from collections import deque
+
+def topo_sort(V, adj):
+    indegree = [0]*V
+    for u in range(V):
+        for v in adj[u]: indegree[v]+=1
+    q = deque(i for i in range(V) if indegree[i]==0)
+    result = []
+    while q:
+        u = q.popleft(); result.append(u)
+        for v in adj[u]:
+            indegree[v]-=1
+            if indegree[v]==0: q.append(v)
+    return result if len(result)==V else []  # empty = cycle
+
+# Union-Find with path compression + union by rank
+class UnionFind:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0]*n
+
+    def find(self, x):                    # path compression
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def unite(self, x, y):               # returns False if cycle
+        rx, ry = self.find(x), self.find(y)
+        if rx == ry: return False         # same component = cycle!
+        if self.rank[rx] < self.rank[ry]: rx, ry = ry, rx
+        self.parent[ry] = rx
+        if self.rank[rx] == self.rank[ry]: self.rank[rx]+=1
+        return True`,
+        practice: [
+          { name: "Course Schedule (Topo Sort + Cycle)", diff: "medium" },
+          { name: "Course Schedule II (ordering)", diff: "medium" },
+          { name: "Number of Connected Components (Union-Find)", diff: "medium" },
+          { name: "Redundant Connection (Cycle Union-Find)", diff: "medium" }
+        ]
+      },
+      "Important Patterns & Problems": {
+        diff: "medium",
+        explanation: "Five critical graph patterns: (1) Grid as Graph — treat each cell as a node, edges to 4 (or 8) neighbours. Number of Islands, Rotten Oranges, Flood Fill. (2) Multi-source BFS — enqueue ALL starting nodes simultaneously. Rotten Oranges, 01 Matrix, Pacific Atlantic. (3) Cycle Detection — undirected: DFS with parent tracking or Union-Find. Directed: DFS with color/state (white=unvisited, grey=in-stack, black=done). (4) Bipartite Check — 2-color graph with BFS/DFS. If neighbour has same color → not bipartite. (5) Connected Components — run DFS/BFS from each unvisited node, count runs.",
+        intuition: "Grid problems are just graph problems in disguise — every cell is a vertex, every adjacency is an edge. Multi-source BFS is the key insight for problems like 'distance from any rotten orange' — start all sources at level 0 simultaneously. Bipartite check: try to 2-colour the graph. If you can't (a neighbour gets the same colour) → odd cycle → not bipartite.",
+        steps: [
+          "GRID TRAVERSAL: dx=[-1,0,1,0], dy=[0,1,0,-1]. For each direction: nx=x+dx[i], ny=y+dy[i]. Check bounds: 0<=nx<rows and 0<=ny<cols.",
+          "NUMBER OF ISLANDS: for each unvisited land cell: DFS/BFS to mark entire island as visited, count++.",
+          "ROTTEN ORANGES: multi-source BFS. Push all initially rotten cells (level 0). BFS spreads rot. Answer = max levels if all fresh oranges reached.",
+          "CYCLE UNDIRECTED: DFS with parent. If neighbour is visited and not parent → cycle.",
+          "CYCLE DIRECTED: DFS with 3 states. State 0=unvisited, 1=in-stack (grey), 2=done (black). If DFS reaches grey node → back edge → cycle.",
+          "BIPARTITE: BFS/DFS with 2-coloring. color[src]=0. For each neighbour v: if not colored: color[v]=1-color[u]. If color[v]==color[u] → not bipartite."
+        ],
+        dryRun: `── NUMBER OF ISLANDS ─────────────────────────────────
+Grid:
+  1 1 0 0
+  1 0 0 1
+  0 0 1 1
+  0 0 0 0
+
+(0,0)=1, unvisited → DFS: mark (0,0),(0,1),(1,0) → island 1
+(1,3)=1, unvisited → DFS: mark (1,3) → island 2
+(2,2)=1, unvisited → DFS: mark (2,2),(2,3) → island 3
+Answer: 3 islands ✓
+
+── BIPARTITE CHECK: 0-1-2-3-0 (4-cycle) ─────────────
+color: [-1,-1,-1,-1]
+BFS from 0: color[0]=0
+  neighbor 1: color[1]=1
+    neighbor 2: color[2]=0
+      neighbor 3: color[3]=1
+        neighbor 0: color[0]=0 ≠ color[3]=1 → OK
+All colored without conflict → BIPARTITE ✓
+
+── DIRECTED CYCLE: 0→1→2→0 ─────────────────────────
+DFS(0): state[0]=1 (grey)
+  DFS(1): state[1]=1
+    DFS(2): state[2]=1
+      neighbor 0: state[0]=1 (grey) → BACK EDGE → CYCLE ✗`,
+        time: { best: "O(V+E) or O(rows×cols)", avg: "O(V+E)", worst: "O(V+E)" },
+        space: "O(V) visited/color arrays",
+        stable: undefined,
+        when: "Grid problems → grid-as-graph with BFS/DFS. Multiple starting points → multi-source BFS. Detecting cycles → undirected=parent-DFS/UnionFind, directed=3-color DFS. Graph coloring → bipartite check.",
+        pros: [
+          "Grid-as-graph unifies all 2D traversal problems under one framework",
+          "Multi-source BFS solves 'spread from all sources' in one pass",
+          "3-color DFS reliably detects directed cycles"
+        ],
+        cons: [
+          "Grid bounds checking is error-prone — always validate before accessing",
+          "Multi-source BFS initialization (all sources at once) is non-obvious",
+          "Directed vs undirected cycle detection use different approaches — easy to mix up"
+        ],
+        cpp: `// Important Graph Patterns — C++
+
+// 1. Grid DFS — Number of Islands
+int numIslands(vector<vector<char>>& grid) {
+    int rows=grid.size(), cols=grid[0].size(), count=0;
+    int dx[]={-1,0,1,0}, dy[]={0,1,0,-1};
+    function<void(int,int)> dfs=[&](int x, int y){
+        if(x<0||x>=rows||y<0||y>=cols||grid[x][y]!='1') return;
+        grid[x][y]='0'; // mark visited
+        for(int i=0;i<4;i++) dfs(x+dx[i],y+dy[i]);
+    };
+    for(int i=0;i<rows;i++) for(int j=0;j<cols;j++)
+        if(grid[i][j]=='1') { dfs(i,j); count++; }
+    return count;
+}
+
+// 2. Bipartite Check — BFS
+bool isBipartite(vector<vector<int>>& adj) {
+    int V=adj.size(); vector<int> color(V,-1);
+    for(int s=0;s<V;s++) {
+        if(color[s]!=-1) continue;
+        queue<int> q; q.push(s); color[s]=0;
+        while(!q.empty()) {
+            int u=q.front(); q.pop();
+            for(int v:adj[u]) {
+                if(color[v]==-1){color[v]=1-color[u];q.push(v);}
+                else if(color[v]==color[u]) return false; // conflict!
+            }
+        }
+    }
+    return true;
+}
+
+// 3. Directed Cycle Detection — DFS 3-color
+bool hasCycleDir(int u, vector<vector<int>>& adj, vector<int>& state) {
+    state[u]=1; // grey = in stack
+    for(int v:adj[u]) {
+        if(state[v]==1) return true;  // back edge!
+        if(state[v]==0 && hasCycleDir(v,adj,state)) return true;
+    }
+    state[u]=2; return false;         // black = done
+}`,
+        python: `# Important Graph Patterns — Python
+
+# 1. Number of Islands — Grid DFS
+def num_islands(grid):
+    rows, cols = len(grid), len(grid[0])
+    def dfs(x, y):
+        if x<0 or x>=rows or y<0 or y>=cols or grid[x][y]!='1': return
+        grid[x][y]='0'  # mark visited
+        for dx,dy in [(-1,0),(1,0),(0,-1),(0,1)]: dfs(x+dx,y+dy)
+    count=0
+    for i in range(rows):
+        for j in range(cols):
+            if grid[i][j]=='1': dfs(i,j); count+=1
+    return count
+
+# 2. Bipartite Check — BFS
+from collections import deque
+def is_bipartite(adj):
+    V=len(adj); color=[-1]*V
+    for s in range(V):
+        if color[s]!=-1: continue
+        q=deque([s]); color[s]=0
+        while q:
+            u=q.popleft()
+            for v in adj[u]:
+                if color[v]==-1: color[v]=1-color[u]; q.append(v)
+                elif color[v]==color[u]: return False
+    return True
+
+# 3. Rotten Oranges — Multi-source BFS
+def oranges_rotting(grid):
+    rows,cols=len(grid),len(grid[0])
+    q=deque(); fresh=0
+    for i in range(rows):
+        for j in range(cols):
+            if grid[i][j]==2: q.append((i,j,0))  # all sources at once!
+            elif grid[i][j]==1: fresh+=1
+    minutes=0
+    while q:
+        x,y,t=q.popleft()
+        for dx,dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+            nx,ny=x+dx,y+dy
+            if 0<=nx<rows and 0<=ny<cols and grid[nx][ny]==1:
+                grid[nx][ny]=2; fresh-=1; minutes=t+1; q.append((nx,ny,t+1))
+    return minutes if fresh==0 else -1`,
+        practice: [
+          { name: "Number of Islands", diff: "medium" },
+          { name: "Rotten Oranges (Multi-source BFS)", diff: "medium" },
+          { name: "Is Graph Bipartite?", diff: "medium" },
+          { name: "Detect Cycle in Directed Graph", diff: "medium" },
+          { name: "Pacific Atlantic Water Flow", diff: "medium" },
+          { name: "Surrounded Regions", diff: "medium" }
+        ]
+      }
+    }
+  },
   "Dynamic Programming": { icon: "💡", diff: "hard", desc: "Overlapping subproblems + optimal substructure. The crown jewel of FAANG interviews.", subtopics: {} },
   "Greedy Algorithms": { icon: "🏆", diff: "medium", desc: "Locally optimal choices lead to global optimum. Interval scheduling, Huffman coding.", subtopics: {} },
   Backtracking: { icon: "↩️", diff: "hard", desc: "Systematic trial-and-error with pruning. N-Queens, Sudoku, permutations.", subtopics: {} },
@@ -5790,6 +7422,350 @@ function SubtopicView({ data, name }) {
             {["DFS Post-order","BFS Level-order","Tree DP","Divide & Conquer","Inorder for BST","Height + Global Max"].map(p=>(
               <div className="ppill" key={p}>{p}</div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* BST: property visualizer */}
+      {is("BST Basics & Property") && (
+        <div className="sec">
+          <div className="stitle">BST Property Visualized</div>
+          <div style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:10,padding:"16px 20px",fontFamily:"'Space Mono',monospace",fontSize:".78rem",color:"var(--text2)",lineHeight:2.4}}>
+            <div style={{textAlign:"center"}}>
+              <span style={{background:"var(--accent)",color:"#fff",padding:"5px 16px",borderRadius:6,fontWeight:700}}>5</span>
+              <span style={{color:"var(--text3)",fontSize:".65rem",marginLeft:10}}>← root</span>
+            </div>
+            <div style={{textAlign:"center",color:"var(--text3)"}}>/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \</div>
+            <div style={{display:"flex",justifyContent:"center",gap:60}}>
+              <div style={{textAlign:"center"}}>
+                <span style={{background:"var(--bg3)",border:"1px solid var(--accent2)",color:"var(--accent2)",padding:"5px 14px",borderRadius:6,fontWeight:700}}>3</span>
+                <div style={{fontSize:".62rem",color:"var(--accent3)",marginTop:2}}>all &lt; 5 ✓</div>
+                <div style={{color:"var(--text3)"}}>/ &nbsp; \</div>
+                <div style={{display:"flex",gap:16,justifyContent:"center"}}>
+                  {[[2,"< 3 ✓"],[4,"> 3 ✓"]].map(([v,lbl])=>(
+                    <div key={v} style={{textAlign:"center"}}>
+                      <span style={{background:"var(--bg3)",border:"1px solid var(--accent3)",color:"var(--accent3)",padding:"4px 10px",borderRadius:6,fontWeight:700}}>{v}</span>
+                      <div style={{fontSize:".58rem",color:"var(--accent3)"}}>{lbl}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{textAlign:"center"}}>
+                <span style={{background:"var(--bg3)",border:"1px solid var(--accent2)",color:"var(--accent2)",padding:"5px 14px",borderRadius:6,fontWeight:700}}>7</span>
+                <div style={{fontSize:".62rem",color:"var(--accent3)",marginTop:2}}>all &gt; 5 ✓</div>
+              </div>
+            </div>
+          </div>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Inorder → Sorted:</strong> Traversing this BST inorder gives 2 3 4 5 7 — always sorted ascending. This is the #1 BST property used in interviews.</div>
+          </div>
+        </div>
+      )}
+
+      {/* BST: deletion 3 cases visual */}
+      {is("Insert & Delete") && (
+        <div className="sec">
+          <div className="stitle">Deletion — 3 Cases</div>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {[
+              ["Case 1: Leaf","Node has no children. Simply remove it. Return null.","var(--green)"],
+              ["Case 2: One child","Node has one child. Replace node with its child.","var(--yellow)"],
+              ["Case 3: Two children","Find inorder successor (findMin of right subtree). Copy value up. Delete successor from right subtree.","var(--accent2)"],
+            ].map(([title,desc,color])=>(
+              <div key={title} style={{background:"var(--bg2)",border:`1px solid ${color}`,borderLeft:`3px solid ${color}`,borderRadius:8,padding:"10px 14px"}}>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:".72rem",color,fontWeight:700,marginBottom:4}}>{title}</div>
+                <div style={{fontSize:".78rem",color:"var(--text2)"}}>{desc}</div>
+              </div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Inorder Successor</strong> = smallest node in right subtree = go right once, then left as far as possible (findMin). It's guaranteed to have at most one child (right), making its deletion easy.</div>
+          </div>
+        </div>
+      )}
+
+      {/* BST: important problems pills */}
+      {is("Important BST Problems") && (
+        <div className="sec">
+          <div className="stitle">Pattern Toolkit</div>
+          <div className="pattern-pills">
+            {["Validate BST (bounds)","LCA in BST (O(h))","Kth Smallest (inorder)","Sorted Array → BST","Range Sum (prune)","Floor / Ceil","Inorder Successor","Two Sum in BST"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="theorem-box" style={{marginTop:12}}>
+            <div className="theorem-label">LCA in BST vs General Binary Tree</div>
+            <div className="theorem-text" style={{fontFamily:"'Space Mono',monospace",fontSize:".76rem",lineHeight:2}}>
+              {"General BT LCA: O(n) — must explore both subtrees"}<br/>
+              {"BST LCA:        O(h) — ordering tells which subtree"}<br/>
+              {"  if p,q < root → LCA in left subtree"}<br/>
+              {"  if p,q > root → LCA in right subtree"}<br/>
+              {"  else         → root IS the LCA ✓"}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BST: comparison table */}
+      {is("BST vs Other Structures") && (
+        <div className="sec">
+          <div className="stitle">Structure Comparison</div>
+          <table className="fn-table">
+            <thead><tr><th>Structure</th><th>Search</th><th>Insert</th><th>Ordered?</th><th>Range Query</th></tr></thead>
+            <tbody>
+              {[
+                ["BST (balanced)","O(log n)","O(log n)","YES","O(log n+k)","g"],
+                ["BST (skewed)","O(n)","O(n)","YES","O(n)","r"],
+                ["Hash Table","O(1) avg","O(1) avg","NO","O(n)","y"],
+                ["Heap","O(n)","O(log n)","Partial","N/A","y"],
+                ["Sorted Array","O(log n)","O(n)","YES","O(log n+k)","g"],
+              ].map(([s,srch,ins,ord,rq,c])=>(
+                <tr key={s}>
+                  <td className="op">{s}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{srch}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{ins}</td>
+                  <td style={{color:ord==="YES"?"var(--green)":ord==="NO"?"var(--red)":"var(--yellow)",fontSize:".73rem"}}>{ord}</td>
+                  <td style={{color:"var(--text3)",fontFamily:"Space Mono,monospace",fontSize:".72rem"}}>{rq}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Rule of thumb:</strong> Need ordered iteration or range queries → BST (map/set). Need O(1) lookup only → Hash (unordered_map/dict). Need max/min only → Heap (priority_queue).</div>
+          </div>
+        </div>
+      )}
+
+      {/* Heap: array + tree visualizer */}
+      {is("Basics & Heap Property") && (
+        <div className="sec">
+          <div className="stitle">Max Heap — Array & Tree View</div>
+          <div style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:10,padding:"14px 18px"}}>
+            <div style={{display:"flex",gap:0,marginBottom:10,overflowX:"auto"}}>
+              {[{v:50,i:0},{v:30,i:1},{v:40,i:2},{v:10,i:3},{v:20,i:4},{v:35,i:5}].map(({v,i})=>(
+                <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:52}}>
+                  <div style={{background:i===0?"var(--accent)":"var(--bg3)",border:`1px solid ${i===0?"var(--accent)":"var(--border)"}`,borderRight:i<5?"none":"1px solid var(--border)",padding:"9px 4px",fontFamily:"'Space Mono',monospace",fontSize:".82rem",fontWeight:700,color:i===0?"#fff":"var(--text2)",width:"100%",textAlign:"center"}}>{v}</div>
+                  <div style={{fontSize:".62rem",color:"var(--text3)",fontFamily:"'Space Mono',monospace",marginTop:3}}>[{i}]</div>
+                </div>
+              ))}
+            </div>
+            <div style={{fontFamily:"'Space Mono',monospace",fontSize:".72rem",color:"var(--text3)",lineHeight:1.8}}>
+              parent(i)=(i-1)/2 &nbsp;|&nbsp; left(i)=2i+1 &nbsp;|&nbsp; right(i)=2i+2<br/>
+              parent(3)=(3-1)/2=1 → arr[1]=30 ✓ &nbsp;&nbsp; left(1)=3 → arr[3]=10 ✓
+            </div>
+          </div>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Heap ≠ BST:</strong> Siblings have NO ordering guarantee. arr[1]=30 and arr[2]=40 — no relation between them. Only parent ≥ children (max heap). Last non-leaf = index n/2-1 = 2 (node 40).</div>
+          </div>
+        </div>
+      )}
+
+      {/* Heap: bubble up/down visual */}
+      {is("Insert & Heapify") && (
+        <div className="sec">
+          <div className="stitle">Insert vs Delete Operation Flow</div>
+          <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+            {[
+              {title:"INSERT → Bubble UP",steps:["Add at end (maintain completeness)","Compare with parent","Swap if parent < new (max heap)","Repeat until heap property OK"],color:"var(--accent3)"},
+              {title:"DELETE → Heapify DOWN",steps:["Replace root with last element","Remove last element","Compare with children","Swap with larger child (max heap)","Repeat until heap property OK"],color:"var(--accent2)"},
+            ].map(({title,steps,color})=>(
+              <div key={title} style={{flex:1,minWidth:200,background:"var(--bg2)",border:`1px solid ${color}`,borderLeft:`3px solid ${color}`,borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:".72rem",color,fontWeight:700,marginBottom:8}}>{title}</div>
+                {steps.map((s,i)=>(
+                  <div key={i} style={{display:"flex",gap:8,marginBottom:5,alignItems:"flex-start"}}>
+                    <span style={{color,fontFamily:"'Space Mono',monospace",fontSize:".68rem",flexShrink:0,fontWeight:700}}>{i+1}.</span>
+                    <span style={{fontSize:".74rem",color:"var(--text2)"}}>{s}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="theorem-box" style={{marginTop:12}}>
+            <div className="theorem-label">Why Build Heap is O(n), not O(n log n)</div>
+            <div className="theorem-text">Nodes near the bottom do very little work (leaves = O(1)). Only the root does O(log n) work. The sum of all heapify costs = n×Σ(l/2^l) = O(n). This telescoping sum is why bottom-up build is better than n × insert.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Heap: patterns pills */}
+      {is("Important Patterns") && (
+        <div className="sec">
+          <div className="stitle">Pattern Toolkit</div>
+          <div className="pattern-pills">
+            {["Top-K Largest (min-heap size k)","Kth Largest/Smallest","Merge K Sorted Arrays","Median of Stream (two heaps)","Task Scheduler","Sliding Window Max","Reorganize String","Dijkstra's Algorithm"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Interview trigger words → heap:</strong> "top k", "kth largest/smallest", "priority-based", "smallest/largest repeatedly", "median of stream", "merge k sorted". See any of these → think heap immediately.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Heap: complexity table */}
+      {is("Heap Sort & Complexity") && (
+        <div className="sec">
+          <div className="stitle">All Operations at a Glance</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>
+            <span className="op-badge ob-o1">Peek — O(1)</span>
+            <span className="op-badge ob-on">Insert — O(log n)</span>
+            <span className="op-badge ob-on">Delete — O(log n)</span>
+            <span className="op-badge ob-o1">Build Heap — O(n)</span>
+          </div>
+          <table className="fn-table">
+            <thead><tr><th>Operation</th><th>Time</th><th>Space</th><th>Notes</th></tr></thead>
+            <tbody>
+              {[
+                ["Peek (max/min)","O(1)","O(1)","Root = always max/min","g"],
+                ["Insert","O(log n)","O(1)","Bubble up","y"],
+                ["Delete root","O(log n)","O(1)","Heapify down","y"],
+                ["Build heap","O(n)","O(1)","Bottom-up — better than O(n log n)","g"],
+                ["Heap sort","O(n log n)","O(1)","In-place — unique advantage","g"],
+                ["Search arbitrary","O(n)","O(1)","No ordering between siblings","r"],
+              ].map(([op,t,sp,note,c])=>(
+                <tr key={op}>
+                  <td className="op">{op}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{t}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{sp}</td>
+                  <td style={{color:"var(--text3)",fontSize:".72rem"}}>{note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Graphs: adjacency list vs matrix */}
+      {is("Basics & Representation") && (
+        <div className="sec">
+          <div className="stitle">Adjacency List vs Matrix</div>
+          <table className="fn-table">
+            <thead><tr><th>Property</th><th>Adjacency List</th><th>Adjacency Matrix</th></tr></thead>
+            <tbody>
+              {[
+                ["Space","O(V+E) ✓","O(V²) ✗"],
+                ["Edge check","O(degree)","O(1) ✓"],
+                ["Neighbour scan","O(degree) ✓","O(V) ✗"],
+                ["Best for","Sparse graphs (most)","Dense graphs (E≈V²)"],
+                ["Interview use","Almost always","Floyd-Warshall only"],
+              ].map(([p,l,m])=>(
+                <tr key={p}>
+                  <td className="op">{p}</td>
+                  <td style={{color:l.includes("✓")?"var(--green)":l.includes("✗")?"var(--red)":"var(--text2)",fontSize:".76rem"}}>{l}</td>
+                  <td style={{color:m.includes("✓")?"var(--green)":m.includes("✗")?"var(--red)":"var(--text2)",fontSize:".76rem"}}>{m}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Default choice:</strong> Always use adjacency list unless told graph is dense or you need O(1) edge check. For undirected edge (u,v): add v to adj[u] AND u to adj[v].</div>
+          </div>
+        </div>
+      )}
+
+      {/* Graphs: BFS vs DFS */}
+      {is("BFS & DFS") && (
+        <div className="sec">
+          <div className="stitle">BFS vs DFS at a Glance</div>
+          <table className="fn-table">
+            <thead><tr><th>Property</th><th>BFS</th><th>DFS</th></tr></thead>
+            <tbody>
+              {[
+                ["Data structure","Queue (FIFO)","Stack / Recursion"],
+                ["Traversal order","Level by level","Deep first"],
+                ["Shortest path","YES (unweighted) ✓","NO ✗"],
+                ["Cycle detection","YES","YES (better)"],
+                ["Memory","O(V) — wide graphs costly","O(h) — deep graphs costly"],
+                ["Use for","Shortest path, levels, BFS spread","DFS, topo sort, backtracking"],
+              ].map(([p,b,d])=>(
+                <tr key={p}>
+                  <td className="op">{p}</td>
+                  <td style={{color:b.includes("✓")?"var(--green)":b.includes("NO")?"var(--red)":"var(--text2)",fontSize:".76rem"}}>{b}</td>
+                  <td style={{color:d.includes("✓")?"var(--green)":d.includes("NO ✗")?"var(--red)":"var(--text2)",fontSize:".76rem"}}>{d}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Common mistake:</strong> Using DFS for shortest path — WRONG. DFS doesn't guarantee shortest path. Always use BFS for unweighted shortest path. Always maintain a visited array to avoid infinite loops.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Graphs: shortest path algo comparison */}
+      {is("Shortest Path Algorithms") && (
+        <div className="sec">
+          <div className="stitle">Algorithm Selection Guide</div>
+          <table className="fn-table">
+            <thead><tr><th>Algorithm</th><th>Time</th><th>Weights</th><th>Negative?</th><th>Use when</th></tr></thead>
+            <tbody>
+              {[
+                ["BFS","O(V+E)","Unweighted","N/A","Unweighted graphs","g"],
+                ["Dijkstra","O((V+E)log V)","Weighted","No","Most weighted problems","g"],
+                ["Bellman-Ford","O(VE)","Weighted","YES ✓","Negative edges exist","y"],
+                ["Floyd-Warshall","O(V³)","Weighted","YES","All-pairs, V ≤ 500","r"],
+              ].map(([a,t,w,n,u,c])=>(
+                <tr key={a}>
+                  <td className="op">{a}</td>
+                  <td className={`cx-${c}`} style={{fontFamily:"Space Mono,monospace",fontSize:".73rem"}}>{t}</td>
+                  <td style={{color:"var(--text2)",fontSize:".73rem"}}>{w}</td>
+                  <td style={{color:n.includes("✓")?"var(--green)":"var(--text3)",fontSize:".73rem"}}>{n}</td>
+                  <td style={{color:"var(--text3)",fontSize:".72rem"}}>{u}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Dijkstra stale entry trick:</strong> When popping (d, u), if d &gt; dist[u] → skip (it's an outdated entry). This is the key optimisation that makes Dijkstra work correctly with a lazy deletion heap.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Graphs: topo + union-find pills */}
+      {is("Topological Sort & Union-Find") && (
+        <div className="sec">
+          <div className="stitle">When to Use Each</div>
+          <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+            {[
+              {title:"Topological Sort",items:["Course scheduling","Build system dependencies","Task ordering with prerequisites","Any DAG ordering problem"],color:"var(--accent2)"},
+              {title:"Union-Find",items:["Cycle detection (undirected)","Kruskal's MST","Number of connected components","Network connectivity queries"],color:"var(--accent3)"},
+            ].map(({title,items,color})=>(
+              <div key={title} style={{flex:1,minWidth:200,background:"var(--bg2)",border:`1px solid ${color}`,borderLeft:`3px solid ${color}`,borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:".72rem",color,fontWeight:700,marginBottom:8}}>{title}</div>
+                {items.map((s,i)=><div key={i} style={{fontSize:".75rem",color:"var(--text2)",marginBottom:4}}>• {s}</div>)}
+              </div>
+            ))}
+          </div>
+          <div className="theorem-box" style={{marginTop:12}}>
+            <div className="theorem-label">Kahn's Cycle Detection (free with Topo Sort)</div>
+            <div className="theorem-text" style={{fontFamily:"'Space Mono',monospace",fontSize:".76rem",lineHeight:1.8}}>
+              {"After Kahn's algorithm: if len(result) < V → cycle exists!"}<br/>
+              {"No extra code needed — cycle detection comes for free ✓"}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Graphs: patterns pills */}
+      {is("Important Patterns & Problems") && (
+        <div className="sec">
+          <div className="stitle">Pattern Toolkit</div>
+          <div className="pattern-pills">
+            {["Grid as Graph","Multi-source BFS","Cycle Detection (undirected)","Directed Cycle (3-color DFS)","Bipartite Check (2-coloring)","Connected Components","Flood Fill","Island Counting"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Grid traversal template:</strong> dx=[-1,0,1,0], dy=[0,1,0,-1] (4-directional). Always check 0≤nx&lt;rows AND 0≤ny&lt;cols before accessing grid[nx][ny]. Multi-source BFS = enqueue ALL sources at level 0 simultaneously.</div>
           </div>
         </div>
       )}
