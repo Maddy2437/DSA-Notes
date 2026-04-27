@@ -6301,10 +6301,2004 @@ def oranges_rotting(grid):
       }
     }
   },
-  "Dynamic Programming": { icon: "💡", diff: "hard", desc: "Overlapping subproblems + optimal substructure. The crown jewel of FAANG interviews.", subtopics: {} },
-  "Greedy Algorithms": { icon: "🏆", diff: "medium", desc: "Locally optimal choices lead to global optimum. Interval scheduling, Huffman coding.", subtopics: {} },
-  Backtracking: { icon: "↩️", diff: "hard", desc: "Systematic trial-and-error with pruning. N-Queens, Sudoku, permutations.", subtopics: {} },
-  Tries: { icon: "📖", diff: "hard", desc: "Prefix trees for autocomplete, spell-check, and word search problems.", subtopics: {} }
+  "Dynamic Programming": {
+    icon: "💡", diff: "hard",
+    desc: "Break + store + reuse. Overlapping subproblems + optimal substructure. The crown jewel of FAANG interviews.",
+    subtopics: {
+      "Basics & Two Properties": {
+        diff: "medium",
+        explanation: "Dynamic Programming (DP) solves complex problems by breaking them into smaller overlapping subproblems and storing their results to avoid recomputation. DP works ONLY when two properties hold: (1) Overlapping Subproblems — the same subproblems are solved multiple times. Example: fib(5)=fib(4)+fib(3), and fib(4) again calls fib(3) — repetition. (2) Optimal Substructure — the optimal solution can be built from optimal solutions of its subproblems. Example: shortest path from A to C through B = shortest(A,B) + shortest(B,C). Key terms: State — what a subproblem represents (e.g. dp[i] = answer for first i elements). Transition — how states relate (e.g. dp[i]=dp[i-1]+dp[i-2]). Base Case — smallest known subproblem. Memoization — top-down DP (recursion + cache). Tabulation — bottom-up DP (iterative table).",
+        intuition: "Think of DP as: 'Store results so you don't recompute.' Climbing stairs analogy: to reach stair n, you came from stair n-1 or n-2. Instead of recalculating all paths every time, store how many ways to reach each stair. DP thinking process: (1) Identify repeating work (draw the recursion tree). (2) Store results. (3) Build solution from smaller answers. The key difference from divide-and-conquer: in D&C, subproblems are independent. In DP, subproblems OVERLAP — hence storing is beneficial.",
+        steps: [
+          "STEP 1 — DEFINE STATE: What does dp[i] (or dp[i][j]) represent? Be precise. Example: dp[i] = number of ways to climb to stair i.",
+          "STEP 2 — DEFINE TRANSITION: How does dp[i] relate to smaller subproblems? Example: dp[i] = dp[i-1] + dp[i-2] (came from 1 or 2 steps back).",
+          "STEP 3 — BASE CASES: What are the smallest known values? Example: dp[0]=1 (one way to stay at ground), dp[1]=1.",
+          "STEP 4 — COMPUTE ORDER: Tabulation: iterate i=0..n. Memoization: recurse top-down, cache results.",
+          "CHECK OVERLAPPING SUBPROBLEMS: draw recursion tree. If same (n,args) appears twice → DP applicable.",
+          "CHECK OPTIMAL SUBSTRUCTURE: can you express optimal(problem) in terms of optimal(subproblems)? If yes → DP works."
+        ],
+        dryRun: `── FIBONACCI — Why DP? ──────────────────────────────
+Naive recursion tree for fib(5):
+            fib(5)
+          /        \\
+       fib(4)    fib(3) ← computed TWICE
+      /    \\    /    \\
+  fib(3) fib(2) fib(2) fib(1) ← fib(2) THRICE
+  ...
+Total calls: O(2^n) ✗
+
+With Memoization (cache fib(3)=2 on first call):
+fib(5) → fib(4) → fib(3) → fib(2) → fib(1)=1
+                             ↓ cache
+                          fib(0)=0
+              ↑ cache[2]=1, cache[3]=2, cache[4]=3
+fib(5) = cache[4]+cache[3] = 3+2 = 5 ✓
+Total calls: O(n) ✓
+
+TWO PROPERTIES CHECK:
+  Overlapping subproblems? fib(3) called multiple times → YES ✓
+  Optimal substructure?    fib(n) = fib(n-1)+fib(n-2) → YES ✓
+  → DP applicable ✓`,
+        time: { best: "O(n) with DP", avg: "O(n)", worst: "O(2^n) naive" },
+        space: "O(n) memo/tab / O(1) optimised",
+        stable: undefined,
+        when: "Use DP when: problem asks for min/max/count/feasibility, has overlapping subproblems and optimal substructure. If greedy gives optimal → use greedy (simpler). If only one solution path → use recursion without memoization.",
+        pros: [
+          "Reduces exponential to polynomial time (O(2^n) → O(n) or O(n²))",
+          "Guarantees optimal solution — unlike greedy",
+          "Two approaches (memo/tabulation) — use whichever is cleaner"
+        ],
+        cons: [
+          "State definition is the hard part — gets complex for 2D/3D DP",
+          "O(n²) or O(n×W) space can be prohibitive for large inputs",
+          "Not applicable when subproblems are independent (use D&C instead)"
+        ],
+        cpp: `// DP Basics — C++
+
+// Fibonacci — Memoization (top-down)
+#include <unordered_map>
+unordered_map<int,long long> memo;
+long long fib(int n) {
+    if (n <= 1) return n;
+    if (memo.count(n)) return memo[n];  // cache hit!
+    return memo[n] = fib(n-1) + fib(n-2);
+}
+
+// Fibonacci — Tabulation (bottom-up)
+long long fibTab(int n) {
+    if (n <= 1) return n;
+    vector<long long> dp(n+1);
+    dp[0]=0; dp[1]=1;
+    for (int i=2; i<=n; i++)
+        dp[i] = dp[i-1] + dp[i-2];  // transition
+    return dp[n];
+}
+
+// Fibonacci — Space Optimised O(1)
+long long fibOpt(int n) {
+    if (n<=1) return n;
+    long long a=0, b=1;
+    for (int i=2; i<=n; i++) { long long c=a+b; a=b; b=c; }
+    return b;
+}
+
+// Climbing Stairs (same as Fibonacci)
+int climbStairs(int n) {
+    if (n<=1) return 1;
+    int a=1, b=1;
+    for (int i=2; i<=n; i++) { int c=a+b; a=b; b=c; }
+    return b;
+}`,
+        python: `# DP Basics — Python
+
+# Fibonacci — Memoization with @cache
+from functools import lru_cache
+@lru_cache(maxsize=None)
+def fib(n):
+    if n <= 1: return n
+    return fib(n-1) + fib(n-2)
+
+# Fibonacci — Tabulation (bottom-up)
+def fib_tab(n):
+    if n <= 1: return n
+    dp = [0]*(n+1); dp[1]=1
+    for i in range(2, n+1):
+        dp[i] = dp[i-1] + dp[i-2]  # transition
+    return dp[n]
+
+# Fibonacci — Space Optimised O(1)
+def fib_opt(n):
+    if n <= 1: return n
+    a, b = 0, 1
+    for _ in range(2, n+1): a, b = b, a+b
+    return b
+
+# Climbing Stairs (1 or 2 steps at a time)
+def climb_stairs(n):
+    if n <= 1: return 1
+    a, b = 1, 1
+    for _ in range(2, n+1): a, b = b, a+b
+    return b
+
+print(climb_stairs(5))  # 8 ways`,
+        practice: [
+          { name: "Climbing Stairs", diff: "easy" },
+          { name: "Fibonacci Number", diff: "easy" },
+          { name: "Min Cost Climbing Stairs", diff: "easy" }
+        ]
+      },
+      "1D DP Patterns": {
+        diff: "medium",
+        explanation: "Three essential 1D DP patterns: (1) Prefix DP — dp[i] depends on dp[i-1] or a few previous states. Climbing stairs, house robber, min cost climbing. (2) Coin Change — dp[amount] = min coins to make that amount. For each coin, update dp[i] = min(dp[i], dp[i-coin]+1). (3) Longest Increasing Subsequence (LIS) — dp[i] = length of LIS ending at index i. O(n²) DP: dp[i] = max(dp[j]+1) for all j<i where arr[j]<arr[i]. O(n log n) with patience sorting + binary search. All 1D DP problems share the pattern: define what dp[i] means precisely, write the recurrence, identify base cases, fill bottom-up.",
+        intuition: "House Robber: at each house, you either rob it (can't rob previous) or skip it. dp[i] = max(dp[i-2]+arr[i], dp[i-1]). LIS: for each element, find the longest increasing subsequence ending at that element by checking all previous elements smaller than it. The O(n log n) version maintains a 'patience pile' — always replace the first pile top greater than current element using binary search.",
+        steps: [
+          "COIN CHANGE (min coins): dp[0]=0, dp[i]=∞ for i>0. For i=1..amount: for each coin c: if i>=c: dp[i]=min(dp[i], dp[i-c]+1). Answer: dp[amount] (∞ means impossible).",
+          "COIN CHANGE (number of ways): dp[0]=1. For each coin c: for i=c..amount: dp[i]+=dp[i-c]. (Order matters for permutations vs combinations.)",
+          "HOUSE ROBBER: dp[0]=arr[0], dp[1]=max(arr[0],arr[1]). dp[i]=max(dp[i-1], dp[i-2]+arr[i]).",
+          "LIS O(n²): dp[i]=1 for all. For i=1..n-1: for j=0..i-1: if arr[j]<arr[i]: dp[i]=max(dp[i],dp[j]+1). Answer: max(dp).",
+          "LIS O(n log n): maintain tails[] array. For each x: binary search for first tail >= x, replace it. tails length = LIS length.",
+          "WORD BREAK: dp[i] = can first i chars be segmented. dp[0]=true. For i=1..n: for each word w: if dp[i-len(w)] and s[i-len(w):i]==w: dp[i]=true."
+        ],
+        dryRun: `── COIN CHANGE [1,5,6,9], amount=11 (min coins) ────────
+dp = [0,∞,∞,∞,∞,∞,∞,∞,∞,∞,∞,∞]
+
+coin=1: dp[1]=1,dp[2]=2,...dp[11]=11
+coin=5: dp[5]=min(5,0+1)=1, dp[6]=min(6,dp[1]+1)=2,...
+coin=6: dp[6]=min(2,dp[0]+1)=1!, dp[11]=min(6,dp[5]+1)=2
+coin=9: dp[9]=min(4,dp[0]+1)=1!, dp[11]=min(2,dp[2]+1)=2
+Final dp[11]=2 (e.g. 5+6=11, or 2+9=11) ✓
+
+── LIS: [10,9,2,5,3,7,101,18] ───────────────────────
+i=0: dp=[1]           tails=[10]
+i=1: 9<10 → replace   tails=[9]
+i=2: 2<9  → replace   tails=[2]
+i=3: 5>2  → append    tails=[2,5]
+i=4: 3>2,<5→ replace  tails=[2,3]
+i=5: 7>3  → append    tails=[2,3,7]
+i=6: 101>7→ append    tails=[2,3,7,101]
+i=7: 18>7,<101→replace tails=[2,3,7,18]
+LIS length = len(tails) = 4 ✓ ([2,3,7,101] or [2,5,7,18])
+
+── HOUSE ROBBER: [2,7,9,3,1] ────────────────────────
+dp[0]=2, dp[1]=max(2,7)=7
+dp[2]=max(dp[1], dp[0]+9)=max(7,11)=11
+dp[3]=max(dp[2], dp[1]+3)=max(11,10)=11
+dp[4]=max(dp[3], dp[2]+1)=max(11,12)=12 ✓`,
+        time: { best: "O(n)", avg: "O(n) or O(n²)", worst: "O(n×amount) coin change" },
+        space: "O(n) / O(amount)",
+        stable: undefined,
+        when: "Linear sequence optimization (climbing stairs, robber) → 1D DP. Min coins → bottom-up coin change. LIS → O(n²) for small n, O(n log n) for large. Word segmentation → 1D DP with string matching.",
+        pros: [
+          "1D DP is cleanest — usually O(n) time and space",
+          "Space often reducible to O(1) by keeping only last 1-2 values",
+          "LIS O(n log n) is elegant binary search optimisation"
+        ],
+        cons: [
+          "Coin change O(n×amount) — large amounts → slow",
+          "LIS O(n log n) harder to implement correctly",
+          "Order matters: unbounded knapsack (coins with repetition) vs 0/1"
+        ],
+        cpp: `// 1D DP Patterns — C++
+
+// 1. Coin Change — min coins, O(n×amount)
+int coinChange(vector<int>& coins, int amount) {
+    vector<int> dp(amount+1, INT_MAX);
+    dp[0] = 0;
+    for (int i=1; i<=amount; i++)
+        for (int c : coins)
+            if (i>=c && dp[i-c]!=INT_MAX)
+                dp[i] = min(dp[i], dp[i-c]+1);
+    return dp[amount]==INT_MAX ? -1 : dp[amount];
+}
+
+// 2. House Robber — O(n), O(1) space
+int rob(vector<int>& arr) {
+    int a=0, b=0;
+    for (int x : arr) { int c=max(b, a+x); a=b; b=c; }
+    return b;
+}
+
+// 3. LIS — O(n²)
+int lis(vector<int>& arr) {
+    int n=arr.size(); vector<int> dp(n,1);
+    for (int i=1;i<n;i++) for (int j=0;j<i;j++)
+        if (arr[j]<arr[i]) dp[i]=max(dp[i],dp[j]+1);
+    return *max_element(dp.begin(),dp.end());
+}
+
+// 4. LIS — O(n log n) with binary search
+int lisOpt(vector<int>& arr) {
+    vector<int> tails;
+    for (int x : arr) {
+        auto it = lower_bound(tails.begin(),tails.end(),x);
+        if (it==tails.end()) tails.push_back(x);
+        else *it = x; // replace
+    }
+    return tails.size();
+}`,
+        python: `# 1D DP Patterns — Python
+
+# 1. Coin Change — min coins
+def coin_change(coins, amount):
+    dp = [float('inf')]*(amount+1); dp[0]=0
+    for i in range(1, amount+1):
+        for c in coins:
+            if i>=c and dp[i-c]!=float('inf'):
+                dp[i] = min(dp[i], dp[i-c]+1)
+    return dp[amount] if dp[amount]!=float('inf') else -1
+
+# 2. House Robber — O(n), O(1) space
+def rob(arr):
+    a = b = 0
+    for x in arr: a, b = b, max(b, a+x)
+    return b
+
+# 3. LIS — O(n²)
+def lis_n2(arr):
+    n = len(arr); dp=[1]*n
+    for i in range(1,n):
+        for j in range(i):
+            if arr[j]<arr[i]: dp[i]=max(dp[i],dp[j]+1)
+    return max(dp)
+
+# 4. LIS — O(n log n) with bisect
+import bisect
+def lis_opt(arr):
+    tails = []
+    for x in arr:
+        i = bisect.bisect_left(tails, x)
+        if i==len(tails): tails.append(x)
+        else: tails[i]=x
+    return len(tails)`,
+        practice: [
+          { name: "Coin Change", diff: "medium" },
+          { name: "House Robber", diff: "medium" },
+          { name: "Longest Increasing Subsequence", diff: "medium" },
+          { name: "Word Break", diff: "medium" },
+          { name: "Jump Game II", diff: "medium" }
+        ]
+      },
+      "2D DP Patterns": {
+        diff: "hard",
+        explanation: "Three classic 2D DP patterns: (1) 0/1 Knapsack — dp[i][w] = max value using first i items with weight capacity w. Either include item i (value[i]+dp[i-1][w-weight[i]]) or exclude it (dp[i-1][w]). O(n×W) time and space. (2) Longest Common Subsequence (LCS) — dp[i][j] = LCS length of s1[0..i-1] and s2[0..j-1]. If chars match: dp[i][j]=dp[i-1][j-1]+1. Else: max(dp[i-1][j], dp[i][j-1]). (3) Grid DP — dp[i][j] = answer at cell (i,j). Usually dp[i][j] = f(dp[i-1][j], dp[i][j-1]). Unique paths, minimum path sum, dungeon game.",
+        intuition: "Knapsack think: for each item, make a binary decision — take it or leave it. The 2D table captures all (items-used, capacity-remaining) combinations. LCS: if the last characters match, they MUST be in the LCS — extend by 1. If they don't match, the LCS comes from skipping one character from either string — take the max. Grid DP: each cell's answer depends only on cells above it and to its left.",
+        steps: [
+          "0/1 KNAPSACK: dp[0][w]=0 for all w. For i=1..n: for w=0..W: dp[i][w]=dp[i-1][w] (skip). If w>=wt[i-1]: dp[i][w]=max(dp[i][w], val[i-1]+dp[i-1][w-wt[i-1]]).",
+          "LCS: dp[0][j]=dp[i][0]=0. For i=1..m, j=1..n: if s1[i-1]==s2[j-1]: dp[i][j]=dp[i-1][j-1]+1. Else dp[i][j]=max(dp[i-1][j],dp[i][j-1]).",
+          "EDIT DISTANCE: dp[i][j]=min edits to convert s1[0..i-1] to s2[0..j-1]. If chars match: dp[i][j]=dp[i-1][j-1]. Else: 1+min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]).",
+          "UNIQUE PATHS: dp[i][j]=dp[i-1][j]+dp[i][j-1]. Base: dp[0][j]=1, dp[i][0]=1 (only one way along edges).",
+          "SPACE OPTIMISE KNAPSACK: use 1D dp[w], iterate w from W down to wt[i]. This prevents using same item twice.",
+          "SPACE OPTIMISE LCS: use two rows (prev, curr). Or one row with careful update."
+        ],
+        dryRun: `── 0/1 KNAPSACK: items=[(wt=1,val=6),(wt=2,val=10),(wt=3,val=12)], W=5 ─
+     w=0  1   2   3   4   5
+i=0 [ 0,  0,  0,  0,  0,  0]
+i=1 [ 0,  6,  6,  6,  6,  6]  (item1: wt=1,val=6)
+i=2 [ 0,  6, 10, 16, 16, 16]  (item2: wt=2,val=10)
+i=3 [ 0,  6, 10, 16, 18, 22]  (item3: wt=3,val=12)
+Max value = dp[3][5] = 22 (item1+item2+item3=1+2+3=6≤5? No)
+Actually: item2+item3=2+3=5, val=10+12=22 ✓
+
+── LCS: "ABCBDAB" and "BDCAB" ──────────────────────
+     ""  B  D  C  A  B
+""  [0,  0, 0, 0, 0, 0]
+A   [0,  0, 0, 0, 1, 1]
+B   [0,  1, 1, 1, 1, 2]
+C   [0,  1, 1, 2, 2, 2]
+B   [0,  1, 1, 2, 2, 3]
+D   [0,  1, 2, 2, 2, 3]
+A   [0,  1, 2, 2, 3, 3]
+B   [0,  1, 2, 2, 3, 4]
+LCS length = 4 ("BCAB" or "BDAB") ✓`,
+        time: { best: "O(n×W) knapsack", avg: "O(n×m) LCS", worst: "O(n×m)" },
+        space: "O(n×W) / O(W) space-optimised",
+        stable: undefined,
+        when: "0/1 Knapsack: take-or-leave item selection. LCS: common subsequence of two sequences. Edit distance: string transformation. Grid DP: pathfinding on grids. Whenever you see two sequences or a grid → think 2D DP.",
+        pros: [
+          "2D DP systematically handles all combinations of two parameters",
+          "Space reducible to O(min(n,m)) for LCS, O(W) for knapsack",
+          "LCS is the foundation for diff tools, bioinformatics"
+        ],
+        cons: [
+          "O(n×m) or O(n×W) space — large inputs require optimisation",
+          "Printing the actual solution requires backtracking through the table",
+          "Multiple 2D DP variations — LCS vs LCS-substring vs edit distance easy to confuse"
+        ],
+        cpp: `// 2D DP Patterns — C++
+
+// 1. 0/1 Knapsack — O(n×W) time, O(W) space (optimised)
+int knapsack(vector<int>& wt, vector<int>& val, int W) {
+    int n=wt.size(); vector<int> dp(W+1,0);
+    for (int i=0; i<n; i++)
+        for (int w=W; w>=wt[i]; w--)  // MUST go backwards for 0/1!
+            dp[w] = max(dp[w], val[i]+dp[w-wt[i]]);
+    return dp[W];
+}
+
+// 2. LCS — O(n×m)
+int lcs(string& s1, string& s2) {
+    int m=s1.size(), n=s2.size();
+    vector<vector<int>> dp(m+1,vector<int>(n+1,0));
+    for (int i=1;i<=m;i++) for (int j=1;j<=n;j++) {
+        if (s1[i-1]==s2[j-1]) dp[i][j]=dp[i-1][j-1]+1;
+        else dp[i][j]=max(dp[i-1][j],dp[i][j-1]);
+    }
+    return dp[m][n];
+}
+
+// 3. Edit Distance — O(n×m)
+int editDist(string& s1, string& s2) {
+    int m=s1.size(), n=s2.size();
+    vector<vector<int>> dp(m+1,vector<int>(n+1));
+    for(int i=0;i<=m;i++) dp[i][0]=i;
+    for(int j=0;j<=n;j++) dp[0][j]=j;
+    for(int i=1;i<=m;i++) for(int j=1;j<=n;j++)
+        dp[i][j]=s1[i-1]==s2[j-1]?dp[i-1][j-1]:1+min({dp[i-1][j],dp[i][j-1],dp[i-1][j-1]});
+    return dp[m][n];
+}`,
+        python: `# 2D DP Patterns — Python
+
+# 1. 0/1 Knapsack — O(W) space (iterate backwards!)
+def knapsack(wt, val, W):
+    dp = [0]*(W+1)
+    for i in range(len(wt)):
+        for w in range(W, wt[i]-1, -1):  # BACKWARDS for 0/1!
+            dp[w] = max(dp[w], val[i]+dp[w-wt[i]])
+    return dp[W]
+
+# 2. LCS — O(n×m)
+def lcs(s1, s2):
+    m, n = len(s1), len(s2)
+    dp = [[0]*(n+1) for _ in range(m+1)]
+    for i in range(1,m+1):
+        for j in range(1,n+1):
+            if s1[i-1]==s2[j-1]: dp[i][j]=dp[i-1][j-1]+1
+            else: dp[i][j]=max(dp[i-1][j],dp[i][j-1])
+    return dp[m][n]
+
+# 3. Edit Distance — O(n×m)
+def edit_distance(s1, s2):
+    m, n = len(s1), len(s2)
+    dp = [[0]*(n+1) for _ in range(m+1)]
+    for i in range(m+1): dp[i][0]=i
+    for j in range(n+1): dp[0][j]=j
+    for i in range(1,m+1):
+        for j in range(1,n+1):
+            if s1[i-1]==s2[j-1]: dp[i][j]=dp[i-1][j-1]
+            else: dp[i][j]=1+min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1])
+    return dp[m][n]
+
+# 4. Unique Paths — O(m×n) → O(n) space
+def unique_paths(m, n):
+    dp = [1]*n
+    for _ in range(1, m):
+        for j in range(1, n): dp[j]+=dp[j-1]
+    return dp[n-1]`,
+        practice: [
+          { name: "0/1 Knapsack", diff: "medium" },
+          { name: "Longest Common Subsequence", diff: "medium" },
+          { name: "Edit Distance", diff: "hard" },
+          { name: "Unique Paths", diff: "medium" },
+          { name: "Minimum Path Sum", diff: "medium" }
+        ]
+      },
+      "Classic Problems": {
+        diff: "hard",
+        explanation: "Five canonical DP problems every interview candidate must master: (1) Subset Sum — can we partition array to reach target? dp[i][s]=true if first i elements can sum to s. (2) Palindromic Substrings — dp[i][j]=true if s[i..j] is a palindrome. Expand from base cases. (3) Matrix Chain Multiplication — dp[i][j]=min cost to multiply matrices i..j. O(n³). (4) Longest Palindromic Subsequence — LCS(s, reverse(s)). (5) Maximum Rectangle in Histogram — use stack or DP on heights. These problems demonstrate DP's power across different domains: decision, counting, interval, string, and geometric DP.",
+        intuition: "Subset Sum is the gateway to knapsack. Palindrome problems often reduce to 2D interval DP. Matrix chain is the classic interval DP — you decide where to split i..j. The order of multiplication matters for cost but not result, and you try all split points. Maximum subarray is the classic Kadane's 1D DP.",
+        steps: [
+          "SUBSET SUM: dp[s]=true if sum s is achievable. dp[0]=true. For each num: for s=target..num: dp[s] |= dp[s-num]. O(n×target).",
+          "PALINDROME CHECK 2D: dp[i][i]=true. dp[i][i+1]=s[i]==s[i+1]. For len=3..n: dp[i][j]=s[i]==s[j] AND dp[i+1][j-1].",
+          "LPS (Longest Palindromic Subsequence): lps(s) = lcs(s, reverse(s)). Or dp[i][j] = dp[i+1][j-1]+2 if s[i]==s[j], else max(dp[i+1][j],dp[i][j-1]).",
+          "MAX SUBARRAY (Kadane's 1D DP): dp[i]=max(arr[i], dp[i-1]+arr[i]). dp[i] = max subarray ending at i. Answer=max(dp).",
+          "MATRIX CHAIN: dp[i][j]=min cost to multiply A[i..j]. For k=i..j-1: dp[i][j]=min(dp[i][k]+dp[k+1][j]+dim[i]*dim[k+1]*dim[j+1]).",
+          "PARTITION EQUAL SUBSET SUM: knapsack target=sum/2. If sum is odd → impossible."
+        ],
+        dryRun: `── SUBSET SUM: arr=[3,1,1], target=5 ──────────────────
+dp=[T,F,F,F,F,F] (index = sum)
+num=3: dp[3]=dp[0]=T → dp=[T,F,F,T,F,F]
+num=1: dp[1]=dp[0]=T,dp[4]=dp[3]=T → dp=[T,T,F,T,T,F]
+num=1: dp[2]=dp[1]=T,dp[5]=dp[4]=T → dp=[T,T,T,T,T,T]
+dp[5]=True ✓ (3+1+1=5)
+
+── KADANE'S (Max Subarray): [-2,1,-3,4,-1,2,1,-5,4] ─
+i=0: cur=-2, max=-2
+i=1: cur=max(1,-2+1)=1,    max=1
+i=2: cur=max(-3,1-3)=-2,   max=1
+i=3: cur=max(4,-2+4)=4,    max=4
+i=4: cur=max(-1,4-1)=3,    max=4
+i=5: cur=max(2,3+2)=5,     max=5
+i=6: cur=max(1,5+1)=6,     max=6 ← answer!
+i=7: cur=max(-5,6-5)=1,    max=6
+i=8: cur=max(4,1+4)=5,     max=6
+Answer: 6 (subarray [4,-1,2,1]) ✓`,
+        time: { best: "O(n×target) subset sum", avg: "O(n²) palindrome", worst: "O(n³) matrix chain" },
+        space: "O(target) / O(n²)",
+        stable: undefined,
+        when: "Subset sum/knapsack: can we pick elements to hit target. Palindrome problems: 2D interval DP. Matrix chain/burst balloons: interval DP. Kadane's: max subarray in linear time.",
+        pros: [
+          "Kadane's: O(n) linear — elegant 1D DP",
+          "Subset sum: foundation for all knapsack variants",
+          "LPS = LCS of string and reverse — elegant reduction"
+        ],
+        cons: [
+          "Matrix chain O(n³) — only for small n",
+          "2D palindrome DP O(n²) — memory can be large",
+          "Interval DP order matters: must fill by increasing length"
+        ],
+        cpp: `// Classic DP Problems — C++
+
+// 1. Maximum Subarray (Kadane's) — O(n)
+int maxSubarray(vector<int>& arr) {
+    int cur=arr[0], mx=arr[0];
+    for(int i=1;i<arr.size();i++){
+        cur=max(arr[i], cur+arr[i]);
+        mx=max(mx, cur);
+    }
+    return mx;
+}
+
+// 2. Partition Equal Subset Sum — O(n×sum)
+bool canPartition(vector<int>& nums) {
+    int sum=accumulate(nums.begin(),nums.end(),0);
+    if(sum%2) return false;
+    int target=sum/2;
+    vector<bool> dp(target+1,false); dp[0]=true;
+    for(int x:nums) for(int s=target;s>=x;s--) dp[s]|=dp[s-x];
+    return dp[target];
+}
+
+// 3. Longest Palindromic Subsequence — O(n²)
+int lps(string& s) {
+    int n=s.size(); string r(s.rbegin(),s.rend());
+    return lcs(s,r);  // LCS with reverse!
+}
+
+// 4. Palindromic Substrings Count — O(n²)
+int countPalindromes(string s) {
+    int n=s.size(), count=0;
+    auto expand=[&](int l, int r){
+        while(l>=0&&r<n&&s[l]==s[r]){count++;l--;r++;}
+    };
+    for(int i=0;i<n;i++){expand(i,i);expand(i,i+1);}
+    return count;
+}`,
+        python: `# Classic DP Problems — Python
+
+# 1. Kadane's Maximum Subarray — O(n)
+def max_subarray(arr):
+    cur = mx = arr[0]
+    for x in arr[1:]:
+        cur = max(x, cur+x)
+        mx = max(mx, cur)
+    return mx
+
+# 2. Partition Equal Subset Sum — O(n×sum)
+def can_partition(nums):
+    total = sum(nums)
+    if total%2: return False
+    target = total//2
+    dp = {0}  # achievable sums (using a set)
+    for x in nums:
+        dp = dp | {s+x for s in dp if s+x<=target}
+    return target in dp
+
+# 3. Longest Palindromic Subsequence — O(n²)
+def lps(s):
+    n = len(s)
+    dp = [[0]*n for _ in range(n)]
+    for i in range(n): dp[i][i]=1
+    for length in range(2, n+1):
+        for i in range(n-length+1):
+            j = i+length-1
+            if s[i]==s[j]: dp[i][j]=dp[i+1][j-1]+2
+            else: dp[i][j]=max(dp[i+1][j],dp[i][j-1])
+    return dp[0][n-1]
+
+# 4. DP on Grid — Minimum Path Sum
+def min_path_sum(grid):
+    m,n=len(grid),len(grid[0])
+    dp=[row[:] for row in grid]
+    for i in range(1,m): dp[i][0]+=dp[i-1][0]
+    for j in range(1,n): dp[0][j]+=dp[0][j-1]
+    for i in range(1,m):
+        for j in range(1,n):
+            dp[i][j]+=min(dp[i-1][j],dp[i][j-1])
+    return dp[m-1][n-1]`,
+        practice: [
+          { name: "Maximum Subarray (Kadane's)", diff: "medium" },
+          { name: "Partition Equal Subset Sum", diff: "medium" },
+          { name: "Longest Palindromic Subsequence", diff: "medium" },
+          { name: "Burst Balloons (Interval DP)", diff: "hard" },
+          { name: "Palindromic Substrings", diff: "medium" }
+        ]
+      }
+    }
+  },
+  "Greedy Algorithms": {
+    icon: "🏆", diff: "medium",
+    desc: "Pick locally optimal choice at each step. Activity selection, fractional knapsack, MST, Huffman coding.",
+    subtopics: {
+      "Basics & Greedy Choice Property": {
+        diff: "easy",
+        explanation: "A Greedy algorithm builds a solution step by step, always choosing the option that looks best at the current moment (locally optimal choice), hoping this leads to a globally optimal solution. Two properties a problem must have for greedy to work: (1) Greedy Choice Property — making a locally optimal choice at each step leads to a globally optimal solution. (2) Optimal Substructure — an optimal solution can be built from optimal solutions of subproblems (same as DP). Key difference from DP: Greedy commits early decisions and NEVER revisits them. DP tries all options and picks the best. Key difference from Backtracking: Backtracking explores all possibilities. Greedy only explores one path.",
+        intuition: "Think like this: 'At every step, what is the best decision I can take right now?' Real-life: filling a bag with maximum value items but limited weight — pick highest value-per-weight item first. Greedy doesn't try all possibilities — it commits immediately. This makes it fast (often O(n log n)) but risky — it can fail if the greedy choice property doesn't hold. Always ask: 'Can a locally bad choice now lead to a globally better solution?' If YES → greedy fails, use DP.",
+        steps: [
+          "STEP 1: Define the problem — what are you optimising (max/min)?",
+          "STEP 2: Identify the greedy choice — what looks best at each step?",
+          "STEP 3: Prove it — does local optimal always lead to global optimal? (exchange argument or cut property)",
+          "STEP 4: Implement — usually involves sorting first, then a greedy scan.",
+          "CHECK: If same denominations of coins, greedy coin change works. For arbitrary coin values it may not — use DP.",
+          "GREEDY FAILS: 0/1 Knapsack (can't take fraction), arbitrary coin change, matrix chain multiplication → these need DP."
+        ],
+        dryRun: `── COIN CHANGE (greedy — works for 1,2,5,10): make 18 ─
+Available: [10, 5, 2, 1]
+Pick largest ≤ 18: 10 → remaining=8
+Pick largest ≤ 8:   5 → remaining=3
+Pick largest ≤ 3:   2 → remaining=1
+Pick largest ≤ 1:   1 → remaining=0
+Coins used: [10,5,2,1] → 4 coins ✓
+
+── COIN CHANGE (greedy FAILS): [1,3,4], target=6 ────
+Greedy: 4+1+1=3 coins
+Optimal: 3+3=2 coins ✗
+Greedy chose 4 first (locally best), missing 3+3
+→ Need DP for arbitrary denominations!
+
+── GREEDY VS DP DECISION ─────────────────────────────
+Problem                | Greedy? | Why
+───────────────────────┼─────────┼────────────────────
+Activity selection     | YES ✓   | Earliest end = optimal
+Fractional knapsack    | YES ✓   | Take best ratio first
+0/1 Knapsack           | NO ✗    | Can't take fractions
+Coin change (std)      | YES ✓   | Standard denominations
+Coin change (arb)      | NO ✗    | Local≠global optimal
+Huffman coding         | YES ✓   | Always merge smallest`,
+        time: { best: "O(n)", avg: "O(n log n)", worst: "O(n log n)" },
+        space: "O(1) or O(n)",
+        stable: undefined,
+        when: "Use greedy when: problem asks for max/min and choices are independent, greedy choice property provably holds. Always try greedy first — it's simpler and faster. If you can construct a counterexample → use DP.",
+        pros: [
+          "Extremely fast — O(n log n) or O(n) for most problems",
+          "Simple to implement — usually sort + scan",
+          "Optimal when greedy choice property holds"
+        ],
+        cons: [
+          "Doesn't always give optimal solution — must prove correctness",
+          "No way to backtrack if a choice was wrong",
+          "Easy to apply to wrong problems (0/1 knapsack, arbitrary coin change)"
+        ],
+        cpp: `// Greedy Basics — C++
+
+// Coin change with standard denominations (greedy works)
+int minCoins(int amount, vector<int>& coins) {
+    sort(coins.rbegin(), coins.rend()); // largest first
+    int count = 0;
+    for (int c : coins) {
+        count += amount / c;   // take as many as possible
+        amount %= c;           // remaining
+    }
+    return amount == 0 ? count : -1;
+}
+
+// General framework:
+// 1. Identify what to sort by
+// 2. Greedy scan with a decision condition
+// 3. Never look back
+
+// Greedy choice: always take the "best" item
+// What "best" means depends on the problem:
+//   Activity selection  → earliest end time
+//   Fractional knapsack → highest value/weight ratio
+//   Kruskal's MST       → smallest edge weight
+//   Huffman coding      → smallest frequency first`,
+        python: `# Greedy Basics — Python
+
+# Coin change with standard denominations
+def min_coins_greedy(amount, coins):
+    coins.sort(reverse=True)  # largest first
+    count = 0
+    for c in coins:
+        count += amount // c   # take as many as possible
+        amount %= c
+    return count if amount == 0 else -1
+
+# General greedy template:
+def greedy_template(items, criteria_key):
+    items.sort(key=criteria_key)  # 1. sort by greedy criterion
+    result = []
+    for item in items:
+        if satisfies_condition(item, result):  # 2. check condition
+            result.append(item)               # 3. take it
+    return result
+
+# Key insight for proving greedy:
+# Exchange argument: assume greedy solution G and optimal O differ.
+# Show that swapping O's choice for G's choice doesn't worsen O.
+# Conclude G is also optimal.`,
+        practice: [
+          { name: "Assign Cookies", diff: "easy" },
+          { name: "Lemonade Change", diff: "easy" },
+          { name: "Jump Game", diff: "medium" }
+        ]
+      },
+      "Interval Problems": {
+        diff: "medium",
+        explanation: "Interval problems are the most common greedy category in interviews: (1) Activity Selection (max non-overlapping intervals) — sort by END time, greedily pick activities with start >= last selected end. Choosing earliest finish leaves maximum room for future activities. (2) Merge Intervals — sort by start time, merge overlapping intervals by extending end. (3) Minimum Platforms — find max overlapping intervals at any point. Sort arrivals and departures separately, sweep. (4) Non-overlapping Intervals (min removals) — same as activity selection: count max non-overlapping, answer = total - max_non_overlapping. (5) Meeting Rooms — can one person attend all? Sort by start, check no overlap.",
+        intuition: "Why sort by END time for activity selection? The activity that ends earliest leaves the most room for future activities. If we chose the one with the latest end, we'd block out more of the future. This is the core exchange argument. For merging: after sorting by start, an overlap is simply current.start <= prev.end — just extend prev.end to max(prev.end, current.end).",
+        steps: [
+          "ACTIVITY SELECTION: sort by end time. Pick first. For each next: if start >= lastEnd → pick, update lastEnd. O(n log n).",
+          "MERGE INTERVALS: sort by start. For each interval: if curr.start <= prev.end → merge (extend prev.end). Else → add to result. O(n log n).",
+          "MIN PLATFORMS: sort arrivals and departures. Two pointers: if next arrival < next departure → platform++, max_platforms. Else → departure pointer++. O(n log n).",
+          "NON-OVERLAPPING REMOVALS: count = n - activitySelection(intervals). O(n log n).",
+          "MEETING ROOMS (one person): sort by start. If intervals[i].start < intervals[i-1].end → overlap → return false.",
+          "INSERT INTERVAL: find insertion position, merge all overlapping intervals. O(n)."
+        ],
+        dryRun: `── ACTIVITY SELECTION: [(1,3),(2,4),(3,5),(0,6)] ──────
+Sort by end: [(1,3),(2,4),(3,5),(0,6)]
+Pick (1,3): lastEnd=3, count=1
+(2,4): start=2 < lastEnd=3 → SKIP
+(3,5): start=3 >= lastEnd=3 → PICK, lastEnd=5, count=2
+(0,6): start=0 < lastEnd=5 → SKIP
+Max activities = 2 ✓
+
+── MERGE INTERVALS: [[1,3],[2,6],[8,10],[15,18]] ──────
+Sort: [[1,3],[2,6],[8,10],[15,18]] (already sorted)
+Start: result=[[1,3]]
+[2,6]: 2<=3 → merge → result=[[1,6]]
+[8,10]: 8>6 → new → result=[[1,6],[8,10]]
+[15,18]: 15>10 → new → result=[[1,6],[8,10],[15,18]] ✓
+
+── MIN PLATFORMS: arrivals=[900,940,950,1100,1500,1800]
+                 departs=[910,1200,1120,1130,1900,2000]
+Sort both. Two pointers:
+  900<910→plat=1,max=1  940<1200→plat=2,max=2
+  950<1200→plat=3,max=3 1100<1200→plat=4,max=4... 
+  Wait: 1100<1120→plat=4,max=4
+  dep=910 processed: 1100>910→plat--=3...
+  (process correctly) → max=4 ✓`,
+        time: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)" },
+        space: "O(n) for result",
+        stable: undefined,
+        when: "Activity selection → max non-overlapping events. Merge intervals → combining overlapping ranges. Min platforms → peak resource usage. Non-overlapping removals → minimum deletions for disjoint intervals.",
+        pros: [
+          "All interval problems solvable in O(n log n) with greedy",
+          "Activity selection is provably optimal by exchange argument",
+          "Same sorting (by end time) works for multiple problems"
+        ],
+        cons: [
+          "Wrong sort criterion is the most common bug (start vs end)",
+          "Edge cases: touching intervals (start == prev.end) — define clearly",
+          "Min platforms: two separate sorts needed (not one combined sort)"
+        ],
+        cpp: `// Interval Greedy Problems — C++
+
+// 1. Activity Selection — O(n log n)
+int maxActivities(vector<pair<int,int>>& acts) {
+    sort(acts.begin(), acts.end(), [](auto& a, auto& b){
+        return a.second < b.second; // sort by END time!
+    });
+    int count=1, lastEnd=acts[0].second;
+    for (int i=1; i<acts.size(); i++)
+        if (acts[i].first >= lastEnd) { count++; lastEnd=acts[i].second; }
+    return count;
+}
+
+// 2. Merge Intervals — O(n log n)
+vector<vector<int>> merge(vector<vector<int>>& intervals) {
+    sort(intervals.begin(), intervals.end());
+    vector<vector<int>> res = {intervals[0]};
+    for (int i=1; i<intervals.size(); i++) {
+        if (intervals[i][0] <= res.back()[1])
+            res.back()[1] = max(res.back()[1], intervals[i][1]);
+        else res.push_back(intervals[i]);
+    }
+    return res;
+}
+
+// 3. Non-overlapping Intervals (min removals)
+int eraseOverlapIntervals(vector<vector<int>>& intervals) {
+    sort(intervals.begin(), intervals.end(), [](auto& a, auto& b){
+        return a[1] < b[1]; // sort by end!
+    });
+    int keep=1, lastEnd=intervals[0][1];
+    for (int i=1; i<intervals.size(); i++)
+        if (intervals[i][0] >= lastEnd) { keep++; lastEnd=intervals[i][1]; }
+    return intervals.size() - keep; // removals = total - kept
+}`,
+        python: `# Interval Greedy Problems — Python
+
+# 1. Activity Selection — max non-overlapping
+def max_activities(activities):
+    activities.sort(key=lambda x: x[1])  # sort by END!
+    count, last_end = 1, activities[0][1]
+    for start, end in activities[1:]:
+        if start >= last_end: count+=1; last_end=end
+    return count
+
+# 2. Merge Intervals — O(n log n)
+def merge_intervals(intervals):
+    intervals.sort(key=lambda x: x[0])  # sort by start
+    result = [intervals[0]]
+    for start, end in intervals[1:]:
+        if start <= result[-1][1]:  # overlap
+            result[-1][1] = max(result[-1][1], end)
+        else:
+            result.append([start, end])
+    return result
+
+# 3. Non-overlapping Intervals (min removals)
+def erase_overlap(intervals):
+    intervals.sort(key=lambda x: x[1])  # sort by end!
+    keep, last_end = 1, intervals[0][1]
+    for start, end in intervals[1:]:
+        if start >= last_end: keep+=1; last_end=end
+    return len(intervals)-keep  # removals = total - kept
+
+# 4. Min Platforms (Meeting Rooms II)
+def min_platforms(arrivals, departures):
+    arrivals.sort(); departures.sort()
+    platforms=0; max_p=0; j=0
+    for arr in arrivals:
+        if arr < departures[j]: platforms+=1; max_p=max(max_p,platforms)
+        else: j+=1
+    return max_p`,
+        practice: [
+          { name: "Activity Selection / Non-overlapping Intervals", diff: "medium" },
+          { name: "Merge Intervals", diff: "medium" },
+          { name: "Meeting Rooms II (Min Platforms)", diff: "medium" },
+          { name: "Insert Interval", diff: "medium" }
+        ]
+      },
+      "Fractional Knapsack & Scheduling": {
+        diff: "medium",
+        explanation: "Two classic greedy algorithms: (1) Fractional Knapsack — unlike 0/1 knapsack, you CAN take fractions of items. Sort by value/weight ratio descending. Take full items while capacity allows; take a fraction of the last item. O(n log n). (2) Job Sequencing with Deadlines — each job has a deadline and profit. Schedule jobs to maximise total profit. Sort by profit descending. Assign each job to its latest available slot before deadline. Use a greedy slot allocation. O(n² naive, O(n log n) with DSU). (3) Minimum Cost to Connect Ropes — always merge the two shortest ropes first (min-heap). O(n log n). (4) Huffman Coding — always merge two nodes with smallest frequency. Build prefix-free encoding tree. O(n log n).",
+        intuition: "Fractional knapsack: value/weight ratio is the key metric. An item worth 60 with weight 10 (ratio=6) is better than one worth 100 with weight 30 (ratio=3.33) — take it first. Connecting ropes: merging long ropes early means paying their cost repeatedly — always merge shortest first to minimise total cost. Huffman: frequent characters get shorter codes; rare characters get longer codes — always build from the bottom up using two smallest frequency nodes.",
+        steps: [
+          "FRACTIONAL KNAPSACK: compute ratio=value/weight for each item. Sort descending by ratio. Take full items while W allows. Take fraction: value × (remaining_W / weight). O(n log n).",
+          "JOB SEQUENCING: sort by profit descending. Create slots[1..maxDeadline]. For each job: find latest free slot ≤ deadline, assign there. O(n²) or O(n log n) with Union-Find.",
+          "CONNECT ROPES: min-heap. While heap.size>1: pop two smallest a,b. cost+=a+b. push(a+b). Return total cost. O(n log n).",
+          "HUFFMAN: count frequencies. Min-heap of (freq, node). While size>1: pop two (f1,n1),(f2,n2). Create parent (f1+f2). Push parent. Root = final node.",
+          "HUFFMAN CODES: traverse tree. Left=0, right=1. Leaf = code string. Frequent chars → shorter codes.",
+          "GAS STATION: total_gas >= total_cost → solution exists. Find starting station: if tank<0 at station i, reset start=i+1."
+        ],
+        dryRun: `── FRACTIONAL KNAPSACK: W=50 ─────────────────────────
+Items: [(val=60,wt=10),(val=100,wt=20),(val=120,wt=30)]
+Ratios: 6.0, 5.0, 4.0
+
+Sort by ratio: [(60,10),(100,20),(120,30)]
+Take (60,10):  W=40, total=60
+Take (100,20): W=20, total=160
+Take fraction of (120,30): take 20/30 of it
+  total += 120×(20/30) = 80
+Total value = 240 ✓
+
+── CONNECT ROPES: [4,3,2,6] ─────────────────────────
+heap=[2,3,4,6]
+Merge 2+3=5: cost=5,  heap=[4,5,6]
+Merge 4+5=9: cost=14, heap=[6,9]
+Merge 6+9=15:cost=29, heap=[15]
+Total cost = 29 ✓
+(greedy always merges two shortest → minimises repeated work)
+
+── HUFFMAN: freq {a:5,b:9,c:12,d:13,e:16,f:45} ─────
+heap=[(5,a),(9,b),(12,c),(13,d),(16,e),(45,f)]
+Merge a(5)+b(9)=14: heap has (12,c),(13,d),(14,ab),(16,e),(45,f)
+Merge c(12)+d(13)=25: heap=(14,ab),(16,e),(25,cd),(45,f)
+...continue...
+Final: a=1100 (4 bits), b=1101 (4 bits), f=0 (1 bit)
+Frequent f gets 1-bit code ✓`,
+        time: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)" },
+        space: "O(n) heap",
+        stable: undefined,
+        when: "Fractional knapsack → greedy (not 0/1). Connect ropes/merge stones → min-heap greedy. Job scheduling → sort by profit + slot allocation. Huffman → data compression. Gas station → linear scan with greedy restart.",
+        pros: [
+          "All O(n log n) — much faster than O(n²) or O(2^n) alternatives",
+          "Fractional knapsack gives exact optimum (unlike 0/1 which needs DP)",
+          "Huffman produces optimal prefix-free codes — provably optimal"
+        ],
+        cons: [
+          "Fractional knapsack: items must be divisible — fails for 0/1",
+          "Job sequencing O(n²) naive — needs Union-Find for O(n log n)",
+          "Huffman tree construction is complex to implement from scratch"
+        ],
+        cpp: `// Greedy Scheduling Problems — C++
+
+// 1. Fractional Knapsack — O(n log n)
+double fractionalKnapsack(int W, vector<pair<int,int>>& items) {
+    // items = {value, weight}
+    sort(items.begin(), items.end(), [](auto& a, auto& b){
+        return (double)a.first/a.second > (double)b.first/b.second;
+    });
+    double total = 0;
+    for (auto& [v, w] : items) {
+        if (W >= w) { total += v; W -= w; }
+        else { total += (double)v * W / w; break; }
+    }
+    return total;
+}
+
+// 2. Minimum Cost to Connect Ropes — O(n log n)
+int connectRopes(vector<int>& ropes) {
+    priority_queue<int,vector<int>,greater<int>> minH(ropes.begin(),ropes.end());
+    int cost = 0;
+    while (minH.size() > 1) {
+        int a=minH.top(); minH.pop();
+        int b=minH.top(); minH.pop();
+        cost += a+b;
+        minH.push(a+b);
+    }
+    return cost;
+}
+
+// 3. Gas Station — O(n), O(1) space
+int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+    int total=0, tank=0, start=0;
+    for (int i=0; i<gas.size(); i++) {
+        total += gas[i]-cost[i];
+        tank  += gas[i]-cost[i];
+        if (tank < 0) { start=i+1; tank=0; } // reset start
+    }
+    return total>=0 ? start : -1;
+}`,
+        python: `# Greedy Scheduling Problems — Python
+import heapq
+
+# 1. Fractional Knapsack — O(n log n)
+def fractional_knapsack(W, items):
+    # items = [(value, weight)]
+    items.sort(key=lambda x: x[0]/x[1], reverse=True)
+    total = 0
+    for value, weight in items:
+        if W >= weight: total+=value; W-=weight
+        else: total += value*(W/weight); break
+    return total
+
+# 2. Minimum Cost to Connect Ropes — O(n log n)
+def connect_ropes(ropes):
+    heapq.heapify(ropes)
+    cost = 0
+    while len(ropes) > 1:
+        a = heapq.heappop(ropes)
+        b = heapq.heappop(ropes)
+        cost += a+b
+        heapq.heappush(ropes, a+b)
+    return cost
+
+# 3. Gas Station — O(n), O(1)
+def can_complete_circuit(gas, cost):
+    total=tank=start=0
+    for i,(g,c) in enumerate(zip(gas,cost)):
+        total+=g-c; tank+=g-c
+        if tank<0: start=i+1; tank=0  # greedy restart
+    return start if total>=0 else -1
+
+# 4. Candy (greedy two-pass)
+def candy(ratings):
+    n=len(ratings); candy=[1]*n
+    for i in range(1,n):
+        if ratings[i]>ratings[i-1]: candy[i]=candy[i-1]+1
+    for i in range(n-2,-1,-1):
+        if ratings[i]>ratings[i+1]: candy[i]=max(candy[i],candy[i+1]+1)
+    return sum(candy)`,
+        practice: [
+          { name: "Fractional Knapsack", diff: "medium" },
+          { name: "Minimum Cost to Connect Ropes", diff: "medium" },
+          { name: "Gas Station", diff: "medium" },
+          { name: "Candy", diff: "hard" },
+          { name: "Task Scheduler", diff: "medium" }
+        ]
+      },
+      "Greedy vs DP & Complexity": {
+        diff: "easy",
+        explanation: "When to use Greedy vs DP: Greedy — fast O(n log n), simple, never revisits choices. Works when greedy choice property holds. DP — slower O(n²) or O(n×W), always correct for problems with overlapping subproblems. Key test: construct a counterexample. If greedy can fail (local optimal ≠ global optimal) → use DP. Classic rule: Fractional Knapsack → Greedy works (can take fractions). 0/1 Knapsack → Greedy fails (can't take fractions, must use DP). Coin change with standard denominations → Greedy. Coin change arbitrary → DP. Common greedy patterns: Sort + Select (most problems), Earliest Finish Time (intervals), Highest Profit First (knapsack-like), Minimum Cost First (MST), Greedy + Heap (scheduling).",
+        intuition: "The exchange argument is how you prove greedy: assume there's a better solution that doesn't follow the greedy choice. Show you can swap the greedy choice in without worsening the solution. This contradicts the assumption. Therefore, greedy is optimal. If you can't construct this argument → greedy likely fails → use DP.",
+        steps: [
+          "IS GREEDY APPLICABLE? Try to construct a counterexample. If you can → use DP.",
+          "SORTING: most greedy problems start with sorting. Choose sort key carefully.",
+          "SCAN: one linear pass after sorting with a greedy decision at each step.",
+          "HEAP: some problems need a priority queue to always pick the current best.",
+          "PROVE: use exchange argument — show swapping greedy's choice for any other choice doesn't improve the solution.",
+          "COMPLEXITY: sorting O(n log n) + linear scan O(n) = O(n log n) total for most greedy."
+        ],
+        dryRun: `Greedy vs DP — Decision Table:
+Problem                  | Greedy | DP     | Reason
+─────────────────────────┼────────┼────────┼──────────────────────
+Activity selection       | O(n logn)| O(n²) | Greedy provably optimal
+Fractional knapsack      | O(n logn)| N/A   | Items divisible
+0/1 Knapsack             | FAILS  | O(nW)  | Can't take fractions
+Coin change (standard)   | O(n)   | O(nA)  | Greedy works here
+Coin change (arbitrary)  | FAILS  | O(nA)  | Counterexample exists
+Huffman coding           | O(n logn)| N/A   | Min-heap greedy optimal
+LCS / Edit distance      | FAILS  | O(n²)  | No greedy choice exists
+Shortest path (unweighted)| O(V+E) | N/A   | BFS is greedy
+Shortest path (weighted) | O((V+E)logV)| O(VE)| Dijkstra vs Bellman
+
+Pattern → Algorithm mapping:
+  Sort by end time          → Activity selection / intervals
+  Sort by value/weight      → Fractional knapsack
+  Sort by profit desc       → Job sequencing
+  Min-heap of frequencies   → Huffman, connect ropes
+  Always pick min/max       → Dijkstra, Prim's MST`,
+        time: { best: "O(n)", avg: "O(n log n)", worst: "O(n log n)" },
+        space: "O(1) most / O(n) with heap",
+        stable: undefined,
+        when: "Greedy when: problem is an optimization, greedy property provably holds, exchange argument works. DP when: overlapping subproblems, can't prove greedy, counterexample exists.",
+        pros: [
+          "O(n log n) vs O(n²) or O(2^n) — massive speed advantage",
+          "Simple code — usually sort + one pass",
+          "Memory efficient — O(1) extra space for many problems"
+        ],
+        cons: [
+          "Requires proof — can't just assume greedy works",
+          "Fails silently on wrong problems — gives wrong answer, not error",
+          "Harder to debug when counterexample is non-obvious"
+        ],
+        cpp: `// Greedy Complexity Reference — C++
+
+// Pattern 1: Sort + Select
+// sort(arr, comparator)  → O(n log n)
+// single scan            → O(n)
+// TOTAL: O(n log n)
+
+// Pattern 2: Greedy + Min Heap
+// heapify(arr)   → O(n)
+// n × pop/push   → O(n log n)
+// TOTAL: O(n log n)
+
+// Common greedy problems and their complexities:
+// Activity selection:    O(n log n) — sort by end
+// Fractional knapsack:   O(n log n) — sort by ratio
+// Job sequencing:        O(n log n) — sort by profit + Union-Find
+// Connect ropes:         O(n log n) — min-heap
+// Huffman coding:        O(n log n) — min-heap
+// Gas station:           O(n) — one pass linear
+// Candy:                 O(n) — two passes
+
+// Proving greedy (exchange argument template):
+// 1. Let G = greedy solution, O = any optimal solution
+// 2. Find first position where G and O differ
+// 3. Show swapping O's choice for G's choice doesn't increase cost
+// 4. Conclude G is at least as good as O → G is optimal`,
+        python: `# Greedy Patterns Summary — Python
+
+# Most greedy problems follow this template:
+def greedy_solve(items):
+    # Step 1: Define sort key (the "greedy criterion")
+    items.sort(key=lambda x: greedy_criterion(x))
+
+    result = initial_state
+    for item in items:
+        if can_include(item, result):   # greedy decision
+            include(item, result)        # commit — never revisit
+    return result
+
+# Pattern examples:
+# Activity: key=end_time,  condition: start>=last_end
+# Fractional: key=-ratio,  condition: always (take fraction if needed)
+# Kruskal: key=weight,     condition: doesn't form cycle (Union-Find)
+
+# Quick test if greedy works:
+# 1. Write greedy solution
+# 2. Try small counterexamples (n=2,3,4)
+# 3. If counterexample found → use DP
+# 4. If not found after trying → likely greedy works`,
+        practice: [
+          { name: "Jump Game (Greedy)", diff: "medium" },
+          { name: "Jump Game II (Min Jumps)", diff: "medium" },
+          { name: "Minimum Number of Arrows to Burst Balloons", diff: "medium" },
+          { name: "Partition Labels", diff: "medium" },
+          { name: "Minimum Platforms (Scheduling)", diff: "medium" }
+        ]
+      }
+    }
+  },
+  Backtracking: {
+    icon: "↩️", diff: "hard",
+    desc: "Try → Explore → Undo. Smarter brute-force with pruning. Subsets, permutations, N-Queens, Sudoku.",
+    subtopics: {
+      "Basics & Template": {
+        diff: "medium",
+        explanation: "Backtracking is a problem-solving technique where we build a solution step by step and undo (backtrack) choices that don't lead to a valid solution. It is a smarter brute-force: instead of checking all possibilities blindly, we stop exploring a path as soon as we realize it cannot lead to a solution (pruning). Core pattern: Choose → Explore → Unchoose. Every backtracking problem can be visualized as a decision tree of choices. Key terms: Decision Tree — every node is a choice, every leaf is a complete solution (valid or invalid). Constraint — condition that must be satisfied. Backtrack (Undo) — after exploring one choice, remove it and try the next. Pruning — stop early when current path cannot possibly lead to a valid solution.",
+        intuition: "Think of solving a maze: move forward, if you hit a dead end → go back and try another path. Or trying passwords: try one, if wrong try next, if partial match fails → stop early. Key mindset: 'Explore all possibilities, but stop early when invalid.' The undo step is mandatory — without it, choices from one branch contaminate the next branch.",
+        steps: [
+          "IDENTIFY CHOICES: at each step, what options are available?",
+          "IDENTIFY CONSTRAINTS: what conditions must the current path satisfy?",
+          "IDENTIFY BASE CASE: when is the solution complete?",
+          "TEMPLATE: if base_case: save result. For each choice: if valid(choice): make_choice → recurse → undo_choice.",
+          "UNDO STEP: pop_back(), visited[i]=false, etc. Without this, choices leak between branches.",
+          "PRUNING: add if(!valid) return early before recursing. Reduces time without changing correctness."
+        ],
+        dryRun: `── SUBSETS of [1,2]: decision tree ──────────────────────
+                    start=[]
+                  /           \\
+          include 1=[1]      skip to 2
+            /       \\              \\
+     include 2=[1,2]  skip → [1]  include 2=[2]  skip=[]
+
+Results: [], [1], [1,2], [2]  (2^2=4 subsets) ✓
+
+── TEMPLATE TRACE for subsets([1,2]) ────────────────────
+backtrack(idx=0, current=[]):
+  save [] ← add to result
+  i=0: push(1) → current=[1]
+    backtrack(idx=1, current=[1]):
+      save [1]
+      i=1: push(2) → current=[1,2]
+        backtrack(idx=2, current=[1,2]):
+          save [1,2]  (no more choices, return)
+        pop(2) ← UNDO → current=[1]
+      (no more i) return
+    pop(1) ← UNDO → current=[]
+  i=1: push(2) → current=[2]
+    backtrack(idx=2, current=[2]):
+      save [2]  (return)
+    pop(2) ← UNDO → current=[]
+Final: [[],[1],[1,2],[2]] ✓`,
+        time: { best: "O(2^n) subsets", avg: "O(n!)", worst: "O(n!)" },
+        space: "O(n) recursion depth",
+        stable: undefined,
+        when: "Use backtracking when: need to enumerate all valid solutions, problem has constraints that prune the search, brute force is too slow but DP doesn't apply (choices depend on path). Pattern triggers: 'all subsets', 'all permutations', 'all combinations', 'is there a valid arrangement'.",
+        pros: [
+          "Finds ALL valid solutions — complete exploration",
+          "Pruning can dramatically reduce actual work (vs pure brute force)",
+          "Elegant recursive code — matches problem structure naturally"
+        ],
+        cons: [
+          "Exponential worst case — O(2^n) or O(n!) unavoidable for enumeration",
+          "Forgetting the undo step is the most common bug",
+          "Stack overflow for very deep recursion"
+        ],
+        cpp: `// Backtracking Universal Template — C++
+
+void backtrack(State& current, Choices& remaining, Results& result) {
+    // Base case: solution is complete
+    if (isComplete(current)) {
+        result.push_back(current);  // save solution
+        return;
+    }
+
+    for (each choice in remaining) {
+        if (isValid(choice, current)) {  // pruning check
+            makeChoice(choice, current);  // CHOOSE
+            backtrack(current, remaining, result);  // EXPLORE
+            undoChoice(choice, current);  // UNCHOOSE ← mandatory!
+        }
+    }
+}
+
+// Generate all subsets — O(2^n)
+void backtrack(int idx, vector<int>& nums,
+               vector<int>& cur, vector<vector<int>>& res) {
+    res.push_back(cur);  // every state is a valid subset
+    for (int i = idx; i < nums.size(); i++) {
+        cur.push_back(nums[i]);       // CHOOSE
+        backtrack(i+1, nums, cur, res); // EXPLORE
+        cur.pop_back();               // UNCHOOSE ← critical!
+    }
+}`,
+        python: `# Backtracking Universal Template — Python
+def backtrack(current, choices, result):
+    # Base case: solution complete
+    if is_complete(current):
+        result.append(current[:])  # save a COPY
+        return
+
+    for choice in choices:
+        if is_valid(choice, current):   # pruning
+            make_choice(choice, current)  # CHOOSE
+            backtrack(current, choices, result)  # EXPLORE
+            undo_choice(choice, current)  # UNCHOOSE ← mandatory!
+
+# Generate all subsets — O(2^n)
+def backtrack_subsets(idx, nums, current, result):
+    result.append(current[:])    # every state = valid subset
+    for i in range(idx, len(nums)):
+        current.append(nums[i])            # CHOOSE
+        backtrack_subsets(i+1, nums, current, result)  # EXPLORE
+        current.pop()                      # UNCHOOSE!
+
+nums = [1, 2, 3]
+result = []
+backtrack_subsets(0, nums, [], result)
+print(result)  # all 2^3=8 subsets`,
+        practice: [
+          { name: "Subsets (LeetCode 78)", diff: "medium" },
+          { name: "Subsets II (with duplicates)", diff: "medium" },
+          { name: "Letter Combinations of Phone Number", diff: "medium" }
+        ]
+      },
+      "Permutations & Combinations": {
+        diff: "medium",
+        explanation: "Three core enumeration problems: (1) Permutations — all orderings of n elements. O(n!). Use a visited/used array to track which elements are in the current permutation. At each level, try all unused elements. (2) Combination Sum — find all combinations from candidates that sum to target. Allow repetition (unbounded). Sort first, start from current index (not 0) to avoid duplicate combinations. Prune when sum exceeds target. (3) Combinations C(n,k) — choose k elements from n without repetition. Start next recursion from i+1. Total solutions = C(n,k).",
+        intuition: "Permutations: at each position, try every unused element. A used[] array tracks what's in the current path. Combination sum: since repetition is allowed, recurse with same index i (not i+1). Pruning: if remaining < 0, return. Sorting candidates enables pruning: if candidates[i] > remaining, all further candidates are too large. For C(n,k): pass start index to avoid reusing elements or reversing order.",
+        steps: [
+          "PERMUTATIONS: used[i]=true → push nums[i] → recurse → pop → used[i]=false. Base: current.size()==nums.size().",
+          "PERMUTATIONS WITH DUPS: sort first. Skip if used[i] or (i>0 && nums[i]==nums[i-1] && !used[i-1]).",
+          "COMBINATION SUM: sort candidates. For i=start..n: if candidates[i]>remaining break (pruning!). Push → recurse(i, remaining-candidates[i]) → pop.",
+          "COMBINATIONS C(n,k): for i=start..n: push(i) → recurse(i+1, k-1) → pop. Base: k==0.",
+          "DUPLICATE SUBSETS: sort first. In loop: if i>start && nums[i]==nums[i-1] → skip (avoid duplicates at same level).",
+          "PHONE LETTER COMBINATIONS: map digits to letters. For each digit: for each letter: push → recurse(next digit) → pop."
+        ],
+        dryRun: `── PERMUTATIONS of [1,2,3] ──────────────────────────────
+Level 0: try 1,2,3
+  Pick 1, used=[T,F,F]:
+    Level 1: try 2,3
+      Pick 2, used=[T,T,F]:
+        Level 2: try 3 → [1,2,3] ✓ save
+      Undo 2
+      Pick 3 → [1,3,2] ✓ save
+    Undo 1
+  Pick 2, used=[F,T,F]:
+    ... → [2,1,3],[2,3,1]
+  Pick 3 → [3,1,2],[3,2,1]
+Total: 3!=6 permutations ✓
+
+── COMBINATION SUM: candidates=[2,3,6,7], target=7 ───
+Sorted: [2,3,6,7]
+backtrack(start=0, remaining=7):
+  i=0(2): push2, remaining=5
+    i=0(2): push2, remaining=3
+      i=0(2): push2, remaining=1
+        i=0(2): 2>1 break ← PRUNING
+      pop2; i=1(3): 3>1 break
+    pop2; i=1(3): push3, remaining=0 → SAVE [2,2,3] ✓
+    pop3; i=2(6): 6>2 break
+  pop2; i=1(3): push3, remaining=4
+    i=1(3): push3, remaining=1 → prune
+    pop3; i=2(6): 6>1 break
+  ... i=3(7): push7, remaining=0 → SAVE [7] ✓
+Results: [[2,2,3],[7]] ✓`,
+        time: { best: "O(n!)", avg: "O(n!) perms", worst: "O(2^t/min) combo sum" },
+        space: "O(n) depth",
+        stable: undefined,
+        when: "Permutations: all orderings needed. Combination sum: combinations with repetition that sum to target. C(n,k): choose k from n. Always sort first when duplicates exist.",
+        pros: [
+          "Pruning (break when sum > target) drastically reduces search space",
+          "Sorting enables early termination — all remaining candidates too large",
+          "Duplicate handling by sorting + skip condition is clean and reusable"
+        ],
+        cons: [
+          "O(n!) for permutations — unavoidable",
+          "Duplicate handling requires careful index logic",
+          "Combination sum: without pruning, exponential blow-up"
+        ],
+        cpp: `// Permutations & Combinations — C++
+
+// 1. Permutations — O(n!)
+void permute(vector<int>& nums, vector<int>& cur,
+             vector<bool>& used, vector<vector<int>>& res) {
+    if (cur.size()==nums.size()) { res.push_back(cur); return; }
+    for (int i=0; i<nums.size(); i++) {
+        if (used[i]) continue;
+        used[i]=true; cur.push_back(nums[i]);    // CHOOSE
+        permute(nums, cur, used, res);            // EXPLORE
+        cur.pop_back(); used[i]=false;            // UNCHOOSE
+    }
+}
+
+// 2. Combination Sum (repetition allowed) — prune with sort
+void combinationSum(vector<int>& cands, int start, int rem,
+                    vector<int>& cur, vector<vector<int>>& res) {
+    if (rem==0) { res.push_back(cur); return; }
+    for (int i=start; i<cands.size(); i++) {
+        if (cands[i]>rem) break;  // PRUNING: sorted, all larger too
+        cur.push_back(cands[i]);
+        combinationSum(cands, i, rem-cands[i], cur, res); // i not i+1!
+        cur.pop_back();
+    }
+}
+
+// 3. Subsets with duplicates — sort + skip
+void subsetsWithDup(int idx, vector<int>& nums,
+                    vector<int>& cur, vector<vector<int>>& res) {
+    res.push_back(cur);
+    for (int i=idx; i<nums.size(); i++) {
+        if (i>idx && nums[i]==nums[i-1]) continue; // skip duplicates
+        cur.push_back(nums[i]);
+        subsetsWithDup(i+1, nums, cur, res);
+        cur.pop_back();
+    }
+}`,
+        python: `# Permutations & Combinations — Python
+
+# 1. Permutations — O(n!)
+def permutations(nums):
+    res, used = [], [False]*len(nums)
+    def bt(cur):
+        if len(cur)==len(nums): res.append(cur[:]); return
+        for i in range(len(nums)):
+            if used[i]: continue
+            used[i]=True; cur.append(nums[i])   # CHOOSE
+            bt(cur)                              # EXPLORE
+            cur.pop(); used[i]=False             # UNCHOOSE
+    bt([]); return res
+
+# 2. Combination Sum (repetition OK) — O(t^(t/min))
+def combination_sum(candidates, target):
+    candidates.sort(); res=[]
+    def bt(start, cur, rem):
+        if rem==0: res.append(cur[:]); return
+        for i in range(start, len(candidates)):
+            if candidates[i]>rem: break   # PRUNING!
+            cur.append(candidates[i])
+            bt(i, cur, rem-candidates[i]) # i not i+1 (repetition)
+            cur.pop()
+    bt(0, [], target); return res
+
+# 3. Subsets II (with duplicates) — sort + skip
+def subsets_with_dup(nums):
+    nums.sort(); res=[]
+    def bt(start, cur):
+        res.append(cur[:])
+        for i in range(start, len(nums)):
+            if i>start and nums[i]==nums[i-1]: continue  # skip dup
+            cur.append(nums[i]); bt(i+1, cur); cur.pop()
+    bt(0, []); return res`,
+        practice: [
+          { name: "Permutations", diff: "medium" },
+          { name: "Permutations II (with duplicates)", diff: "medium" },
+          { name: "Combination Sum", diff: "medium" },
+          { name: "Combination Sum II (no repetition)", diff: "medium" },
+          { name: "Combinations (C(n,k))", diff: "medium" }
+        ]
+      },
+      "Constraint Problems": {
+        diff: "hard",
+        explanation: "Constraint-based backtracking problems have strict validity conditions: (1) N-Queens — place N queens on N×N board so no two attack each other (same row, column, or diagonal). Check is_safe before placing. O(N!). (2) Sudoku Solver — fill 9×9 grid with digits 1-9 so each row, column, and 3×3 box has all digits exactly once. For each empty cell, try 1-9, check validity, recurse. Backtrack on failure. (3) Word Search — search for a word in a grid of characters. DFS from each cell, mark as visited, backtrack by unvisiting. (4) Palindrome Partitioning — partition string into all palindromic substrings. Try all possible first palindromes, recurse on remainder.",
+        intuition: "N-Queens: at each row, try placing a queen in each column. Check three constraints: column not used, left diagonal (row-col) not used, right diagonal (row+col) not used. Use three hash sets for O(1) constraint checking. Sudoku: find next empty cell, try 1-9, check row+col+box validity. If all cells filled → done. Word Search: DFS with path tracking — mark cell as '#' while exploring (prevents revisit), restore on backtrack.",
+        steps: [
+          "N-QUEENS: place queens row by row. For each col in row: if not (cols∪diag1∪diag2): place, recurse(row+1), remove. Add to result when row==N.",
+          "N-QUEENS VALIDITY O(1): cols set, diag1 set (row-col), diag2 set (row+col). No 2D board scanning.",
+          "SUDOKU: find next empty cell. Try digits 1-9. if isValid(r,c,d): board[r][c]=d, recurse, board[r][c]='.' (restore).",
+          "SUDOKU VALIDITY: digit not in row r, not in col c, not in 3×3 box (r//3*3+c//3).",
+          "WORD SEARCH: for each cell: if grid[r][c]==word[0]: DFS(r,c,0). In DFS: if idx==len(word): return true. Mark cell, try 4 directions, unmark.",
+          "PALINDROME PARTITION: for end=start..n: if isPalindrome(s[start:end+1]): push → recurse(end+1) → pop. Base: start==n."
+        ],
+        dryRun: `── N-QUEENS (N=4) ──────────────────────────────────────
+Row 0: try col 0,1,2,3
+  col=1: place Q at (0,1). cols={1}, d1={-1}, d2={1}
+  Row 1: col=0: d2(0+1=1)∈d2 ✗. col=2: d1(1-2=-1)∈d1 ✗
+          col=3: cols,d1,d2 OK → place Q at (1,3)
+  Row 2: col=0: OK. Place at (2,0). cols={1,3,0}, d1={-1,2,-2}, d2={1,4,2}
+  Row 3: col=2: check col=2 OK, d1(3-2=1)∉d1 OK, d2(3+2=5)∉d2 OK
+    → Place at (3,2) → ALL 4 ROWS DONE → SAVE solution ✓
+  One solution: .Q.. / ...Q / Q... / ..Q.
+
+── WORD SEARCH: grid, word="ABCCED" ────────────────────
+A B C E
+S F C S
+A D E E
+
+Start DFS at (0,0)='A'=word[0]:
+  (0,0)→mark '#', try (0,1)='B'=word[1]
+    (0,1)→mark '#', try (0,2)='C'=word[2]
+      (0,2)→mark '#', try (1,2)='C'=word[3]
+        ... (1,2)→E(2,2)→D(2,1) = "ABCCED" ✓ return True`,
+        time: { best: "O(N!)", avg: "O(N!)", worst: "O(9^81) Sudoku" },
+        space: "O(N) depth / O(N²) board",
+        stable: undefined,
+        when: "Constraint satisfaction problems: N-Queens, Sudoku, word search, crossword. Any 'place elements with conditions' problem. Palindrome partitioning for all valid splits of a string.",
+        pros: [
+          "Constraint checking with sets is O(1) — much better than O(N) board scanning",
+          "Pruning makes constraint problems tractable despite exponential search space",
+          "Elegant recursive structure matches the problem's natural structure"
+        ],
+        cons: [
+          "Sudoku worst case O(9^81) — but heavily pruned in practice",
+          "N-Queens: O(N!) without constraint sets, faster with sets",
+          "Complex to debug — use small examples to trace decision tree"
+        ],
+        cpp: `// Constraint Backtracking — C++
+
+// 1. N-Queens — O(N!)
+class NQueens {
+    int n; vector<vector<string>> res;
+    unordered_set<int> cols, diag1, diag2; // O(1) checks
+public:
+    vector<vector<string>> solve(int n) {
+        this->n=n; vector<string> board(n,string(n,'.'));
+        bt(board, 0); return res;
+    }
+    void bt(vector<string>& board, int row) {
+        if (row==n) { res.push_back(board); return; }
+        for (int col=0; col<n; col++) {
+            if (cols.count(col)||diag1.count(row-col)||diag2.count(row+col)) continue;
+            board[row][col]='Q';
+            cols.insert(col); diag1.insert(row-col); diag2.insert(row+col);
+            bt(board, row+1);
+            board[row][col]='.';
+            cols.erase(col); diag1.erase(row-col); diag2.erase(row+col);
+        }
+    }
+};
+
+// 2. Sudoku Solver
+bool isValid(vector<vector<char>>& b, int r, int c, char d) {
+    for (int i=0;i<9;i++) {
+        if (b[r][i]==d || b[i][c]==d) return false;
+        if (b[r/3*3+i/3][c/3*3+i%3]==d) return false;
+    }
+    return true;
+}
+bool solveSudoku(vector<vector<char>>& b) {
+    for (int r=0;r<9;r++) for (int c=0;c<9;c++) {
+        if (b[r][c]!='.') continue;
+        for (char d='1';d<='9';d++) {
+            if (!isValid(b,r,c,d)) continue;
+            b[r][c]=d;
+            if (solveSudoku(b)) return true;
+            b[r][c]='.';  // BACKTRACK
+        }
+        return false; // no digit worked → backtrack higher
+    }
+    return true; // all cells filled!
+}`,
+        python: `# Constraint Backtracking — Python
+
+# 1. N-Queens — O(N!) with O(1) constraint check
+def solve_n_queens(n):
+    res=[]; cols=set(); d1=set(); d2=set()
+    board=[['.']*n for _ in range(n)]
+    def bt(row):
+        if row==n: res.append([''.join(r) for r in board]); return
+        for col in range(n):
+            if col in cols or row-col in d1 or row+col in d2: continue
+            board[row][col]='Q'
+            cols.add(col); d1.add(row-col); d2.add(row+col)
+            bt(row+1)
+            board[row][col]='.'
+            cols.discard(col); d1.discard(row-col); d2.discard(row+col)
+    bt(0); return res
+
+# 2. Word Search
+def exist(grid, word):
+    rows,cols=len(grid),len(grid[0])
+    def dfs(r,c,idx):
+        if idx==len(word): return True
+        if r<0 or r>=rows or c<0 or c>=cols or grid[r][c]!=word[idx]: return False
+        tmp=grid[r][c]; grid[r][c]='#'  # mark visited
+        found=any(dfs(r+dr,c+dc,idx+1) for dr,dc in [(-1,0),(1,0),(0,-1),(0,1)])
+        grid[r][c]=tmp  # RESTORE (undo)
+        return found
+    return any(dfs(r,c,0) for r in range(rows) for c in range(cols))
+
+# 3. Palindrome Partitioning
+def partition(s):
+    res=[]
+    def bt(start, cur):
+        if start==len(s): res.append(cur[:]); return
+        for end in range(start+1,len(s)+1):
+            sub=s[start:end]
+            if sub==sub[::-1]:   # isPalindrome check
+                cur.append(sub); bt(end,cur); cur.pop()
+    bt(0,[]); return res`,
+        practice: [
+          { name: "N-Queens", diff: "hard" },
+          { name: "N-Queens II (count solutions)", diff: "hard" },
+          { name: "Sudoku Solver", diff: "hard" },
+          { name: "Word Search", diff: "medium" },
+          { name: "Palindrome Partitioning", diff: "medium" }
+        ]
+      },
+      "Pruning & Optimisation": {
+        diff: "medium",
+        explanation: "Pruning is what separates backtracking from pure brute force — it cuts branches of the decision tree that cannot possibly lead to valid solutions. Common pruning strategies: (1) Bound pruning — if current sum > target: return. (2) Constraint propagation — before placing, verify all constraints are satisfiable. (3) Ordering — process most constrained variable first (MRV heuristic in Sudoku: fill cell with fewest valid digits first). (4) Duplicate elimination — sort + skip when nums[i]==nums[i-1] at same level. (5) Visited set — avoid revisiting in path-based problems. Backtracking complexity without pruning = brute force. With good pruning, practical runtime can be orders of magnitude better.",
+        intuition: "Pruning works because the decision tree has many invalid branches that can be detected early. In combination sum sorted with [2,3,6,7] for target=7: once we see 6>remaining=5, we break — no need to try 7. In N-Queens: checking a diagonal conflict at row 3 prunes ALL placements in that column for rows 4..N. The earlier you prune, the more branches you eliminate.",
+        steps: [
+          "SUM PRUNING: if current+candidates[i] > target: break (when sorted).",
+          "DUPLICATE SKIP: sort array. In loop: if i>start && nums[i]==nums[i-1]: continue.",
+          "VISITED: in grid/path problems, mark cells. Use 2D boolean or temporary char change (grid[r][c]='#').",
+          "EARLY TERMINATION: in search problems (word search, N-Queens), return true immediately when found — don't continue exploring.",
+          "SORT FOR PRUNING: always sort candidates before combination sum / subset problems. Enables break instead of continue.",
+          "STATE VALIDATION: check constraints BEFORE recursing, not after."
+        ],
+        dryRun: `WITHOUT PRUNING vs WITH PRUNING for combo sum target=7, candidates=[2,3,6,7]:
+
+Without pruning: explore all paths until sum > 7
+  Try [2,2,2,2,2] = 10 > 7 → discard (discovered late)
+  Try [2,2,2,2,3] = 11 > 7 → discard (discovered late)
+  Many unnecessary paths explored...
+
+With pruning (sort + break):
+  [2,2,...]: remaining=3 → candidates[2]=6>3 → BREAK
+    [2,2,3]: remaining=0 → SAVE ✓ (stopped here)
+  [2,3,...]: remaining=2 → candidates[0]=2=2, remaining=0→SAVE [2,2,3]
+  Actually [2,3] tried, remaining=2, 2≤2 → [2,3,2] remaining=0→but
+  Wait, for combo sum with index tracking this prunes many branches.
+
+DUPLICATE SUBSETS: [1,1,2]
+Without skip: [1,2],[1,2] appear twice ✗
+With sort + skip at same level: i>start && nums[i]==nums[i-1] → skip
+  At level 0: try idx=0(1), then idx=1 but nums[1]==nums[0] → SKIP
+  → [1,2] appears exactly once ✓`,
+        time: { best: "O(1) with perfect pruning", avg: "Much less than O(n!)", worst: "O(n!) no pruning" },
+        space: "O(n) depth",
+        stable: undefined,
+        when: "Always add pruning to backtracking — it's the difference between TLE and AC. Prune: sum > target, length > limit, constraint violated, duplicate at same level.",
+        pros: [
+          "Pruning reduces actual runtime from hours to milliseconds on many inputs",
+          "Sort + break is the most powerful simple optimisation",
+          "Constraint checks O(1) with hash sets instead of O(N) scanning"
+        ],
+        cons: [
+          "Worst case unchanged — pruning doesn't change big-O complexity",
+          "Over-pruning (wrong condition) causes missing valid solutions",
+          "Complex pruning logic can introduce bugs — test carefully"
+        ],
+        cpp: `// Pruning Strategies — C++
+
+// 1. Sum pruning — sort candidates first!
+void combinationSum(vector<int>& cands, int start, int rem,
+                    vector<int>& cur, vector<vector<int>>& res) {
+    if (rem==0) { res.push_back(cur); return; }
+    for (int i=start; i<cands.size(); i++) {
+        if (cands[i]>rem) break;  // PRUNING: sorted → all larger too
+        cur.push_back(cands[i]);
+        combinationSum(cands, i, rem-cands[i], cur, res);
+        cur.pop_back();
+    }
+}
+
+// 2. Duplicate skipping — sort first!
+void subsetsNoDup(int idx, vector<int>& nums,
+                  vector<int>& cur, vector<vector<int>>& res) {
+    res.push_back(cur);
+    for (int i=idx; i<nums.size(); i++) {
+        if (i>idx && nums[i]==nums[i-1]) continue;  // SKIP DUPS
+        cur.push_back(nums[i]);
+        subsetsNoDup(i+1, nums, cur, res);
+        cur.pop_back();
+    }
+}
+
+// 3. Early return on found solution
+bool wordSearch(vector<vector<char>>& g, string word, int r, int c, int idx) {
+    if (idx==word.size()) return true;  // FOUND → stop immediately
+    if (r<0||r>=g.size()||c<0||c>=g[0].size()||g[r][c]!=word[idx]) return false;
+    char tmp=g[r][c]; g[r][c]='#';
+    bool found = wordSearch(g,word,r+1,c,idx+1) ||  // try all 4
+                 wordSearch(g,word,r-1,c,idx+1) ||
+                 wordSearch(g,word,r,c+1,idx+1) ||
+                 wordSearch(g,word,r,c-1,idx+1);
+    g[r][c]=tmp;  // restore
+    return found;
+}`,
+        python: `# Pruning Strategies — Python
+
+# Common pruning patterns:
+
+# 1. Sum pruning (always sort first)
+def combo_sum_pruned(cands, target):
+    cands.sort()  # MUST sort for break to work
+    res=[]
+    def bt(start, cur, rem):
+        if rem==0: res.append(cur[:]); return
+        for i in range(start, len(cands)):
+            if cands[i]>rem: break   # PRUNE: sorted, rest are larger
+            cur.append(cands[i]); bt(i, cur, rem-cands[i]); cur.pop()
+    bt(0,[],target); return res
+
+# 2. Duplicate skipping
+def subsets_no_dup(nums):
+    nums.sort()  # MUST sort for duplicate check
+    res=[]
+    def bt(start, cur):
+        res.append(cur[:])
+        for i in range(start, len(nums)):
+            if i>start and nums[i]==nums[i-1]: continue  # SKIP DUPS
+            cur.append(nums[i]); bt(i+1, cur); cur.pop()
+    bt(0,[]); return res
+
+# 3. Length limit pruning (k-combinations)
+def combinations(n, k):
+    res=[]
+    def bt(start, cur):
+        if len(cur)==k: res.append(cur[:]); return
+        # PRUNING: not enough elements left
+        if n-start+1 < k-len(cur): return
+        for i in range(start, n+1):
+            cur.append(i); bt(i+1, cur); cur.pop()
+    bt(1,[]); return res`,
+        practice: [
+          { name: "Combination Sum II (no repetition)", diff: "medium" },
+          { name: "Subsets II (with duplicates)", diff: "medium" },
+          { name: "Rat in a Maze", diff: "medium" },
+          { name: "M-Coloring Problem", diff: "medium" },
+          { name: "Generate Parentheses (pruned)", diff: "medium" }
+        ]
+      }
+    }
+  },
+  Tries: {
+    icon: "📖", diff: "hard",
+    desc: "Prefix trees for autocomplete, spell-check, XOR problems. O(L) insert/search/prefix — faster than hashing for prefix queries.",
+    subtopics: {
+      "Basics & Structure": {
+        diff: "medium",
+        explanation: "A Trie (Prefix Tree) stores strings in a hierarchical character-by-character structure. Each node has: (1) children — links to child nodes (26 for lowercase, or a hash map for general alphabets). (2) isEnd — boolean flag marking if a complete word ends here. Each path from root to a node represents a prefix or full word. Key property: words sharing common prefixes share nodes — this saves space and enables fast prefix queries. Unlike a hash map that stores each word independently, a Trie stores 'cat' and 'car' sharing the 'c'→'a' path and only diverging at 't' vs 'r'. All operations — insert, search, startsWith — run in O(L) where L = word length, independent of how many words are stored.",
+        intuition: "Think of a Trie like a phone contacts autocomplete: when you type 'ca', the system instantly suggests car, cat, camera because it already grouped all words starting with 'ca'. Instead of checking all words, the Trie narrows search step by step. Key insight: 'If the problem mentions prefix → think Trie immediately.' Hash maps give O(1) lookup but can't answer 'does any word start with this prefix?' efficiently. Tries answer that in O(prefix_length).",
+        steps: [
+          "INSERT: start at root. For each char c in word: index=c-'a'. If children[index]==null: create new node. Move to children[index]. At last char: set isEnd=true. O(L).",
+          "SEARCH: start at root. For each char: if child missing → return false. Move to child. Return node.isEnd (true only if full word exists). O(L).",
+          "STARTSWITH: same as search but return true at end (don't check isEnd). O(L).",
+          "DIFFERENCE: search('ca') returns false (not a word). startsWith('ca') returns true (prefix exists). isEnd flag is the key distinction.",
+          "Array children[26] vs HashMap: array is O(1) access, wastes memory for sparse alphabets. HashMap is memory efficient but slightly slower.",
+          "DELETE: find word, unset isEnd. Optionally prune nodes with no children and isEnd=false (bottom-up cleanup)."
+        ],
+        dryRun: `Words inserted: "cat", "car", "dog"
+
+Trie structure:
+root
+├── c [isEnd=F]
+│   └── a [isEnd=F]
+│       ├── t [isEnd=T] ← "cat"
+│       └── r [isEnd=T] ← "car"
+└── d [isEnd=F]
+    └── o [isEnd=F]
+        └── g [isEnd=T] ← "dog"
+
+SEARCH "cat": root→c→a→t → isEnd=T → TRUE ✓
+SEARCH "ca":  root→c→a   → isEnd=F → FALSE ✓ (not a word)
+STARTSWITH "ca": root→c→a → traversal OK → TRUE ✓ (it's a prefix)
+STARTSWITH "do": root→d→o → traversal OK → TRUE ✓
+SEARCH "dog":  root→d→o→g → isEnd=T → TRUE ✓
+SEARCH "dot":  root→d→o→? t not child → FALSE ✓
+
+Space sharing: "cat" and "car" share 3 nodes (root,c,a)
+Without Trie: 6 chars stored separately
+With Trie: 5 nodes total (c,a,t,r + root) ✓`,
+        time: { best: "O(L)", avg: "O(L)", worst: "O(L)" },
+        space: "O(N×L) worst / much less with sharing",
+        stable: undefined,
+        when: "Use Trie when: prefix queries needed (autocomplete, startsWith), many strings share common prefixes, dictionary lookups, word search in grid (Word Search II). Use HashMap when: only exact lookups needed and prefix queries not required.",
+        pros: [
+          "O(L) all operations — independent of number of stored words",
+          "Prefix queries impossible with hash maps — Trie's killer feature",
+          "Common prefixes share nodes — space efficient for large vocabularies"
+        ],
+        cons: [
+          "O(N×alphabet_size) space in worst case — can exceed hash map",
+          "Pointer-heavy structure — poor cache performance",
+          "More complex to implement than hash map"
+        ],
+        cpp: `// Trie Implementation — C++ (from notes)
+class TrieNode {
+public:
+    TrieNode* children[26];
+    bool isEnd;
+    TrieNode() {
+        fill(children, children+26, nullptr);
+        isEnd = false;
+    }
+};
+
+class Trie {
+    TrieNode* root;
+public:
+    Trie() { root = new TrieNode(); }
+
+    // Insert — O(L)
+    void insert(string word) {
+        TrieNode* node = root;
+        for (char c : word) {
+            int i = c-'a';
+            if (!node->children[i])
+                node->children[i] = new TrieNode();
+            node = node->children[i];
+        }
+        node->isEnd = true;
+    }
+
+    // Search full word — O(L)
+    bool search(string word) {
+        TrieNode* node = root;
+        for (char c : word) {
+            int i = c-'a';
+            if (!node->children[i]) return false;
+            node = node->children[i];
+        }
+        return node->isEnd; // must be end of word!
+    }
+
+    // Prefix check — O(L)
+    bool startsWith(string prefix) {
+        TrieNode* node = root;
+        for (char c : prefix) {
+            int i = c-'a';
+            if (!node->children[i]) return false;
+            node = node->children[i];
+        }
+        return true; // just reachable — don't check isEnd
+    }
+};`,
+        python: `# Trie Implementation — Python (from notes)
+class TrieNode:
+    def __init__(self):
+        self.children = {}   # char → TrieNode
+        self.is_end = False
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+
+    # Insert — O(L)
+    def insert(self, word: str):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                node.children[ch] = TrieNode()
+            node = node.children[ch]
+        node.is_end = True
+
+    # Search full word — O(L)
+    def search(self, word: str) -> bool:
+        node = self.root
+        for ch in word:
+            if ch not in node.children: return False
+            node = node.children[ch]
+        return node.is_end  # must be end of word!
+
+    # Prefix check — O(L)
+    def starts_with(self, prefix: str) -> bool:
+        node = self.root
+        for ch in prefix:
+            if ch not in node.children: return False
+            node = node.children[ch]
+        return True  # don't check is_end`,
+        practice: [
+          { name: "Implement Trie (Prefix Tree) LeetCode 208", diff: "medium" },
+          { name: "Design Add and Search Words (Wildcards)", diff: "medium" },
+          { name: "Longest Common Prefix", diff: "easy" }
+        ]
+      },
+      "Important Trie Problems": {
+        diff: "hard",
+        explanation: "Five canonical Trie problems: (1) Word Search II — find all words from a dictionary in a grid. Build Trie from dictionary, then DFS on each grid cell matching Trie paths. O(M×N×4^L). (2) Search Suggestions System — for each prefix of search query, return 3 lexicographically smallest matching words. Insert all products into Trie, DFS to collect words. (3) Replace Words — replace words in sentence with their shortest root from dictionary. For each word, traverse Trie to find shortest matching prefix. (4) Maximum XOR of Two Numbers — use Binary Trie (bits 0/1). For each number, traverse opposite bits greedily to maximise XOR. O(32n). (5) Count Words with Prefix — add a count field to each node, increment on insert. Query by traversing prefix.",
+        intuition: "Word Search II: instead of searching the grid for each word separately (O(words × M×N × 4^L)), build one Trie and search the grid once — the Trie prunes branches where no dictionary word can match. Binary Trie for XOR: store all numbers bit by bit (MSB first). For each query number, greedily go to opposite bit at each level (1→try 0 branch, 0→try 1 branch) to maximise XOR result.",
+        steps: [
+          "WORD SEARCH II: build Trie from word list. DFS each cell, follow Trie simultaneously. When node.isEnd: add word to results. Prune when Trie node is null. Mark cell '#' during DFS, restore after. Remove found words from Trie to avoid duplicates.",
+          "SEARCH SUGGESTIONS: insert all products. For each prefix length 1..n of query: traverse to prefix node, DFS/BFS to collect up to 3 words lexicographically (left-most first). O(total_chars + q×L).",
+          "REPLACE WORDS: build Trie from roots. For each word in sentence: traverse Trie char by char. If node.isEnd → replace word with current prefix. If word ends without hitting root → keep original.",
+          "MAX XOR (Binary Trie): insert all numbers bit by bit (bit 31 down to 0). For each number x: query by going opposite bit at each step. ans XOR = set bit where opposite exists. O(32n).",
+          "COUNT PREFIX: add cnt field to TrieNode, increment on every insert pass-through. Query: traverse prefix, return node.cnt.",
+          "AUTOCOMPLETE: DFS from prefix node, collect all words ending at isEnd=true nodes."
+        ],
+        dryRun: `── REPLACE WORDS: roots=["cat","bat","rat"], sentence="the cattle was rattled by the battery" ──
+Trie contains: "cat", "bat", "rat"
+
+Process each word:
+"the": c→t: not in trie root → keep "the"
+"cattle": c→a→t → isEnd=T at "cat" → replace with "cat"
+"was": w not in trie → keep "was"
+"rattled": r→a→t → isEnd=T at "rat" → replace with "rat"
+"by": b→y: y? No → keep "by"... wait b→a→t isEnd at "bat"
+"the": keep
+"battery": b→a→t → isEnd=T at "bat" → replace with "bat"
+Result: "the cat was rat by the bat" ✓
+
+── BINARY TRIE MAX XOR: [3,10,5,25,2,8] ──────────────
+Numbers in binary (5-bit for simplicity):
+3=00011, 10=01010, 5=00101, 25=11001, 2=00010, 8=01000
+
+Query for max XOR with 25(11001):
+  bit4: want 0 → 0 exists (3,10,5,2,8 all have 0) → take 0 branch, XOR bit=1
+  bit3: want 0 → 0 branch (3,5,2) → XOR bit=1
+  bit2: want 1 → 1 exists (5=101) → XOR bit=1
+  bit1: want 0 → 0 exists (5=101 has 0) → XOR bit=1
+  bit0: want 0 → 0 (2=010,10=010) → XOR bit=1
+Max XOR = 11111 = 31-ish... (25 XOR 5 = 28, 25 XOR 2=27)
+Greedy picks optimal path ✓`,
+        time: { best: "O(L) per op", avg: "O(M×N×4^L) word search II", worst: "O(32n) XOR" },
+        space: "O(N×L) trie / O(M×N) grid visited",
+        stable: undefined,
+        when: "Word Search II: find multiple words in grid efficiently. Replace Words: shortest prefix replacement. Max XOR: binary trie greedy. Search suggestions: prefix autocomplete. Whenever the problem has 'many strings' + 'prefix queries' → Trie.",
+        pros: [
+          "Word Search II: one DFS pass vs searching grid for each word separately",
+          "Binary Trie for XOR: O(32n) vs O(n²) brute force",
+          "Prefix deletion (replacing found words) prevents duplicate results"
+        ],
+        cons: [
+          "Complex implementation — easy to introduce pointer bugs",
+          "Memory-intensive for large vocabularies",
+          "Word Search II can still be slow for large grids with long words"
+        ],
+        cpp: `// Important Trie Problems — C++
+
+// 1. Replace Words
+string replaceWords(vector<string>& dict, string sentence) {
+    Trie trie;
+    for (auto& w : dict) trie.insert(w);
+
+    istringstream iss(sentence); string word, res="";
+    while (iss >> word) {
+        if (!res.empty()) res += " ";
+        // find shortest prefix
+        TrieNode* node = trie.root;
+        string prefix = "";
+        bool found = false;
+        for (char c : word) {
+            int i=c-'a';
+            if (!node->children[i]) break;
+            node = node->children[i];
+            prefix += c;
+            if (node->isEnd) { res+=prefix; found=true; break; }
+        }
+        if (!found) res += word;
+    }
+    return res;
+}
+
+// 2. Maximum XOR — Binary Trie, O(32n)
+struct BitTrie {
+    BitTrie* ch[2] = {};
+    void insert(int num) {
+        BitTrie* node = this;
+        for (int i=31; i>=0; i--) {
+            int b = (num>>i)&1;
+            if (!node->ch[b]) node->ch[b] = new BitTrie();
+            node = node->ch[b];
+        }
+    }
+    int maxXOR(int num) {
+        BitTrie* node = this; int ans=0;
+        for (int i=31; i>=0; i--) {
+            int b = (num>>i)&1, want = 1-b; // try opposite bit
+            if (node->ch[want]) { ans|=(1<<i); node=node->ch[want]; }
+            else if (node->ch[b]) node=node->ch[b];
+            else break;
+        }
+        return ans;
+    }
+};
+
+int findMaximumXOR(vector<int>& nums) {
+    BitTrie* trie = new BitTrie();
+    for (int x : nums) trie->insert(x);
+    int ans=0;
+    for (int x : nums) ans=max(ans, trie->maxXOR(x));
+    return ans;
+}`,
+        python: `# Important Trie Problems — Python
+
+# 1. Replace Words
+def replace_words(dictionary, sentence):
+    trie = Trie()
+    for root in dictionary: trie.insert(root)
+
+    def shortest_root(word):
+        node = trie.root
+        prefix = ""
+        for ch in word:
+            if ch not in node.children: return word
+            node = node.children[ch]; prefix += ch
+            if node.is_end: return prefix  # shortest root found
+        return word
+
+    return ' '.join(shortest_root(w) for w in sentence.split())
+
+# 2. Maximum XOR — Binary Trie O(32n)
+class BitTrieNode:
+    def __init__(self): self.ch = [None, None]
+
+class BitTrie:
+    def __init__(self): self.root = BitTrieNode()
+
+    def insert(self, num):
+        node = self.root
+        for i in range(31, -1, -1):
+            b = (num >> i) & 1
+            if not node.ch[b]: node.ch[b] = BitTrieNode()
+            node = node.ch[b]
+
+    def max_xor(self, num):
+        node = self.root; ans = 0
+        for i in range(31, -1, -1):
+            b = (num >> i) & 1; want = 1-b  # try opposite
+            if node.ch[want]: ans |= (1<<i); node = node.ch[want]
+            elif node.ch[b]: node = node.ch[b]
+        return ans
+
+def find_max_xor(nums):
+    bt = BitTrie()
+    for x in nums: bt.insert(x)
+    return max(bt.max_xor(x) for x in nums)
+
+# 3. Count words with prefix
+class CountTrie:
+    def __init__(self): self.root = {'cnt':0}
+
+    def insert(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node: node[ch]={'cnt':0}
+            node = node[ch]; node['cnt']+=1  # count words passing through
+
+    def count_prefix(self, prefix):
+        node = self.root
+        for ch in prefix:
+            if ch not in node: return 0
+            node = node[ch]
+        return node['cnt']`,
+        practice: [
+          { name: "Word Search II (Trie + Backtracking)", diff: "hard" },
+          { name: "Search Suggestions System", diff: "medium" },
+          { name: "Replace Words", diff: "medium" },
+          { name: "Maximum XOR of Two Numbers", diff: "medium" },
+          { name: "Count Words Beginning with Prefix", diff: "easy" }
+        ]
+      },
+      "Trie vs HashMap & Complexity": {
+        diff: "easy",
+        explanation: "Trie vs HashMap trade-offs: Trie gives O(L) for all ops + prefix queries. HashMap gives O(1) average for exact lookup but cannot answer 'does any word start with this prefix?' without scanning all keys. For pure exact lookups → HashMap wins. For prefix-heavy workloads → Trie wins. Space: Trie O(N×alphabet) worst case, but shared prefixes reduce this significantly. HashMap O(N×L) stores full strings. Types: Standard Trie (26 children array — fast, memory-heavy). HashMap-based Trie (dict children — memory-efficient, slightly slower). Binary Trie (bits 0/1 — for XOR/bitmask problems). Compressed Trie (merge single-child chains — space efficient). Trie with count (prefix frequency counting).",
+        intuition: "The fundamental question: do you need prefix queries? If yes → Trie. If no → HashMap. Real interview tip: when you see 'autocomplete', 'spell check', 'startsWith', 'longest word with all prefixes' → Trie is the answer. When you see 'XOR', 'maximum XOR' → Binary Trie. The Aho-Corasick algorithm extends Trie with failure links to do multi-pattern string matching in O(n+m+k) — used in real grep/search tools.",
+        steps: [
+          "COMPLEXITY: Insert O(L), Search O(L), StartsWith O(L). All independent of n (number of stored words).",
+          "SPACE: O(N×alphabet_size) worst case. Standard: 26 children per node. HashMap Trie: only children that exist.",
+          "TRIE VS HASHMAP: Trie → prefix queries, common prefix space sharing. HashMap → O(1) exact lookup, simpler code.",
+          "BINARY TRIE: children[0] and children[1]. Bits stored MSB first. Max XOR: greedy pick opposite bit each level.",
+          "TRIE WITH COUNT: cnt field incremented on every insert pass-through. Prefix count query = cnt at prefix's last node.",
+          "AHO-CORASICK: Trie + failure links (like KMP failure function). Multi-pattern matching O(n + sum|patterns| + matches)."
+        ],
+        dryRun: `Trie vs HashMap comparison:
+Feature          | Trie           | HashMap
+─────────────────┼────────────────┼──────────────────
+Insert           | O(L)           | O(L) to hash
+Search           | O(L)           | O(1) average
+Prefix search    | O(L) ✓         | O(n×L) ✗
+Space            | O(N×26) worst  | O(N×L)
+Common prefixes  | Shared ✓       | Not shared ✗
+Implementation   | Complex        | Simple
+
+When to use TRIE:
+  ✓ "Does any word start with this prefix?"
+  ✓ Autocomplete (return all words with prefix)
+  ✓ Longest word where all prefixes exist
+  ✓ Replace words with shortest root
+  ✓ Maximum XOR (Binary Trie)
+
+When to use HASHMAP:
+  ✓ Exact word lookup only
+  ✓ No prefix queries needed
+  ✓ Simpler implementation preferred
+
+Trie types quick ref:
+  Standard Trie    → lowercase strings, 26 children
+  Binary Trie      → integers/XOR, 2 children (0,1)
+  Compressed Trie  → memory-efficient, merged nodes
+  Count Trie       → prefix frequency counting`,
+        time: { best: "O(L)", avg: "O(L)", worst: "O(L)" },
+        space: "O(N×26) standard / O(N×L) words",
+        stable: undefined,
+        when: "Prefix query → Trie. Exact lookup only → HashMap. XOR problems → Binary Trie. Multiple pattern search → Aho-Corasick. Autocomplete → Trie + DFS collection.",
+        pros: [
+          "O(L) prefix search — not possible with hash maps",
+          "Space sharing via common prefixes",
+          "Binary Trie enables O(32n) max XOR vs O(n²) brute force"
+        ],
+        cons: [
+          "O(N×26) space can exceed HashMap for large alphabets",
+          "More complex to implement correctly",
+          "Cache-unfriendly pointer chasing"
+        ],
+        cpp: `// Trie vs HashMap & Types — C++
+
+// Standard Trie (26 children array)
+struct TrieNode { TrieNode* ch[26]={}; bool end=false; };
+
+// HashMap Trie (memory-efficient, handles any alphabet)
+struct FlexNode {
+    unordered_map<char,FlexNode*> ch;
+    bool end=false;
+};
+
+// Trie with prefix count
+struct CountNode {
+    CountNode* ch[26]={};
+    bool end=false;
+    int cnt=0;  // words passing through this node
+};
+void insertCount(CountNode* root, string& w) {
+    CountNode* node=root;
+    for (char c:w) {
+        int i=c-'a';
+        if(!node->ch[i]) node->ch[i]=new CountNode();
+        node=node->ch[i];
+        node->cnt++;  // increment count
+    }
+    node->end=true;
+}
+int countPrefix(CountNode* root, string& p) {
+    CountNode* node=root;
+    for (char c:p) {
+        int i=c-'a';
+        if(!node->ch[i]) return 0;
+        node=node->ch[i];
+    }
+    return node->cnt;
+}
+
+// Autocomplete — DFS to collect all words under prefix node
+vector<string> autocomplete(TrieNode* node, string prefix) {
+    vector<string> res;
+    function<void(TrieNode*,string)> dfs=[&](TrieNode* n, string cur){
+        if (n->end) res.push_back(cur);
+        for (int i=0;i<26;i++)
+            if (n->ch[i]) dfs(n->ch[i], cur+char('a'+i));
+    };
+    dfs(node, prefix);
+    return res;
+}`,
+        python: `# Trie Types & Comparison — Python
+
+# 1. HashMap-based Trie (flexible alphabet)
+class FlexTrie:
+    def __init__(self):
+        self.root = {}  # nested dicts, '#' = end marker
+
+    def insert(self, word):
+        node = self.root
+        for ch in word: node = node.setdefault(ch, {})
+        node['#'] = True  # end marker
+
+    def search(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node: return False
+            node = node[ch]
+        return '#' in node
+
+    def starts_with(self, prefix):
+        node = self.root
+        for ch in prefix:
+            if ch not in node: return False
+            node = node[ch]
+        return True
+
+# 2. Count Trie (prefix frequency)
+class CountTrieNode:
+    def __init__(self): self.ch={}; self.end=False; self.cnt=0
+
+class CountTrie:
+    def __init__(self): self.root=CountTrieNode()
+
+    def insert(self, word):
+        node=self.root
+        for ch in word:
+            if ch not in node.ch: node.ch[ch]=CountTrieNode()
+            node=node.ch[ch]; node.cnt+=1
+        node.end=True
+
+    def count_prefix(self, prefix):
+        node=self.root
+        for ch in prefix:
+            if ch not in node.ch: return 0
+            node=node.ch[ch]
+        return node.cnt
+
+# 3. Autocomplete — collect all words under prefix
+def autocomplete(trie, prefix):
+    node=trie.root
+    for ch in prefix:
+        if ch not in node.ch: return []
+        node=node.ch[ch]
+    # DFS to collect all words
+    res=[]
+    def dfs(n, path):
+        if n.end: res.append(path)
+        for c,child in n.ch.items(): dfs(child,path+c)
+    dfs(node, prefix)
+    return res`,
+        practice: [
+          { name: "Implement Trie", diff: "medium" },
+          { name: "Longest Word in Dictionary", diff: "medium" },
+          { name: "Index Pairs of a String", diff: "easy" },
+          { name: "Design Search Autocomplete System", diff: "hard" },
+          { name: "Maximum XOR of Two Numbers in Array", diff: "medium" }
+        ]
+      }
+    }
+  }
 };
 
 // ─── SYNTAX HIGHLIGHTER ───────────────────────────────────────────
@@ -7766,6 +9760,190 @@ function SubtopicView({ data, name }) {
           <div className="callout callout-tip" style={{marginTop:10}}>
             <span className="callout-icon">💡</span>
             <div className="callout-text"><strong>Grid traversal template:</strong> dx=[-1,0,1,0], dy=[0,1,0,-1] (4-directional). Always check 0≤nx&lt;rows AND 0≤ny&lt;cols before accessing grid[nx][ny]. Multi-source BFS = enqueue ALL sources at level 0 simultaneously.</div>
+          </div>
+        </div>
+      )}
+
+      {/* DP: two properties visual */}
+      {is("Basics & Two Properties") && (
+        <div className="sec">
+          <div className="stitle">DP Decision Checklist</div>
+          <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+            {[
+              {title:"Overlapping Subproblems","desc":"Same subproblem appears multiple times in the recursion tree. Drawing fib(5) reveals fib(3) computed twice, fib(2) three times.","color":"var(--accent)"},
+              {title:"Optimal Substructure","desc":"Optimal solution built from optimal subsolutions. Shortest path A→C via B = shortest(A,B) + shortest(B,C).","color":"var(--accent3)"},
+            ].map(({title,desc,color})=>(
+              <div key={title} style={{flex:1,minWidth:200,background:"var(--bg2)",border:`1px solid ${color}`,borderLeft:`3px solid ${color}`,borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:".72rem",color,fontWeight:700,marginBottom:6}}>{title}</div>
+                <div style={{fontSize:".77rem",color:"var(--text2)"}}>{desc}</div>
+              </div>
+            ))}
+          </div>
+          <div className="theorem-box" style={{marginTop:12}}>
+            <div className="theorem-label">4-Step DP Framework</div>
+            <div className="theorem-text" style={{fontFamily:"'Space Mono',monospace",fontSize:".76rem",lineHeight:2}}>
+              {"1. Define STATE:      dp[i] = ?"}<br/>
+              {"2. Write TRANSITION:  dp[i] = f(dp[i-1], dp[i-2]...)"}<br/>
+              {"3. Base CASES:        dp[0]=?, dp[1]=?"}<br/>
+              {"4. Compute ORDER:     bottom-up or top-down"}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DP: 1D patterns pills */}
+      {is("1D DP Patterns") && (
+        <div className="sec">
+          <div className="stitle">1D DP Pattern Toolkit</div>
+          <div className="pattern-pills">
+            {["Fibonacci / Climbing Stairs","House Robber (skip adjacent)","Coin Change (min coins)","Coin Change (ways count)","LIS O(n²)","LIS O(n log n)","Word Break","Jump Game"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Coin Change direction matters:</strong> Min coins (unbounded) → iterate i forwards. 0/1 knapsack → iterate w BACKWARDS. Forgetting this turns 0/1 into unbounded knapsack — classic bug.</div>
+          </div>
+        </div>
+      )}
+
+      {/* DP: 2D patterns table */}
+      {is("2D DP Patterns") && (
+        <div className="sec">
+          <div className="stitle">2D DP Problem Map</div>
+          <table className="fn-table">
+            <thead><tr><th>Problem</th><th>State</th><th>Transition</th><th>Time</th></tr></thead>
+            <tbody>
+              {[
+                ["0/1 Knapsack","dp[i][w]=max val","take or skip item","O(n×W)"],
+                ["LCS","dp[i][j]=LCS len","match→+1, else max","O(n×m)"],
+                ["Edit Distance","dp[i][j]=min edits","match→copy, else 1+min","O(n×m)"],
+                ["Unique Paths","dp[i][j]=paths","dp[i-1][j]+dp[i][j-1]","O(n×m)"],
+                ["Min Path Sum","dp[i][j]=min cost","min(top,left)+grid[i][j]","O(n×m)"],
+              ].map(([p,s,t,c])=>(
+                <tr key={p}>
+                  <td className="op" style={{fontSize:".75rem"}}>{p}</td>
+                  <td style={{color:"var(--accent2)",fontFamily:"Space Mono,monospace",fontSize:".71rem"}}>{s}</td>
+                  <td style={{color:"var(--text2)",fontSize:".71rem"}}>{t}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".71rem"}}>{c}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Space optimisation:</strong> Most 2D DP only needs the previous row → reduce to O(n) space. Knapsack iterate w backwards. LCS keep prev/curr rows. Unique paths: single 1D array.</div>
+          </div>
+        </div>
+      )}
+
+      {/* DP: classic problems pills */}
+      {is("Classic Problems") && (
+        <div className="sec">
+          <div className="stitle">Must-Know DP Problems</div>
+          <div className="pattern-pills">
+            {["Kadane's Max Subarray","Subset Sum / Partition","Longest Palindromic Subsequence","Count Palindromic Substrings","Matrix Chain Multiplication","Rod Cutting","Egg Drop","Burst Balloons"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>DP vs Greedy:</strong> Greedy makes locally optimal choice → not always globally optimal. DP tries all options and picks best. If greedy gives correct answer → use it (simpler). Otherwise → DP guarantees optimality.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Greedy: property check */}
+      {is("Basics & Greedy Choice Property") && (
+        <div className="sec">
+          <div className="stitle">Greedy vs DP Decision</div>
+          <table className="fn-table">
+            <thead><tr><th>Problem</th><th>Greedy?</th><th>Reason</th></tr></thead>
+            <tbody>
+              {[
+                ["Activity selection","YES ✓","Earliest end → provably optimal"],
+                ["Fractional knapsack","YES ✓","Items divisible → take best ratio"],
+                ["0/1 Knapsack","NO ✗","Can't take fractions → use DP"],
+                ["Coin change (standard)","YES ✓","Standard denominations work"],
+                ["Coin change (arbitrary)","NO ✗","Counterexample exists → DP"],
+                ["Huffman coding","YES ✓","Min-heap merge → optimal codes"],
+              ].map(([p,g,r])=>(
+                <tr key={p}>
+                  <td style={{color:"var(--text2)",fontSize:".76rem"}}>{p}</td>
+                  <td style={{color:g.includes("✓")?"var(--green)":"var(--red)",fontFamily:"Space Mono,monospace",fontSize:".73rem",fontWeight:700}}>{g}</td>
+                  <td style={{color:"var(--text3)",fontSize:".73rem"}}>{r}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="callout callout-warn" style={{marginTop:10}}>
+            <span className="callout-icon">⚡</span>
+            <div className="callout-text"><strong>Quick test:</strong> Try to construct a counterexample for your greedy approach with n=3 or n=4. If you find one → greedy fails, use DP. If not → likely safe to proceed with greedy.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Greedy: interval patterns */}
+      {is("Interval Problems") && (
+        <div className="sec">
+          <div className="stitle">Interval Problem Patterns</div>
+          <div className="pattern-pills">
+            {["Activity Selection (sort by END)","Merge Intervals (sort by START)","Non-overlapping Removals","Min Platforms / Meeting Rooms II","Insert Interval","Minimum Arrows to Burst Balloons"].map(p=>(
+              <div className="ppill" key={p}>{p}</div>
+            ))}
+          </div>
+          <div className="theorem-box" style={{marginTop:12}}>
+            <div className="theorem-label">Why sort by END time (not start)?</div>
+            <div className="theorem-text">The activity finishing earliest leaves maximum room for future activities. Sorting by start instead is the #1 interval greedy bug. Exchange argument: if we swap any chosen activity for a later-ending one, we can never do better.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Greedy: scheduling patterns */}
+      {is("Fractional Knapsack & Scheduling") && (
+        <div className="sec">
+          <div className="stitle">Greedy Pattern → Algorithm</div>
+          <table className="fn-table">
+            <thead><tr><th>Pattern</th><th>Algorithm</th><th>Sort by</th><th>Time</th></tr></thead>
+            <tbody>
+              {[
+                ["Sort + Select","Activity selection","End time","O(n log n)"],
+                ["Sort by ratio","Fractional knapsack","value/weight ↓","O(n log n)"],
+                ["Sort by profit","Job sequencing","Profit ↓","O(n log n)"],
+                ["Min-heap merge","Connect ropes / Huffman","Frequency/size ↑","O(n log n)"],
+                ["Linear scan","Gas station","N/A","O(n)"],
+                ["Two-pass","Candy distribution","N/A","O(n)"],
+              ].map(([p,a,s,t])=>(
+                <tr key={p}>
+                  <td className="op">{p}</td>
+                  <td style={{color:"var(--text2)",fontSize:".74rem"}}>{a}</td>
+                  <td style={{color:"var(--accent3)",fontFamily:"Space Mono,monospace",fontSize:".72rem"}}>{s}</td>
+                  <td style={{color:"var(--green)",fontFamily:"Space Mono,monospace",fontSize:".72rem"}}>{t}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Greedy: complexity comparison */}
+      {is("Greedy vs DP & Complexity") && (
+        <div className="sec">
+          <div className="stitle">Greedy vs DP</div>
+          <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+            {[
+              {title:"Greedy ✓",items:["O(n log n) fast","Simple — sort + scan","Commits early, never backtracks","Requires proof (exchange argument)","Fails: 0/1 knapsack, arbitrary coins"],color:"var(--green)"},
+              {title:"Dynamic Programming ✓",items:["O(n²) or O(n×W) — slower","Always correct if formulated right","Tries all subproblems, picks best","No proof needed — exhaustive","Works: knapsack, edit distance, LCS"],color:"var(--accent2)"},
+            ].map(({title,items,color})=>(
+              <div key={title} style={{flex:1,minWidth:190,background:"var(--bg2)",border:`1px solid ${color}`,borderLeft:`3px solid ${color}`,borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:".72rem",color,fontWeight:700,marginBottom:8}}>{title}</div>
+                {items.map((s,i)=><div key={i} style={{fontSize:".74rem",color:"var(--text2)",marginBottom:4}}>• {s}</div>)}
+              </div>
+            ))}
+          </div>
+          <div className="callout callout-tip" style={{marginTop:10}}>
+            <span className="callout-icon">💡</span>
+            <div className="callout-text"><strong>Rule:</strong> Always try greedy first — it's simpler and faster. Construct a counterexample to check. If greedy fails → fall back to DP.</div>
           </div>
         </div>
       )}
