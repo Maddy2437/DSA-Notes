@@ -161,6 +161,95 @@ pre{padding:18px 22px;font-size:.78rem;line-height:1.8;font-family:'Space Mono',
   .cxgrid,.pcgrid,.info-cards{grid-template-columns:1fr}.tgrid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
   .stats{gap:20px}
 }
+/* ── COPY BUTTON ── */
+.cblock-wrap{position:relative}
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:.65rem;font-family:'Space Mono',monospace;color:var(--text3);cursor:pointer;transition:all .2s;z-index:2}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.copy-btn.copied{border-color:var(--green);color:var(--green)}
+/* ── PROGRESS TRACKER ── */
+.prog-ring-wrap{position:relative;width:52px;height:52px;flex-shrink:0}
+.prog-ring-wrap svg{transform:rotate(-90deg)}
+.prog-ring-bg{fill:none;stroke:var(--bg3);stroke-width:4}
+.prog-ring-fill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+.prog-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700}
+.tc-prog{display:flex;align-items:center;gap:12px}
+.prog-bar-wrap{background:var(--bg3);border-radius:20px;height:4px;flex:1;overflow:hidden;margin-top:6px}
+.prog-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),var(--accent3));transition:width .5s ease}
+.prog-page{max-width:1100px;margin:0 auto;padding:36px 32px}
+.prog-overview{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px 28px;margin-bottom:32px;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.prog-score{text-align:center}
+.prog-score-num{font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;background:linear-gradient(130deg,var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.prog-score-label{font-size:.72rem;color:var(--text3);font-family:'Space Mono',monospace;margin-top:4px}
+.prog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.prog-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border .2s;cursor:pointer}
+.prog-card:hover{border-color:var(--accent)}
+.prog-card-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.prog-icon{font-size:1.4rem}
+.prog-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem}
+.prog-count{font-size:.7rem;color:var(--text3);margin-top:2px}
+.subtopic-check{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.subtopic-check:last-child{border-bottom:none}
+.check-box{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s}
+.check-box.done{background:var(--green);border-color:var(--green)}
+.check-label{font-size:.8rem;color:var(--text2);flex:1}
+.check-label.done{color:var(--text3);text-decoration:line-through}
+.streak-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,209,102,.1);border:1px solid rgba(255,209,102,.25);border-radius:20px;padding:5px 14px;font-size:.75rem;color:var(--yellow);font-family:'Space Mono',monospace;font-weight:700}
+/* ── AI CODE REVIEWER ── */
+.reviewer-page{max-width:860px;margin:0 auto;padding:36px 32px}
+.rev-split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:700px){.rev-split{grid-template-columns:1fr}}
+.rev-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.rev-card-head{padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg3);font-family:'Space Mono',monospace;font-size:.72rem;color:var(--text3);display:flex;align-items:center;gap:8px}
+.rev-textarea{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Space Mono',monospace;font-size:.77rem;line-height:1.8;resize:none;padding:14px 16px;min-height:200px}
+.verdict-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:.72rem;font-weight:700;font-family:'Space Mono',monospace}
+.verdict-good{background:rgba(6,255,165,.12);color:var(--green);border:1px solid rgba(6,255,165,.3)}
+.verdict-ok{background:rgba(255,209,102,.12);color:var(--yellow);border:1px solid rgba(255,209,102,.3)}
+.verdict-bad{background:rgba(255,92,92,.12);color:var(--red);border:1px solid rgba(255,92,92,.3)}
+.issue-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.issue-item:last-child{border-bottom:none}
+.issue-icon{font-size:.9rem;flex-shrink:0;margin-top:1px}
+.issue-text{font-size:.82rem;color:var(--text2);line-height:1.65}
+/* ── AI SOLVER ── */
+.ai-page{max-width:860px;margin:0 auto;padding:36px 32px}
+.ai-hero{margin-bottom:32px}
+.ai-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(124,92,252,.2),rgba(192,132,252,.15));border:1px solid rgba(124,92,252,.4);border-radius:20px;padding:5px 16px;font-size:.72rem;color:var(--accent2);font-family:'Space Mono',monospace;margin-bottom:14px}
+.ai-title{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;margin-bottom:8px;background:linear-gradient(130deg,var(--text) 0%,var(--accent2) 60%,var(--accent3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ai-sub{color:var(--text2);font-size:.88rem;line-height:1.75;max-width:560px}
+.ai-input-area{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px;transition:border .2s}
+.ai-input-area:focus-within{border-color:var(--accent)}
+.ai-label{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--accent3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.ai-textarea{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Inter',sans-serif;font-size:.875rem;line-height:1.8;resize:vertical;min-height:140px}
+.ai-textarea::placeholder{color:var(--text3)}
+.ai-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.ai-btn{display:flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;border:none;font-family:'Space Mono',monospace}
+.ai-btn-primary{background:var(--accent);color:#fff}
+.ai-btn-primary:hover{background:#6a4de0;transform:translateY(-1px)}
+.ai-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.ai-btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.ai-btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.ai-lang{display:flex;gap:8px;margin-left:auto}
+.ai-lang-btn{padding:6px 14px;border-radius:8px;font-size:.72rem;font-family:'Space Mono',monospace;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text3);transition:all .18s}
+.ai-lang-btn.active{background:rgba(124,92,252,.15);border-color:var(--accent);color:var(--accent);font-weight:700}
+.ai-response{animation:fadeIn .3s ease}
+.ai-response-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.ai-response-header{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.ai-response-icon{font-size:1.1rem}
+.ai-response-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem}
+.ai-response-body{padding:20px;color:var(--text2);line-height:1.85;font-size:.875rem;white-space:pre-wrap;font-family:'Inter',sans-serif}
+.ai-response-body code{background:var(--bg3);padding:2px 7px;border-radius:4px;font-family:'Space Mono',monospace;font-size:.82rem;color:var(--accent2)}
+.ai-streaming{display:inline-block;width:8px;height:16px;background:var(--accent);border-radius:2px;animation:blink .7s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.ai-error{background:rgba(255,92,92,.08);border:1px solid rgba(255,92,92,.25);border-radius:10px;padding:14px 18px;color:var(--red);font-size:.85rem}
+.ai-examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.ai-example{padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;font-size:.75rem;cursor:pointer;color:var(--text2);transition:all .18s}
+.ai-example:hover{border-color:var(--accent);color:var(--accent)}
+.ai-pattern-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.7rem;font-weight:700;font-family:'Space Mono',monospace;background:rgba(6,255,165,.1);color:var(--accent3);border:1px solid rgba(6,255,165,.25);margin:3px}
+.ai-complexity-row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.ai-cx{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:'Space Mono',monospace;font-size:.74rem}
+.ai-cx-label{color:var(--text3);font-size:.65rem;text-transform:uppercase;margin-bottom:3px}
+.ai-cx-val{color:var(--accent2);font-weight:700}
+.nbtn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Space Mono',monospace;transition:all .2s;white-space:nowrap}
+.nbtn:hover{opacity:.9;transform:translateY(-1px)}
 `;
 
 // ─── DATA ──────────────────────────────────────────────────────────
@@ -8327,13 +8416,26 @@ function Tag({ diff }) {
 
 function CodeBlock({ cpp, python }) {
   const [lang, setLang] = useState("cpp");
+  const [copied, setCopied] = useState(false);
+
+  function copyCode() {
+    const code = lang === "cpp" ? cpp : python;
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
   return (
     <div>
       <div className="code-tabs">
         <button className={`ctab${lang === "cpp" ? " active" : ""}`} onClick={() => setLang("cpp")}>C++</button>
         <button className={`ctab${lang === "python" ? " active" : ""}`} onClick={() => setLang("python")}>Python</button>
       </div>
-      <div className="cblock">
+      <div className="cblock cblock-wrap">
+        <button className={"copy-btn"+(copied?" copied":"")} onClick={copyCode}>
+          {copied ? "✓ Copied!" : "Copy"}
+        </button>
         <pre dangerouslySetInnerHTML={{ __html: highlight(lang === "cpp" ? cpp : python, lang) }} />
       </div>
     </div>
@@ -10116,9 +10218,654 @@ function TopicPage({ topic, goHome }) {
 }
 
 // ─── APP ROOT ────────────────────────────────────────────────────
+
+
+// ─── PROGRESS TRACKER ────────────────────────────────────────────
+function ProgressTracker({ onNavigate }) {
+  const STORAGE_KEY = "dsaforge_progress";
+
+  function loadProgress() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  }
+
+  function saveProgress(p) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {}
+  }
+
+  const [progress, setProgress] = useState(loadProgress);
+  const [expanded, setExpanded] = useState(null);
+  const [streak, setStreak] = useState(0);
+
+  // streak calculation
+  useState(() => {
+    try {
+      const today = new Date().toDateString();
+      const raw = JSON.parse(localStorage.getItem("dsaforge_streak") || "{}");
+      const last = raw.lastDate;
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      let s = raw.count || 0;
+      if (last === today) s = s;
+      else if (last === yesterday) s = s + 1;
+      else s = 1;
+      localStorage.setItem("dsaforge_streak", JSON.stringify({ lastDate: today, count: s }));
+      setStreak(s);
+    } catch {}
+  }, []);
+
+  function toggle(topic, sub) {
+    const key = topic + "||" + sub;
+    const next = { ...progress, [key]: !progress[key] };
+    setProgress(next);
+    saveProgress(next);
+  }
+
+  const topics = Object.entries(DSA_DATA);
+  const totalSubs = topics.reduce((a, [, d]) => a + Object.keys(d.subtopics || {}).length, 0);
+  const doneSubs = Object.values(progress).filter(Boolean).length;
+  const pct = totalSubs ? Math.round((doneSubs / totalSubs) * 100) : 0;
+
+  const RADIUS = 20, CIRC = 2 * Math.PI * RADIUS;
+
+  return (
+    <div className="prog-page">
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <div className="ai-badge">📊 Your Progress</div>
+        <div className="ai-title">Study Tracker</div>
+        <p className="ai-sub">Mark subtopics as complete. Your progress is saved locally.</p>
+      </div>
+
+      {/* Overview card */}
+      <div className="prog-overview">
+        <div className="prog-score">
+          <div className="prog-score-num">{pct}%</div>
+          <div className="prog-score-label">Interview Ready</div>
+        </div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".78rem", color: "var(--text2)", marginBottom: 8 }}>
+            <span>{doneSubs} of {totalSubs} subtopics done</span>
+            {streak > 0 && <span className="streak-badge">🔥 {streak} day streak</span>}
+          </div>
+          <div className="prog-bar-wrap" style={{ height: 8 }}>
+            <div className="prog-bar" style={{ width: pct + "%" }} />
+          </div>
+          <div style={{ display: "flex", gap: 20, marginTop: 14, flexWrap: "wrap" }}>
+            {[
+              ["Easy", topics.filter(([,d]) => d.diff==="easy").reduce((a,[,d])=>a+Object.keys(d.subtopics||{}).length,0), "var(--green)"],
+              ["Medium", topics.filter(([,d]) => d.diff==="medium").reduce((a,[,d])=>a+Object.keys(d.subtopics||{}).length,0), "var(--yellow)"],
+              ["Hard", topics.filter(([,d]) => d.diff==="hard").reduce((a,[,d])=>a+Object.keys(d.subtopics||{}).length,0), "var(--red)"],
+            ].map(([label, count, color]) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+                <span style={{ fontSize: ".74rem", color: "var(--text2)" }}>{label}: {count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Topic grid */}
+      <div className="prog-grid">
+        {topics.map(([name, data]) => {
+          const subs = Object.keys(data.subtopics || {});
+          if (subs.length === 0) return null;
+          const done = subs.filter(s => progress[name + "||" + s]).length;
+          const topicPct = subs.length ? Math.round((done / subs.length) * 100) : 0;
+          const isOpen = expanded === name;
+          const strokeColor = topicPct === 100 ? "var(--green)" : topicPct > 0 ? "var(--accent)" : "var(--border)";
+
+          return (
+            <div key={name} className="prog-card" onClick={() => setExpanded(isOpen ? null : name)}>
+              <div className="prog-card-header">
+                <div className="prog-ring-wrap">
+                  <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle className="prog-ring-bg" cx="26" cy="26" r={RADIUS} />
+                    <circle
+                      className="prog-ring-fill"
+                      cx="26" cy="26" r={RADIUS}
+                      stroke={strokeColor}
+                      strokeDasharray={CIRC}
+                      strokeDashoffset={CIRC - (topicPct / 100) * CIRC}
+                    />
+                  </svg>
+                  <div className="prog-pct" style={{ color: strokeColor }}>{topicPct}%</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: "1.1rem" }}>{data.icon}</span>
+                    <span className="prog-name">{name}</span>
+                  </div>
+                  <div className="prog-count">{done}/{subs.length} done · click to expand</div>
+                </div>
+              </div>
+
+              {isOpen && (
+                <div style={{ borderTop: "1px solid var(--border)", paddingTop: 8 }} onClick={e => e.stopPropagation()}>
+                  {subs.map(sub => {
+                    const key = name + "||" + sub;
+                    const isDone = !!progress[key];
+                    return (
+                      <div key={sub} className="subtopic-check" onClick={() => toggle(name, sub)}>
+                        <div className={"check-box" + (isDone ? " done" : "")}>
+                          {isDone && <span style={{ color: "#000", fontSize: ".7rem", fontWeight: 900 }}>✓</span>}
+                        </div>
+                        <span className={"check-label" + (isDone ? " done" : "")}>{sub}</span>
+                        <span
+                          style={{ fontSize: ".68rem", color: "var(--accent)", cursor: "pointer", marginLeft: 4 }}
+                          onClick={e => { e.stopPropagation(); onNavigate(name); }}
+                        >→ study</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {doneSubs > 0 && (
+        <div style={{ textAlign: "center", marginTop: 24 }}>
+          <button className="ai-btn ai-btn-secondary" onClick={() => {
+            if (window.confirm("Reset all progress?")) {
+              setProgress({});
+              saveProgress({});
+            }
+          }}>↺ Reset Progress</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── AI CODE REVIEWER ────────────────────────────────────────────
+function AICodeReviewer() {
+  const [code, setCode] = useState("");
+  const [lang, setLang] = useState("cpp");
+  const [context, setContext] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [review, setReview] = useState(null);
+  const [error, setError] = useState("");
+
+  const SYSTEM_PROMPT = `You are DSAforge AI, an expert DSA code reviewer for a BITS Pilani CS student preparing for interviews.
+Review the given code and respond ONLY in this exact JSON (no markdown, no backticks):
+{
+  "verdict": "Excellent|Good|Needs Work|Buggy",
+  "time_complexity": "O(...) — brief explanation",
+  "space_complexity": "O(...) — brief explanation",
+  "is_optimal": true or false,
+  "optimal_complexity": "O(...) if not optimal, else same as above",
+  "issues": [
+    {"type": "bug|performance|style|edge-case", "icon": "🐛|⚡|✨|🔍", "text": "description of issue"}
+  ],
+  "strengths": ["what the code does well (2-3 points)"],
+  "improved_code": "cleaner/more optimal version of the code with comments",
+  "key_insight": "the single most important thing to learn from this review"
+}`;
+
+  async function review_code() {
+    if (!code.trim()) return;
+    setLoading(true); setError(""); setReview(null);
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: SYSTEM_PROMPT,
+          messages: [{
+            role: "user",
+            content: `Language: ${lang === "cpp" ? "C++" : "Python"}
+${context ? "Problem context: " + context + "
+" : ""}
+Code to review:
+${code}`
+          }]
+        })
+      });
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || "";
+      try {
+        const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+        setReview(parsed);
+      } catch { setError(raw || "Could not parse response."); }
+    } catch { setError("Network error. Please try again."); }
+    setLoading(false);
+  }
+
+  const verdictClass = v => v === "Excellent" ? "verdict-good" : v === "Good" ? "verdict-good" : v === "Needs Work" ? "verdict-ok" : "verdict-bad";
+  const verdictEmoji = v => v === "Excellent" ? "🏆" : v === "Good" ? "✅" : v === "Needs Work" ? "⚠️" : "🐛";
+
+  return (
+    <div className="reviewer-page">
+      <div style={{ marginBottom: 28 }}>
+        <div className="ai-badge">🔍 Powered by Claude AI</div>
+        <div className="ai-title">AI Code Reviewer</div>
+        <p className="ai-sub">Paste your DSA solution and get instant feedback on correctness, complexity, edge cases, and a cleaner rewrite.</p>
+      </div>
+
+      {/* Input split */}
+      <div className="rev-split">
+        <div>
+          <div className="ai-input-area" style={{ marginBottom: 0, height: "100%" }}>
+            <div className="ai-label">// your code</div>
+            <textarea
+              className="ai-textarea"
+              style={{ minHeight: 220, fontFamily: "'Space Mono',monospace", fontSize: ".76rem" }}
+              placeholder={"// Paste your solution here
+void twoSum(vector<int>& nums, int target) {
+    // ...
+}"}
+              value={code}
+              onChange={e => setCode(e.target.value)}
+            />
+          </div>
+        </div>
+        <div>
+          <div className="ai-input-area" style={{ marginBottom: 0, height: "100%" }}>
+            <div className="ai-label">// problem context (optional)</div>
+            <textarea
+              className="ai-textarea"
+              style={{ minHeight: 100 }}
+              placeholder={"e.g. Two Sum — find indices of two numbers that add to target in an unsorted array"}
+              value={context}
+              onChange={e => setContext(e.target.value)}
+            />
+            <div style={{ marginTop: 12 }}>
+              <div className="ai-label" style={{ marginBottom: 8 }}>// language</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {["cpp", "python"].map(l => (
+                  <button key={l} className={"ai-lang-btn" + (lang === l ? " active" : "")} onClick={() => setLang(l)}>
+                    {l === "cpp" ? "C++" : "Python"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="ai-controls" style={{ marginBottom: 24, marginTop: 14 }}>
+        <button className="ai-btn ai-btn-primary" onClick={review_code} disabled={loading || !code.trim()}>
+          {loading ? <><span className="ai-streaming" /> Reviewing...</> : "🔍 Review My Code"}
+        </button>
+        <button className="ai-btn ai-btn-secondary" onClick={() => { setCode(""); setReview(null); setContext(""); setError(""); }}>
+          ✕ Clear
+        </button>
+      </div>
+
+      {error && <div className="ai-error">{error}</div>}
+
+      {loading && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {["Analysing time & space complexity…", "Checking for bugs and edge cases…", "Writing improved version…"].map((msg, i) => (
+            <div key={i} style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 18px", display: "flex", gap: 12, alignItems: "center", opacity: 1 - i * 0.25 }}>
+              <span className="ai-streaming" />
+              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: ".76rem", color: "var(--text3)" }}>{msg}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {review && (
+        <div className="ai-response">
+          {/* Verdict header */}
+          <div className="ai-response-card">
+            <div className="ai-response-header">
+              <span className="ai-response-icon">{verdictEmoji(review.verdict)}</span>
+              <span className="ai-response-title">Verdict</span>
+              <span className={"verdict-badge " + verdictClass(review.verdict)} style={{ marginLeft: "auto" }}>
+                {review.verdict}
+              </span>
+            </div>
+            <div className="ai-response-body">
+              <div className="ai-complexity-row">
+                {[["Time", review.time_complexity], ["Space", review.space_complexity]].map(([l, v]) => (
+                  <div key={l} className="ai-cx"><div className="ai-cx-label">{l}</div><div className="ai-cx-val">{v}</div></div>
+                ))}
+                {!review.is_optimal && (
+                  <div className="ai-cx" style={{ borderColor: "rgba(255,209,102,.3)" }}>
+                    <div className="ai-cx-label" style={{ color: "var(--yellow)" }}>Optimal</div>
+                    <div className="ai-cx-val" style={{ color: "var(--yellow)" }}>{review.optimal_complexity}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Issues + Strengths */}
+          <div className="rev-split">
+            <div className="ai-response-card" style={{ marginBottom: 0 }}>
+              <div className="ai-response-header">
+                <span className="ai-response-icon">⚠️</span>
+                <span className="ai-response-title">Issues Found</span>
+                <span style={{ marginLeft: "auto", fontSize: ".7rem", color: "var(--text3)", fontFamily: "'Space Mono',monospace" }}>
+                  {(review.issues || []).length} issue{(review.issues || []).length !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <div style={{ padding: "12px 16px" }}>
+                {(review.issues || []).length === 0 ? (
+                  <div style={{ color: "var(--green)", fontSize: ".82rem" }}>✓ No issues found!</div>
+                ) : (review.issues || []).map((iss, i) => (
+                  <div key={i} className="issue-item">
+                    <span className="issue-icon">{iss.icon || "•"}</span>
+                    <div>
+                      <div style={{ fontSize: ".68rem", color: "var(--accent2)", fontFamily: "'Space Mono',monospace", marginBottom: 3, textTransform: "uppercase" }}>{iss.type}</div>
+                      <div className="issue-text">{iss.text}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="ai-response-card" style={{ marginBottom: 0 }}>
+              <div className="ai-response-header">
+                <span className="ai-response-icon">💪</span>
+                <span className="ai-response-title">Strengths</span>
+              </div>
+              <div style={{ padding: "12px 16px" }}>
+                {(review.strengths || []).map((s, i) => (
+                  <div key={i} className="issue-item">
+                    <span className="issue-icon">✅</span>
+                    <div className="issue-text">{s}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Key insight */}
+          {review.key_insight && (
+            <div className="ai-response-card" style={{ marginTop: 14 }}>
+              <div className="ai-response-header">
+                <span className="ai-response-icon">🎯</span>
+                <span className="ai-response-title">Key Insight</span>
+              </div>
+              <div className="ai-response-body" style={{ borderLeft: "3px solid var(--accent2)", marginLeft: 20, marginRight: 20, paddingLeft: 14, borderRadius: 4 }}>
+                {review.key_insight}
+              </div>
+            </div>
+          )}
+
+          {/* Improved code */}
+          {review.improved_code && (
+            <div className="ai-response-card" style={{ marginTop: 14 }}>
+              <div className="ai-response-header">
+                <span className="ai-response-icon">✨</span>
+                <span className="ai-response-title">Improved Version</span>
+                <button
+                  className="copy-btn"
+                  style={{ position: "static", marginLeft: "auto" }}
+                  onClick={() => navigator.clipboard.writeText(review.improved_code)}
+                >Copy</button>
+              </div>
+              <div style={{ background: "var(--bg2)", padding: "18px 22px", overflowX: "auto" }}>
+                <pre style={{ fontFamily: "'Space Mono',monospace", fontSize: ".77rem", lineHeight: 1.8, color: "var(--text)", margin: 0 }}>
+                  {review.improved_code}
+                </pre>
+              </div>
+            </div>
+          )}
+
+          <div style={{ textAlign: "center", marginTop: 20 }}>
+            <button className="ai-btn ai-btn-secondary" onClick={() => { setCode(""); setReview(null); setContext(""); }}>
+              ← Review Another
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── AI PROBLEM SOLVER ───────────────────────────────────────────
+function AISolver() {
+  const [problem, setProblem] = useState("");
+  const [lang, setLang] = useState("cpp");
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState("");
+  const [streaming, setStreaming] = useState("");
+
+  const EXAMPLES = [
+    "Two Sum — find two numbers that add to target",
+    "LRU Cache — design a cache with O(1) get and put",
+    "Maximum subarray sum in O(n)",
+    "Detect cycle in a linked list",
+    "Number of islands in a grid",
+    "Longest palindromic substring",
+    "Merge k sorted linked lists",
+    "Word ladder minimum transformations"
+  ];
+
+  const SYSTEM_PROMPT = `You are DSAforge AI, an expert DSA tutor for a CS student at BITS Pilani. 
+When given a problem, respond in this EXACT JSON format (no markdown, no backticks, pure JSON):
+{
+  "pattern": "name of the DSA pattern(s) used",
+  "difficulty": "easy|medium|hard",
+  "time": "O(...)",
+  "space": "O(...)",
+  "intuition": "2-3 sentences on the core insight — WHY this approach works",
+  "approach": "numbered step-by-step algorithm in plain English (5-8 steps)",
+  "code_cpp": "complete working C++ solution with comments",
+  "code_python": "complete working Python solution with comments",
+  "edge_cases": "3-4 important edge cases to test",
+  "followup": "2 follow-up variations of this problem"
+}`;
+
+  async function solve() {
+    if (!problem.trim()) return;
+    setLoading(true); setError(""); setResponse(null); setStreaming("");
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: `Solve this DSA problem in ${lang === "cpp" ? "C++" : "Python"} (primary): ${problem}` }]
+        })
+      });
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || "";
+      try {
+        const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+        setResponse(parsed);
+      } catch {
+        setError(raw);
+      }
+    } catch (e) {
+      setError("Network error. Please try again.");
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div className="ai-page">
+      <div className="ai-hero">
+        <div className="ai-badge">🤖 Powered by Claude AI</div>
+        <div className="ai-title">AI Problem Solver</div>
+        <p className="ai-sub">Paste any DSA problem and get the pattern, intuition, step-by-step approach, and full code — instantly.</p>
+      </div>
+
+      {/* Input */}
+      <div className="ai-input-area">
+        <div className="ai-label">// paste your problem</div>
+        <textarea
+          className="ai-textarea"
+          placeholder={"E.g. — Given an array of integers, find two numbers that add up to a target. Return their indices.\n\nOr just describe it: 'find longest palindromic substring'"}
+          value={problem}
+          onChange={e => setProblem(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) solve(); }}
+        />
+        <div className="ai-controls">
+          <button className={"ai-btn ai-btn-primary"} onClick={solve} disabled={loading || !problem.trim()}>
+            {loading ? <><span className="ai-streaming"/> Solving...</> : <> ⚡ Solve It</>}
+          </button>
+          <button className="ai-btn ai-btn-secondary" onClick={() => { setProblem(""); setResponse(null); setError(""); }}>
+            ✕ Clear
+          </button>
+          <div className="ai-lang">
+            {["cpp","python"].map(l => (
+              <button key={l} className={"ai-lang-btn"+(lang===l?" active":"")} onClick={() => setLang(l)}>
+                {l==="cpp"?"C++":"Python"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{fontSize:".68rem",color:"var(--text3)",marginTop:8,fontFamily:"'Space Mono',monospace"}}>
+          Ctrl+Enter to solve
+        </div>
+      </div>
+
+      {/* Examples */}
+      {!response && !loading && (
+        <div>
+          <div style={{fontSize:".72rem",color:"var(--text3)",fontFamily:"'Space Mono',monospace",marginBottom:8}}>// try an example</div>
+          <div className="ai-examples">
+            {EXAMPLES.map((ex, i) => (
+              <div key={i} className="ai-example" onClick={() => setProblem(ex)}>
+                {ex}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && <div className="ai-error" style={{marginTop:16}}>⚠ {error}</div>}
+
+      {/* Loading skeleton */}
+      {loading && (
+        <div style={{marginTop:24,display:"flex",flexDirection:"column",gap:14}}>
+          {["Identifying pattern…","Writing approach…","Generating code…"].map((msg,i) => (
+            <div key={i} style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:12,padding:"16px 20px",display:"flex",alignItems:"center",gap:12,opacity:1-i*0.25,animation:"fadeIn .4s ease",animationDelay:`${i*0.15}s`,animationFillMode:"both"}}>
+              <span className="ai-streaming"/>
+              <span style={{fontFamily:"'Space Mono',monospace",fontSize:".78rem",color:"var(--text3)"}}>{msg}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Response */}
+      {response && (
+        <div className="ai-response" style={{marginTop:8}}>
+
+          {/* Pattern + Difficulty */}
+          <div className="ai-response-card">
+            <div className="ai-response-header">
+              <span className="ai-response-icon">🎯</span>
+              <span className="ai-response-title">Pattern Identified</span>
+            </div>
+            <div className="ai-response-body">
+              <div style={{marginBottom:12,display:"flex",flexWrap:"wrap",alignItems:"center",gap:8}}>
+                {(response.pattern||"").split(/[,+&\/]/).map((p,i) => (
+                  <span key={i} className="ai-pattern-tag">◆ {p.trim()}</span>
+                ))}
+                <span style={{fontSize:".72rem",padding:"3px 10px",borderRadius:20,fontWeight:700,background:response.difficulty==="easy"?"rgba(6,255,165,.12)":response.difficulty==="medium"?"rgba(255,209,102,.12)":"rgba(255,92,92,.12)",color:response.difficulty==="easy"?"var(--green)":response.difficulty==="medium"?"var(--yellow)":"var(--red)",fontFamily:"'Space Mono',monospace"}}>
+                  {response.difficulty}
+                </span>
+              </div>
+              <div className="ai-complexity-row">
+                {[["Time",response.time],["Space",response.space]].map(([label,val]) => (
+                  <div key={label} className="ai-cx">
+                    <div className="ai-cx-label">{label}</div>
+                    <div className="ai-cx-val">{val}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Intuition */}
+          <div className="ai-response-card">
+            <div className="ai-response-header">
+              <span className="ai-response-icon">💡</span>
+              <span className="ai-response-title">Core Intuition</span>
+            </div>
+            <div className="ai-response-body">{response.intuition}</div>
+          </div>
+
+          {/* Approach */}
+          <div className="ai-response-card">
+            <div className="ai-response-header">
+              <span className="ai-response-icon">📋</span>
+              <span className="ai-response-title">Step-by-Step Approach</span>
+            </div>
+            <div className="ai-response-body">
+              {(response.approach||"").split("\n").map((line,i) => {
+                const trimmed = line.trim();
+                if (!trimmed) return null;
+                const match = trimmed.match(/^(\d+\.?)\s*(.*)/);
+                if (match) return (
+                  <div key={i} style={{display:"flex",gap:12,marginBottom:10,alignItems:"flex-start"}}>
+                    <div style={{width:24,height:24,borderRadius:"50%",background:"var(--accent)",color:"#fff",fontSize:".7rem",fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontFamily:"'Space Mono',monospace"}}>{match[1].replace(".","")}</div>
+                    <div style={{paddingTop:3,lineHeight:1.7}}>{match[2]}</div>
+                  </div>
+                );
+                return <div key={i} style={{marginBottom:6}}>{trimmed}</div>;
+              })}
+            </div>
+          </div>
+
+          {/* Code */}
+          <div className="ai-response-card">
+            <div className="ai-response-header">
+              <span className="ai-response-icon">💻</span>
+              <span className="ai-response-title">Code Solution</span>
+              <div style={{marginLeft:"auto",display:"flex",gap:6}}>
+                {["cpp","python"].map(l => (
+                  <button key={l} className={"ai-lang-btn"+(lang===l?" active":"")} onClick={() => setLang(l)}>
+                    {l==="cpp"?"C++":"Python"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{background:"var(--bg2)",padding:"18px 22px",overflowX:"auto"}}>
+              <pre style={{fontFamily:"'Space Mono',monospace",fontSize:".78rem",lineHeight:1.8,color:"var(--text)",margin:0}}>
+                {lang==="cpp" ? (response.code_cpp||"") : (response.code_python||"")}
+              </pre>
+            </div>
+          </div>
+
+          {/* Edge Cases + Follow-up */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+            {[
+              {icon:"🔍",title:"Edge Cases to Test",content:response.edge_cases},
+              {icon:"🚀",title:"Follow-up Problems",content:response.followup}
+            ].map(({icon,title,content}) => (
+              <div key={title} className="ai-response-card" style={{marginBottom:0}}>
+                <div className="ai-response-header">
+                  <span className="ai-response-icon">{icon}</span>
+                  <span className="ai-response-title">{title}</span>
+                </div>
+                <div className="ai-response-body">{content}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Solve another */}
+          <div style={{marginTop:20,textAlign:"center"}}>
+            <button className="ai-btn ai-btn-secondary" onClick={() => { setProblem(""); setResponse(null); }}>
+              ← Solve Another Problem
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [dark, setDark] = useState(true);
   const [page, setPage] = useState("home");
+  const [aiPage, setAiPage] = useState(false);
+  const [activePanel, setActivePanel] = useState(null); // "solver"|"reviewer"|"progress"
   const [query, setQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
 
@@ -10137,7 +10884,7 @@ export default function App() {
     return searchIndex.filter(i => i.label.toLowerCase().includes(q) || i.sub.toLowerCase().includes(q)).slice(0, 8);
   }, [query, searchIndex]);
 
-  function goTo(topic) { setPage(topic); setQuery(""); setShowResults(false); }
+  function goTo(topic) { setPage(topic); setAiPage(false); setActivePanel(null); setQuery(""); setShowResults(false); }
 
   return (
     <div className={dark ? "" : "light"} style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", transition: "all .25s" }}>
@@ -10145,7 +10892,7 @@ export default function App() {
 
       {/* NAV */}
       <nav className="nav">
-        <div className="logo" onClick={() => setPage("home")}>DSA<span>forge</span></div>
+        <div className="logo" onClick={() => { setPage("home"); setAiPage(false); setActivePanel(null); }}>DSA<span>forge</span></div>
         <div className="sw">
           <span className="s-icon">⌕</span>
           <input className="si" placeholder="Search topics or algorithms…" value={query}
@@ -10165,10 +10912,21 @@ export default function App() {
           )}
         </div>
         <button className="tbtn" onClick={() => setDark(!dark)}>{dark ? "☀ Light" : "☾ Dark"}</button>
+        <div style={{display:"flex",gap:8,flexShrink:0}}>
+          <button className="nbtn" style={{background:activePanel==="solver"?"var(--accent)":undefined}} onClick={() => { setActivePanel("solver"); setAiPage(false); setPage("home"); }}>⚡ Solver</button>
+          <button className="nbtn" style={{background:activePanel==="reviewer"?"var(--accent)":undefined,backgroundImage:activePanel==="reviewer"?"none":undefined}} onClick={() => { setActivePanel("reviewer"); setAiPage(false); setPage("home"); }}>🔍 Reviewer</button>
+          <button className="nbtn" style={{background:activePanel==="progress"?"var(--accent)":undefined,backgroundImage:activePanel==="progress"?"none":undefined}} onClick={() => { setActivePanel("progress"); setAiPage(false); setPage("home"); }}>📊 Progress</button>
+        </div>
       </nav>
 
       {/* PAGES */}
-      {page === "home" ? (
+      {activePanel === "solver" ? (
+        <AISolver />
+      ) : activePanel === "reviewer" ? (
+        <AICodeReviewer />
+      ) : activePanel === "progress" ? (
+        <ProgressTracker onNavigate={(topic) => { setPage(topic); setActivePanel(null); }} />
+      ) : page === "home" ? (
         <main className="home">
           <div className="hero">
             <div className="htag">⚡ BITS Pilani CS · Interview Ready</div>
@@ -10193,7 +10951,7 @@ export default function App() {
           </div>
         </main>
       ) : (
-        <TopicPage topic={page} goHome={() => setPage("home")} />
+        <TopicPage topic={page} goHome={() => { setPage("home"); setAiPage(false); setActivePanel(null); }} />
       )}
     </div>
   );
